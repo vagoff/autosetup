@@ -4,6 +4,12 @@
   projectRoot: '/data/wd/aibox/wintest',
   vmName: 'win11-1c',
 
+  network: {
+    // единственное место, где объявлен loopback-адрес для всей tcp-связи
+    // агент/qemu/swtpm/человек (spice, vnc, qmp) — см. CONFIG-SINGLE-SOURCE
+    loopbackHost: '127.0.0.1',
+  },
+
   windowsIso: {
     url: 'https://software-static.download.prss.microsoft.com/dbazure/888969d5-f34g-4e03-ac9d-1f9786c66749/26100.1742.240906-0331.ge_release_svc_refresh_CLIENT_LTSC_EVAL_x64FRE_en-us.iso',
     filename: '26100.1742.240906-0331.ge_release_svc_refresh_CLIENT_LTSC_EVAL_x64FRE_en-us.iso',
@@ -19,7 +25,11 @@
   // шаблон, используется напрямую. VARS — read-write, копируется один раз
   // per-VM в db/, чтобы состояние UEFI/secure-boot жило вместе с диском.
   ovmf: {
+    // .secboot-вариант первым: Windows 11 Setup жёстко требует Secure
+    // Boot, а обычный OVMF_CODE.4m.fd эту возможность прошивки физически
+    // не собирает — не просто "выключено", а отсутствует как класс.
     codeTemplateCandidates: [
+      '/usr/share/edk2/x64/OVMF_CODE.secboot.4m.fd',
       '/usr/share/edk2/x64/OVMF_CODE.4m.fd',
       '/usr/share/edk2-ovmf/x64/OVMF_CODE.fd',
       '/usr/share/OVMF/OVMF_CODE.fd',
@@ -29,13 +39,68 @@
       '/usr/share/edk2-ovmf/x64/OVMF_VARS.fd',
       '/usr/share/OVMF/OVMF_VARS.fd',
     ],
+    // Свежескопированный OVMF_VARS.4m.fd приходит СОВСЕМ пустым — ни
+    // одной переменной (проверено эмпирически через virt-fw-vars
+    // --print на этом ISO/пакете edk2-ovmf 202605-1). Значит ни PK/KEK/db,
+    // ни состояния SecureBoot там нет вообще — заводим сами сразу после
+    // копирования (см. src/enroll-secure-boot-keys.js).
+    secureBoot: {
+      binary: 'virt-fw-vars',
+    },
   },
 
   tpm: {
     binary: 'swtpm',
-    // control-канал между swtpm и qemu — tcp loopback, не unix-сокет
-    // (alpine и obarun делят сетевое пространство, пробрасывать нечего)
-    ctrlPort: 4001,
+    // control-канал между swtpm и qemu — ЕДИНСТВЕННОЕ осознанное исключение
+    // из общего правила "tcp, не unix sockets": qemu передаёт swtpm файловый
+    // дескриптор данных через CMD_SET_DATAFD (SCM_RIGHTS), а это возможность
+    // ядра, которой в принципе не существует у TCP-сокетов — только у
+    // AF_UNIX. swtpm и qemu-system-x86_64 всегда сидят на одном хосте
+    // (obarun), никогда не пересекают границу alpine/obarun, так что unix-
+    // сокет тут не нарушает мотив исходного правила (тот был про границу
+    // между двумя сетевыми пространствами, которой здесь нет).
+    ctrlSocketFilename: 'swtpm-ctrl.sock',
+  },
+
+  // Автоматизация установки Windows через autounattend.xml — Setup сам
+  // ищет этот файл на подключённом removable-носителе, никакого выбора
+  // руками. Один источник всех ответов; шаблон в
+  // src/lib/render-autounattend-xml.js только подставляет эти значения.
+  unattend: {
+    locale: 'en-US',
+    inputLocale: '0409:00000409', // US QWERTY
+    timezone: 'UTC',
+    // единственный образ в install.wim этого ISO (Enterprise LTSC Eval) —
+    // если окажется не так, Setup явно покажет ошибку выбора образа.
+    imageIndex: 1,
+    // NetBIOS-имя ограничено 15 символами.
+    computerName: 'WIN11-1C',
+    // Не 'Administrator': встроенная учётка так называется, но она
+    // отключена по умолчанию — создавать <LocalAccount> с тем же именем
+    // означало бы либо конфликтовать с ней, либо городить отдельную ветку
+    // шаблона под "это builtin-аккаунт". Отдельное имя с правами
+    // Administrators — проще и без этой развилки.
+    adminUsername: 'admin',
+    // Тестовый пароль одноразовой VM: доступ только с loopback хоста
+    // (SPICE/VNC/QMP/WinRM/ssh — ничего наружу не пробрасывается за
+    // пределы localhost), наружу не торчит. Поменять здесь при желании —
+    // единственный источник.
+    adminPassword: 'ChangeMe!2026',
+    enableAutoLogon: true,
+    // Выполняются один раз при первом входе — сюда, а не в шаблон,
+    // добавляется всё, что нужно включить в госте (WinRM/sshd и т.п.).
+    firstLogonCommands: [
+      'powershell -NoProfile -ExecutionPolicy Bypass -Command "Enable-PSRemoting -Force"',
+      'powershell -NoProfile -ExecutionPolicy Bypass -Command "Add-WindowsCapability -Online -Name OpenSSH.Server~~~~0.0.1.0"',
+      'powershell -NoProfile -ExecutionPolicy Bypass -Command "Set-Service -Name sshd -StartupType Automatic; Start-Service sshd"',
+    ],
+    // Файл ответов доставляется отдельным маленьким USB-диском (removable
+    // media — только там Setup его и ищет), не тем же носителем, что
+    // ISO. Классический размер 1.44MB — с большим запасом под несколько
+    // KB XML, максимально совместимый (см. обсуждение выбора libmount).
+    answerFileDeviceId: 'answerfile0',
+    answerFileFilename: 'autounattend.xml',
+    answerFileImageSizeBytes: 1474560,
   },
 
   qemu: {
@@ -51,9 +116,50 @@
     // Явный флаг конфига, не автоопределение по факту наличия ОС на диске.
     bootFromInstaller: true,
 
+    // id блочного устройства CD — используется и при сборке argv qemu, и
+    // при опросе query-blockstats в confirm-cd-boot-prompt.js, поэтому
+    // единственный источник — здесь, а не литерал в обоих местах.
+    cdromDeviceId: 'cdrom0',
+
     // QMP (машинный протокол управления) — для скриптов/агента: screendump,
     // sendkey, graceful shutdown и т.п. tcp loopback.
     qmpPort: 4000,
+    // сколько ждать (мс), пока после старта qemu-процесса не поднимется
+    // QMP-listener — это ожидание локального forka/bind, а не гадание о
+    // поведении гостя внутри VM (тот же класс, что ctrl-сокет swtpm).
+    qmpConnectTimeoutMs: 10000,
+
+    // Файл, в который QMP screendump сохраняет текущий кадр экрана VM —
+    // рантайм-артефакт, живёт в cache/<vm>/ (см. config.js).
+    screendumpFilename: 'screendump.ppm',
+
+    // Детерминированное прохождение "Press any key to boot from CD or DVD",
+    // без единой зашитой "сколько ждать"/"сколько байт" величины — только
+    // форма поведения счётчика rd_bytes у cdrom (query-blockstats):
+    //
+    // Прошивка САМА, безусловно (даже без единого нажатия клавиши),
+    // вычитывает El Torito загрузчик перед показом prompt'а — измерено
+    // эмпирически: рост, затем НАВСЕГДА плоско, если клавиша не поймана.
+    // При успехе картина другая: тот же начальный рост, тот же временный
+    // штиль (prompt ждёт ввода), но потом чтение ВОЗОБНОВЛЯЕТСЯ (стриминг
+    // boot.wim). "Перестало расти" — это сигнатура ОТКАЗА, а не успеха.
+    //
+    // Поэтому два шага (см. confirm-cd-boot-prompt.js):
+    //  1. wait-for-stable-state — дождаться, пока фоновое чтение
+    //     загрузчика затихнет (requiredStableSamples одинаковых подряд) —
+    //     не важно, какого оно объёма.
+    //  2. wait-for-observable-change — от этой точки отсчёта ждать ЛЮБОГО
+    //     дальнейшего роста (уже без всякого порога — базовая линия
+    //     честная, шум уже позади).
+    //
+    // maxAttempts × pollIntervalMs — верхний предохранитель на каждый шаг
+    // (fail-fast при реальной поломке), не расчёт "сколько ждать".
+    bootPromptConfirmation: {
+      key: 'ret',
+      pollIntervalMs: 300,
+      requiredStableSamples: 2,
+      maxAttempts: 100,
+    },
 
     // экран для человека: 'spice' (по умолчанию — буфер обмена, ресайз,
     // меньше лагов курсора) или 'vnc'. Оба через tcp loopback.

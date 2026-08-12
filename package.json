@@ -3,6 +3,7 @@
   "type": "module",
   "private": true,
   "dependencies": {
-    "json5": "^2.2.3"
+    "json5": "^2.2.3",
+    "libmount": "^0.6.0"
   }
 }

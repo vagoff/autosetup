@@ -21,7 +21,14 @@ const paths = {
 
 export const config = {
   paths,
+  network: raw.network,
   windowsIso: raw.windowsIso,
+  unattend: {
+    ...raw.unattend,
+    // чистый build-артефакт из конфига, без накопленного состояния —
+    // поэтому в cache/, а не в db/ (в отличие от диска/OVMF vars/tpm).
+    answerFileImagePath: path.join(paths.vmCacheDir, raw.unattend.answerFileFilename.replace(/\.xml$/i, '.img')),
+  },
   disk: {
     ...raw.disk,
     path: path.join(paths.vmDbDir, 'disk.qcow2'),
@@ -33,10 +40,14 @@ export const config = {
   tpm: {
     ...raw.tpm,
     stateDir: path.join(paths.vmDbDir, 'tpm'),
+    // сокет — рантайм-артефакт процесса, не состояние TPM, поэтому в cache,
+    // а не в db (см. data/config.json5 про причину unix-сокета здесь).
+    ctrlSocketPath: path.join(paths.vmCacheDir, raw.tpm.ctrlSocketFilename),
   },
   qemu: {
     ...raw.qemu,
     vmName,
     pidFile: path.join(paths.vmCacheDir, 'qemu.pid'),
+    screendumpPath: path.join(paths.vmCacheDir, raw.qemu.screendumpFilename),
   },
 };

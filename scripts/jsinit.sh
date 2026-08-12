@@ -5,10 +5,11 @@ rm -rf node_modules package.json yarn.lock package.lock yarn-error.log .pnpm-deb
 cat > package.json <<'EOF'
 {
   "license": "UNLICENSED",
-  "private": true
+  "private": true,
+  "type": "module"
 }
 EOF
 
-npm add json5
+npm add json5 libmount
 
 exit 0

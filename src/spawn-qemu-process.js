@@ -6,12 +6,12 @@ import { resolveExistingPath } from './lib/resolve-existing-path.js';
 
 // Флаги показа экрана человеку — протокол выбирается конфигом
 // (qemu.displayProtocol), а не хардкодится. И spice, и vnc — tcp/loopback.
-function buildDisplayTransportArgs(qemu) {
+function buildDisplayTransportArgs(qemu, loopbackHost) {
   if (qemu.displayProtocol === 'spice') {
-    return ['-spice', `port=${qemu.spicePort},addr=127.0.0.1,disable-ticketing=on`];
+    return ['-spice', `port=${qemu.spicePort},addr=${loopbackHost},disable-ticketing=on`];
   }
   if (qemu.displayProtocol === 'vnc') {
-    return ['-vnc', `127.0.0.1:${qemu.vncPort - 5900}`];
+    return ['-vnc', `${loopbackHost}:${qemu.vncPort - 5900}`];
   }
   throw new Error(`неизвестный qemu.displayProtocol в конфиге: ${qemu.displayProtocol}`);
 }
@@ -19,7 +19,7 @@ function buildDisplayTransportArgs(qemu) {
 // Строит argv для qemu-system-x86_64 целиком из config.js — ни одной
 // константы вне единого источника (CONFIG-SINGLE-SOURCE).
 export function buildQemuArgs() {
-  const { disk, ovmf, qemu, windowsIso, paths, tpm } = config;
+  const { disk, ovmf, qemu, windowsIso, paths, tpm, network, unattend } = config;
 
   if (!existsSync(disk.path)) {
     throw new Error(`нет диска: ${disk.path}. Сначала запусти create-vm-resources.js`);
@@ -31,6 +31,9 @@ export function buildQemuArgs() {
   const isoPath = path.join(paths.isoDir, windowsIso.filename);
   if (!existsSync(isoPath)) {
     throw new Error(`нет Windows ISO: ${isoPath}. Сначала запусти download-windows-iso.js`);
+  }
+  if (qemu.bootFromInstaller && !existsSync(unattend.answerFileImagePath)) {
+    throw new Error(`нет образа файла ответов: ${unattend.answerFileImagePath}. Сначала запусти build-answer-file-image.js`);
   }
 
   // проброс портов ИЗ ГОСТЯ через SLIRP NAT — отдельная сущность от общего
@@ -50,24 +53,32 @@ export function buildQemuArgs() {
     '-device', 'ahci,id=ahci0',
     '-drive', `if=none,id=disk0,file=${disk.path},format=${disk.format}`,
     '-device', 'ide-hd,bus=ahci0.0,drive=disk0',
-    '-drive', `if=none,id=cdrom0,media=cdrom,file=${isoPath},readonly=on`,
-    '-device', 'ide-cd,bus=ahci0.1,drive=cdrom0',
+    '-drive', `if=none,id=${qemu.cdromDeviceId},media=cdrom,file=${isoPath},readonly=on`,
+    '-device', `ide-cd,bus=ahci0.1,drive=${qemu.cdromDeviceId}`,
     '-boot', `order=${qemu.bootFromInstaller ? 'dc' : 'cd'}`,
     '-netdev', `user,id=net0${hostfwd}`,
     '-device', `${qemu.netDevice},netdev=net0`,
-    // TPM: control-канал у swtpm поднят на tcp/loopback, qemu подключается
-    // клиентом (swtpm уже слушает к этому моменту — run-vm.js гарантирует
-    // порядок запуска).
-    '-chardev', `socket,id=chrtpm,host=127.0.0.1,port=${tpm.ctrlPort}`,
+    // TPM: control-канал у swtpm — unix-сокет (см. tpm.ctrlSocketPath в
+    // config.js, почему именно unix — единственное исключение из общего
+    // tcp-правила). qemu подключается клиентом, swtpm уже слушает к этому
+    // моменту — run-vm.js гарантирует порядок запуска.
+    '-chardev', `socket,id=chrtpm,path=${tpm.ctrlSocketPath}`,
     '-tpmdev', 'emulator,id=tpm0,chardev=chrtpm',
     '-device', 'tpm-tis,tpmdev=tpm0',
     '-device', 'qemu-xhci,id=usb0',
     '-device', 'usb-tablet,bus=usb0.0',
+    // Файл ответов — отдельный съёмный USB-накопитель (не тот же носитель,
+    // что ISO): Windows Setup ищет autounattend.xml только на removable
+    // media, актуально лишь пока идёт установка.
+    ...(qemu.bootFromInstaller ? [
+      '-drive', `if=none,id=${unattend.answerFileDeviceId},format=raw,file=${unattend.answerFileImagePath},readonly=on`,
+      '-device', `usb-storage,bus=usb0.0,drive=${unattend.answerFileDeviceId},removable=true`,
+    ] : []),
     '-vga', 'qxl',
     '-display', 'none', // никаких локальных GTK/SDL-окон — это служба
-    ...buildDisplayTransportArgs(qemu),
+    ...buildDisplayTransportArgs(qemu, network.loopbackHost),
     // QMP — управление скриптом/агентом (screendump, sendkey, powerdown).
-    '-qmp', `tcp:127.0.0.1:${qemu.qmpPort},server,nowait`,
+    '-qmp', `tcp:${network.loopbackHost}:${qemu.qmpPort},server,nowait`,
     '-rtc', 'base=localtime',
     '-pidfile', qemu.pidFile,
   ];
