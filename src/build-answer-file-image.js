@@ -1,4 +1,4 @@
-import { writeFileSync } from 'node:fs';
+import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { mkfsvfat, mount } from 'libmount';
 import { renderAutounattendXml } from './lib/render-autounattend-xml.js';
 import { buildFirstLogonCommands } from './lib/build-first-logon-commands.js';
@@ -12,8 +12,15 @@ import { config } from './config.js';
 // в отличие от create-disk-image.js и др. никакого fail-fast-guard на
 // "уже существует" не нужно.
 export function buildAnswerFileImage() {
-  const { unattend } = config;
+  const { unattend, openSsh } = config;
   const { answerFileImageSizeBytes, answerFileFilename, answerFileImagePath } = unattend;
+
+  if (!existsSync(openSsh.archivePath)) {
+    throw new Error(`нет OpenSSH ZIP: ${openSsh.archivePath}. Сначала запусти download-open-ssh-archive.js`);
+  }
+  if (!existsSync(openSsh.clientPublicKeyPath)) {
+    throw new Error(`нет SSH public key: ${openSsh.clientPublicKeyPath}. Сначала запусти create-ssh-client-key.js`);
+  }
 
   // label — опциональный, ожидает уже закодированный в OEM-кодовую
   // страницу Uint8Array (внутренний хелпер libmount под это не
@@ -41,25 +48,31 @@ export function buildAnswerFileImage() {
   const { scriptFiles, firstLogonCommands } = buildFirstLogonCommands({
     guestScriptsDir: config.paths.guestScriptsDir,
     firstLogonScripts: unattend.firstLogonScripts,
+    supportingGuestScripts: unattend.supportingGuestScripts,
     diagnostics: config.diagnostics,
+    openSsh,
+    serialAgent: config.serialAgent,
+    winRm: config.winRm,
   });
   const xml = renderAutounattendXml({ ...unattend, firstLogonCommands });
 
-  const writeRootFile = (filename, text) => {
+  const writeRootFile = (filename, content) => {
     const file = fs.getRoot().makeFile(filename);
     if (!file) {
       throw new Error(`libmount: не смог создать файл "${filename}" в корне образа`);
     }
-    file.open().writeData(new TextEncoder().encode(text));
+    file.open().writeData(content);
   };
 
-  writeRootFile(answerFileFilename, xml);
+  writeRootFile(answerFileFilename, new TextEncoder().encode(xml));
   for (const { filename, content } of scriptFiles) {
-    writeRootFile(filename, content);
+    writeRootFile(filename, new TextEncoder().encode(content));
   }
+  writeRootFile(openSsh.archiveFilename, readFileSync(openSsh.archivePath));
+  writeRootFile(openSsh.clientPublicKeyFilename, readFileSync(openSsh.clientPublicKeyPath));
 
   writeFileSync(answerFileImagePath, image);
-  console.log(`собран ${answerFileImagePath} (${answerFileFilename} + ${scriptFiles.length} guest-скриптов, ${xml.length} байт XML)`);
+  console.log(`собран ${answerFileImagePath} (${answerFileFilename} + ${scriptFiles.length} guest-скриптов + OpenSSH ZIP + SSH public key, ${xml.length} байт XML)`);
 }
 
 if (import.meta.url === `file://${process.argv[1]}`) {
