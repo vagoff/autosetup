@@ -2,13 +2,15 @@ import { spawnSwtpmProcess } from './spawn-swtpm-process.js';
 import { spawnQemuProcess } from './spawn-qemu-process.js';
 import { confirmCdBootPrompt } from './confirm-cd-boot-prompt.js';
 import { buildAnswerFileImage } from './build-answer-file-image.js';
+import { captureSerialLog } from './capture-serial-log.js';
 import { config } from './config.js';
 
 // Тонкий оркестратор: поднимает swtpm, дожидается сокета, при установке —
 // собирает свежий образ файла ответов и потом детерминированно проходит
-// CD-boot prompt, поднимает qemu, связывает жизненные циклы обоих
-// процессов. Никакой бизнес-логики — она вся в spawn-swtpm-process.js /
-// spawn-qemu-process.js / confirm-cd-boot-prompt.js / build-answer-file-image.js.
+// CD-boot prompt, поднимает qemu, включает постоянный capture COM1-лога,
+// связывает жизненные циклы всех троих. Никакой бизнес-логики — она вся в
+// spawn-swtpm-process.js / spawn-qemu-process.js / confirm-cd-boot-prompt.js /
+// build-answer-file-image.js / capture-serial-log.js.
 async function runVm() {
   if (config.qemu.bootFromInstaller) {
     buildAnswerFileImage();
@@ -18,15 +20,25 @@ async function runVm() {
 
   const qemu = spawnQemuProcess();
 
+  // Чистый Node-код (не внешний бинарь), поэтому живёт в этом же
+  // процессе, а не отдельным spawn-*-process.js — без лишнего процесса
+  // ради процесса (ANTI-BLOAT).
+  const serialLogCapture = new AbortController();
+  captureSerialLog({ signal: serialLogCapture.signal }).catch((error) => {
+    console.error(`capture-serial-log: ${error.message}`);
+  });
+
   const shutdown = (signal) => {
     qemu.kill(signal);
     swtpm.kill(signal);
+    serialLogCapture.abort();
   };
   process.on('SIGINT', () => shutdown('SIGINT'));
   process.on('SIGTERM', () => shutdown('SIGTERM'));
 
   qemu.on('exit', (code, signal) => {
     swtpm.kill('SIGTERM');
+    serialLogCapture.abort();
     process.exit(signal ? 1 : (code ?? 0));
   });
 
