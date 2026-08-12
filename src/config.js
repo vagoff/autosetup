@@ -82,5 +82,8 @@ export const config = {
     vmName,
     pidFile: path.join(paths.vmCacheDir, 'qemu.pid'),
     screendumpPath: path.join(paths.vmCacheDir, raw.qemu.screendumpFilename),
+    // COM1-лог — рантайм-артефакт (не состояние VM), пишет
+    // capture-serial-log.js, поэтому в cache/<vm>/, не в db/.
+    serialLogPath: path.join(paths.vmCacheDir, raw.qemu.serialLogFilename),
   },
 };

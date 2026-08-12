@@ -57,6 +57,8 @@ export function buildFirstLogonCommands({
     OPENSSH_PORT: openSsh.port,
     OPENSSH_ADMIN_AUTHORIZED_KEYS_FILENAME: openSsh.adminAuthorizedKeysFilename,
     OPENSSH_CLIENT_PUBLIC_KEY_FILENAME: openSsh.clientPublicKeyFilename,
+    SERIAL_AGENT_COM_PORT: serialAgent.comPort,
+    SERIAL_AGENT_COM_BAUD_RATE: serialAgent.comBaudRate,
     SERIAL_AGENT_SCRIPT_FILENAME: serialAgent.scriptFilename,
     SERIAL_AGENT_INSTALLATION_DIRECTORY_NAME: serialAgent.installationDirectoryName,
     SERIAL_AGENT_LOG_FILENAME: serialAgent.logFilename,

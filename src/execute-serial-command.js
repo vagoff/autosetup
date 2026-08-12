@@ -7,7 +7,7 @@ function connectSerialPort({ host, port, timeoutMs }) {
     const socket = net.createConnection({ host, port });
     const timeout = setTimeout(() => {
       socket.destroy();
-      reject(new Error(`COM1 TCP ${host}:${port}: не подключился за ${timeoutMs}мс`));
+      reject(new Error(`COM2 TCP ${host}:${port}: не подключился за ${timeoutMs}мс`));
     }, timeoutMs);
     socket.once('connect', () => {
       clearTimeout(timeout);
@@ -15,7 +15,7 @@ function connectSerialPort({ host, port, timeoutMs }) {
     });
     socket.once('error', (error) => {
       clearTimeout(timeout);
-      reject(new Error(`COM1 TCP ${host}:${port}: ${error.message}`));
+      reject(new Error(`COM2 TCP ${host}:${port}: ${error.message}`));
     });
   });
 }
@@ -29,7 +29,7 @@ export async function executeSerialCommand(commandText) {
   const { network, qemu, serialAgent } = config;
   const socket = await connectSerialPort({
     host: network.loopbackHost,
-    port: qemu.serialTcpPort,
+    port: qemu.serialCommandTcpPort,
     timeoutMs: serialAgent.commandTimeoutMs,
   });
   const requestId = randomUUID();
@@ -57,11 +57,11 @@ export async function executeSerialCommand(commandText) {
           try {
             message = JSON.parse(line);
           } catch {
-            process.stderr.write(`COM1: ${line}\n`);
+            process.stderr.write(`COM2: ${line}\n`);
             continue;
           }
           if (message.id !== requestId) {
-            process.stderr.write(`COM1: unexpected response id ${message.id}\n`);
+            process.stderr.write(`COM2: unexpected response id ${message.id}\n`);
             continue;
           }
           clearTimeout(timeout);
@@ -74,7 +74,7 @@ export async function executeSerialCommand(commandText) {
       });
       socket.once('close', () => {
         clearTimeout(timeout);
-        reject(new Error(`serial command ${requestId}: COM1 TCP connection closed before response`));
+        reject(new Error(`serial command ${requestId}: COM2 TCP connection closed before response`));
       });
       socket.write(`${JSON.stringify(request)}\n`, 'ascii');
     });

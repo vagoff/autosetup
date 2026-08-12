@@ -14,7 +14,8 @@ console.log('QEMU quit requested through QMP');
 
 node --input-type=module -e "
 import net from 'node:net';
-const ports=[4000,4002,5985];
+import { config } from './src/config.js';
+const ports=[config.qemu.qmpPort, config.qemu.serialLogTcpPort, config.qemu.serialCommandTcpPort, config.winRm.hostPort];
 await Promise.all(ports.map((port) => new Promise((resolve) => {
     const socket = net.connect({host:'127.0.0.1',port}, () => {
         console.log(port+': still listening');

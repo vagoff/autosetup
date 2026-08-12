@@ -1,6 +1,14 @@
 # Модуль: сохранить serial command agent в ProgramData и запустить его
 # отдельным фоновым PowerShell-процессом. Этот скрипт быстро завершается,
 # поэтому не блокирует очередь FirstLogonCommands.
+#
+# Start-ScheduledTask возвращается до того, как агент реально успел
+# открыть свой COM-порт — асинхронно. Раньше это было гонкой (тот же
+# физический порт, что и у Write-ComLog из следующего FirstLogonCommand).
+# Сейчас — не гонка: агент слушает СВОЙ отдельный COM2
+# (serialAgent.comPort), Write-ComLog всегда пишет только в COM1
+# (diagnostics.comPort) — конфликтовать им физически не за что, вне
+# зависимости от того, кто из них стартовал раньше.
 . "$PSScriptRoot\_lib-guest-script-prelude.ps1"
 
 $agentSourcePath = Join-Path $PSScriptRoot '{{SERIAL_AGENT_SCRIPT_FILENAME}}'

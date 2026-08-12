@@ -91,12 +91,21 @@ export function buildQemuArgs() {
     ...buildDisplayTransportArgs(qemu, network.loopbackHost),
     // QMP — управление скриптом/агентом (screendump, sendkey, powerdown).
     '-qmp', `tcp:${network.loopbackHost}:${qemu.qmpPort},server,nowait`,
-    // COM1 гостя ↔ host TCP-клиент. В отличие от прежнего chardev file
-    // этот канал двусторонний: guest-логи приходят на подключившийся
-    // клиент, а serial-agent может получать от него команды. Стандартный
-    // ISA COM1 Windows видит без отдельного драйвера.
-    '-chardev', `socket,id=com1,host=${network.loopbackHost},port=${qemu.serialTcpPort},server=on,wait=off`,
+    // Два независимых ISA-serial порта — стандартная возможность q35/PC
+    // machine type (не хак под конкретную версию Windows), каждому
+    // последовательному `-serial` соответствует следующий COM гостя по
+    // порядку (COM1, затем COM2), без отдельного драйвера.
+    //  - COM1 = только лог (Write-ComLog), host читает через
+    //    capture-serial-log.js.
+    //  - COM2 = только serial command agent (serve-serial-command.ps1),
+    //    двусторонний, host пишет и читает через execute-serial-command.js.
+    // Разделены физически, а не только по протоколу — см. комментарий у
+    // qemu.serialLogTcpPort/serialCommandTcpPort в data/config.json5 про
+    // то, почему один общий COM тут не годится.
+    '-chardev', `socket,id=com1,host=${network.loopbackHost},port=${qemu.serialLogTcpPort},server=on,wait=off`,
     '-serial', 'chardev:com1',
+    '-chardev', `socket,id=com2,host=${network.loopbackHost},port=${qemu.serialCommandTcpPort},server=on,wait=off`,
+    '-serial', 'chardev:com2',
     '-rtc', 'base=localtime',
     '-pidfile', qemu.pidFile,
   ];

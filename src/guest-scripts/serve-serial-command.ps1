@@ -1,7 +1,10 @@
-# Долгоживущий command agent: принимает один JSON request на строку COM1,
-# исполняет cmd.exe с явным deadline и возвращает JSON response. Все
-# произвольные байты команды/вывода передаются Base64, поэтому serial line
-# остаётся ASCII и не страдает от codepage Windows.
+# Долгоживущий command agent: принимает один JSON request на строку COM2
+# (СВОЙ отдельный физический порт, не COM1 — тот целиком отдан
+# Write-ComLog; см. serialAgent.comPort в data/config.json5), исполняет
+# cmd.exe с явным deadline и возвращает JSON response. Все произвольные
+# байты команды/вывода передаются Base64, поэтому serial line остаётся
+# ASCII и не страдает от codepage Windows. Держит SerialPort открытым
+# бессрочно, пока процесс жив, — это единственный владелец COM2.
 $agentLogPath = Join-Path $env:ProgramData '{{SERIAL_AGENT_INSTALLATION_DIRECTORY_NAME}}\{{SERIAL_AGENT_LOG_FILENAME}}'
 
 function Write-AgentLog {
@@ -18,7 +21,7 @@ function Write-Response {
 
 $port = $null
 try {
-  $port = New-Object System.IO.Ports.SerialPort('{{COM_PORT}}', {{COM_BAUD_RATE}}, [System.IO.Ports.Parity]::None, 8, [System.IO.Ports.StopBits]::One)
+  $port = New-Object System.IO.Ports.SerialPort('{{SERIAL_AGENT_COM_PORT}}', {{SERIAL_AGENT_COM_BAUD_RATE}}, [System.IO.Ports.Parity]::None, 8, [System.IO.Ports.StopBits]::One)
   $port.Encoding = [System.Text.Encoding]::ASCII
   $port.NewLine = "`n"
   $port.Open()

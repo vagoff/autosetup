@@ -9,11 +9,11 @@ import { renderGuestScriptTemplate } from './lib/render-guest-script-template.js
 // PowerShell-командой заменяет установленный script и перезапускает ровно
 // процессы, чей CommandLine ссылается на этот script.
 export async function updateSerialCommandAgent() {
-  const { network, unattend, openSsh, serialAgent, diagnostics, paths } = config;
+  const { network, unattend, openSsh, serialAgent, paths } = config;
   const localScriptPath = path.join(paths.guestScriptsDir, serialAgent.scriptFilename);
   const renderedScript = renderGuestScriptTemplate(localScriptPath, {
-    COM_PORT: diagnostics.comPort,
-    COM_BAUD_RATE: diagnostics.comBaudRate,
+    SERIAL_AGENT_COM_PORT: serialAgent.comPort,
+    SERIAL_AGENT_COM_BAUD_RATE: serialAgent.comBaudRate,
     SERIAL_AGENT_INSTALLATION_DIRECTORY_NAME: serialAgent.installationDirectoryName,
     SERIAL_AGENT_LOG_FILENAME: serialAgent.logFilename,
     SERIAL_AGENT_TASK_NAME: serialAgent.taskName,

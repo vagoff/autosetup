@@ -152,10 +152,17 @@
     },
   },
 
-  // WinRM уже включён в госте. Для управления существующей Windows
-  // используем штатный Negotiate→NTLM по HTTP/loopback, не Basic и не
-  // AllowUnencrypted. Пароль и пользователь — единственный источник
-  // в unattend, здесь остаются параметры протокола.
+  // DEFERRED FEATURE (не развиваем дальше сейчас): SSH (check-ssh-access.js)
+  // и serial-agent (execute-serial-command.js) уже проверены живьём и
+  // покрывают всю потребность в host→guest execution. Живая проверка
+  // показала, что guest-сторона WinRM полностью исправна (тот же
+  // локальный admin, Invoke-Command с Negotiate внутри гостя проходит
+  // без ошибок) — 401 снаружи даёт исключительно npm-пакет winrm-client
+  // (версия 0.0.12, незрелая). Гостевая настройка (Enable-PSRemoting +
+  // LocalAccountTokenFilterPolicy ниже) оставлена включённой — бесплатна
+  // и не мешает, но дальше host-сторону (check-winrm-access.js,
+  // run-winrm-powershell.js, зависимость winrm-client) не чиним, пока не
+  // появится конкретная причина, для которой SSH/serial-agent не хватает.
   winRm: {
     guestPortForwardName: 'winrm',
     authScheme: 'ntlm',
@@ -173,8 +180,13 @@
   // .ps1 (нарушение CONFIG-SINGLE-SOURCE/FULLCONF). Сами .ps1 — только
   // шаблоны с {{TOKEN}}, значения подставляет build-first-logon-commands.js.
   diagnostics: {
-    // Тот же физический COM-порт, что и qemu.serialTcpPort на хосте —
-    // единственный канал, не зависящий ни от сети гостя, ни от WinRM/SSH.
+    // Отдельный, только-логовый физический COM-порт (qemu.serialLogTcpPort
+    // на хосте) — единственный канал, не зависящий ни от сети гостя, ни от
+    // WinRM/SSH, ни от serialAgent (у того свой отдельный COM2, см. ниже).
+    // Write-ComLog открывает и закрывает порт на каждый вызов — с этим
+    // портом больше никто и никогда не держит хендл открытым долго, поэтому
+    // конфликтов эксклюзивного доступа к COM-порту не бывает по построению,
+    // а не по случайному везению в очерёдности FirstLogonCommands.
     comPort: 'COM1',
     comBaudRate: 115200,
     // Проверяем именно измерением (DNS + TCP), а не предположением: есть
@@ -196,10 +208,20 @@
     capabilityProbeTimeoutSeconds: 90,
   },
 
-  // Отладочный command-agent поверх того же COM1. QEMU публикует порт
-  // только на TCP/loopback; команды и ответы — JSON с base64 payload,
-  // поэтому кодировка консоли Windows не влияет на протокол.
+  // Отладочный command-agent на СВОЁМ отдельном COM2 (qemu.serialCommandTcpPort
+  // на хосте) — намеренно другой физический порт, чем diagnostics.comPort.
+  // Причина: serve-serial-command.ps1 держит SerialPort открытым
+  // бессрочно (это его единственная работа — слушать запросы), а
+  // System.IO.Ports.SerialPort даёт эксклюзивный доступ ровно одному
+  // хендлу за раз. Раздели этот порт с diagnostics.comPort — и любой
+  // Write-ComLog после старта агента гарантированно и навсегда падал бы
+  // с UnauthorizedAccessException. Два разных COM — конфликт исчезает
+  // как класс, а не "обычно успевает проскочить". QEMU публикует оба
+  // порта только на TCP/loopback; команды и ответы — JSON с base64
+  // payload, поэтому кодировка консоли Windows не влияет на протокол.
   serialAgent: {
+    comPort: 'COM2',
+    comBaudRate: 115200,
     scriptFilename: 'serve-serial-command.ps1',
     installationDirectoryName: 'WinTest',
     installationScriptFilename: 'install-serial-command-agent.ps1',
@@ -259,11 +281,30 @@
     // рантайм-артефакт, живёт в cache/<vm>/ (см. config.js).
     screendumpFilename: 'screendump.ppm',
 
-    // COM1 гостя ↔ host serial-клиент: двусторонний QEMU socket chardev
-    // на TCP/loopback. Порт 4002 продолжает ряд QMP=4000, TPM=4001;
-    // один TCP-клиент одновременно получает поток логов и может посылать
-    // JSON-команды serial-command-agent'у.
-    serialTcpPort: 4002,
+    // Два НЕЗАВИСИМЫХ ISA-serial порта гостя, каждый — свой QEMU socket
+    // chardev на TCP/loopback, каждый — свой физический COM у Windows.
+    // Разделены по назначению (SRP на уровне устройства, не только кода):
+    //  - COM1 (diagnostics.comPort) = только лог, host читает.
+    //    capture-serial-log.js держит постоянное соединение и дописывает
+    //    все байты в serialLogPath — durable, переживает переподключения.
+    //  - COM2 (serialAgent.comPort) = только команды/ответы serve-serial-
+    //    command.ps1, host пишет и читает по одному TCP-клиенту за раз.
+    // Один физический COM на оба назначения раньше приводил к тому, что
+    // serve-serial-command.ps1 (держит SerialPort открытым бессрочно) и
+    // Write-ComLog (открывает/закрывает на каждый вызов) дрались за один
+    // и тот же эксклюзивный хендл — см. историю задачи. Порядок портов
+    // продолжает ряд QMP=4000, TPM ctrl=unix.
+    serialLogTcpPort: 4002,
+    serialCommandTcpPort: 4003,
+
+    // Файл, в который capture-serial-log.js дописывает поток COM1 —
+    // рантайм-артефакт (не состояние VM), поэтому в cache/<vm>/, не в db/.
+    serialLogFilename: 'com1.log',
+    // Пауза перед повторной попыткой TCP-подключения к serialLogTcpPort,
+    // если qemu ещё не поднял listener или соединение оборвалось
+    // (например, VM перезагружается) — capture-serial-log.js работает,
+    // пока его явно не остановят, и не должен занятым busy-loop'ом.
+    serialLogReconnectDelayMs: 500,
 
     // Детерминированное прохождение "Press any key to boot from CD or DVD",
     // без единой зашитой "сколько ждать"/"сколько байт" величины — только
