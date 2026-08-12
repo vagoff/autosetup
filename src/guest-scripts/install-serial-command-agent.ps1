@@ -18,11 +18,10 @@ try {
   }
   New-Item -ItemType Directory -Path $installationDirectory -ErrorAction Stop | Out-Null
   Copy-Item -LiteralPath $agentSourcePath -Destination $agentInstalledPath -ErrorAction Stop
-  Start-Process -FilePath 'powershell.exe' -ArgumentList @(
-    '-NoProfile',
-    '-ExecutionPolicy', 'Bypass',
-    '-File', $agentInstalledPath
-  ) -WindowStyle Hidden -ErrorAction Stop
+  $taskAction = New-ScheduledTaskAction -Execute 'powershell.exe' -Argument "-NoProfile -ExecutionPolicy Bypass -File `"$agentInstalledPath`""
+  $taskTrigger = New-ScheduledTaskTrigger -AtStartup
+  Register-ScheduledTask -TaskName '{{SERIAL_AGENT_TASK_NAME}}' -Action $taskAction -Trigger $taskTrigger -User 'SYSTEM' -RunLevel Highest -Force -ErrorAction Stop | Out-Null
+  Start-ScheduledTask -TaskName '{{SERIAL_AGENT_TASK_NAME}}' -ErrorAction Stop
   Write-ComLog 'install-serial-command-agent: OK'
 } catch {
   Write-ComLog "install-serial-command-agent: FAILED - $($_.Exception.Message)"

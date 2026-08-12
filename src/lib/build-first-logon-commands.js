@@ -59,6 +59,8 @@ export function buildFirstLogonCommands({
     OPENSSH_CLIENT_PUBLIC_KEY_FILENAME: openSsh.clientPublicKeyFilename,
     SERIAL_AGENT_SCRIPT_FILENAME: serialAgent.scriptFilename,
     SERIAL_AGENT_INSTALLATION_DIRECTORY_NAME: serialAgent.installationDirectoryName,
+    SERIAL_AGENT_LOG_FILENAME: serialAgent.logFilename,
+    SERIAL_AGENT_TASK_NAME: serialAgent.taskName,
     SERIAL_AGENT_COMMAND_TIMEOUT_MS: serialAgent.commandTimeoutMs,
     SERIAL_AGENT_MAX_RESPONSE_BYTES: serialAgent.maxResponseBytes,
     WINRM_LOCAL_ACCOUNT_TOKEN_FILTER_POLICY_VALUE: winRm.localAccountTokenFilterPolicyValue,
