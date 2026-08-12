@@ -2,16 +2,16 @@
   "license": "UNLICENSED",
   "private": true,
   "type": "module",
-  "dependencies": {
-    "basic-ftp": "^6.2.0",
-    "json5": "^2.2.3",
-    "libmount": "^0.6.0",
-    "node-ssh": "^13.2.1",
-    "winrm-client": "^0.0.12"
-  },
   "overrides": {
     "winrm-client": {
       "fast-xml-parser": "5.10.1"
     }
+  },
+  "dependencies": {
+    "fast-xml-parser": "^5.10.1",
+    "json5": "^2.2.3",
+    "libmount": "^0.6.0",
+    "node-ssh": "^13.2.1",
+    "winrm-client": "^0.0.12"
   }
 }
