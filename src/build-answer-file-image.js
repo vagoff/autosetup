@@ -1,6 +1,7 @@
 import { writeFileSync } from 'node:fs';
 import { mkfsvfat, mount } from 'libmount';
 import { renderAutounattendXml } from './lib/render-autounattend-xml.js';
+import { buildFirstLogonCommands } from './lib/build-first-logon-commands.js';
 import { config } from './config.js';
 
 // Собирает маленький FAT12-образ диска с единственным файлом
@@ -31,15 +32,34 @@ export function buildAnswerFileImage() {
     throw new Error('libmount: файловая система не примонтировалась сразу после форматирования');
   }
 
-  const xml = renderAutounattendXml(unattend);
-  const file = fs.getRoot().makeFile(answerFileFilename);
-  if (!file) {
-    throw new Error(`libmount: не смог создать файл "${answerFileFilename}" в корне образа`);
+  // firstLogonScripts (имена .ps1-файлов) → короткие CommandLine-строки
+  // (bootstrap) + реальное содержимое скриптов, которое едет на этот же
+  // образ файлами (см. комментарий в build-first-logon-commands.js —
+  // почему не инлайн). renderAutounattendXml остаётся агностичен к тому,
+  // как получен firstLogonCommands (SRP) — просто XML-экранирует готовые
+  // строки.
+  const { scriptFiles, firstLogonCommands } = buildFirstLogonCommands({
+    guestScriptsDir: config.paths.guestScriptsDir,
+    firstLogonScripts: unattend.firstLogonScripts,
+    diagnostics: config.diagnostics,
+  });
+  const xml = renderAutounattendXml({ ...unattend, firstLogonCommands });
+
+  const writeRootFile = (filename, text) => {
+    const file = fs.getRoot().makeFile(filename);
+    if (!file) {
+      throw new Error(`libmount: не смог создать файл "${filename}" в корне образа`);
+    }
+    file.open().writeData(new TextEncoder().encode(text));
+  };
+
+  writeRootFile(answerFileFilename, xml);
+  for (const { filename, content } of scriptFiles) {
+    writeRootFile(filename, content);
   }
-  file.open().writeData(new TextEncoder().encode(xml));
 
   writeFileSync(answerFileImagePath, image);
-  console.log(`собран ${answerFileImagePath} (${answerFileFilename}, ${xml.length} байт XML)`);
+  console.log(`собран ${answerFileImagePath} (${answerFileFilename} + ${scriptFiles.length} guest-скриптов, ${xml.length} байт XML)`);
 }
 
 if (import.meta.url === `file://${process.argv[1]}`) {

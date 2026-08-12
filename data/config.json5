@@ -87,12 +87,19 @@
     // единственный источник.
     adminPassword: 'ChangeMe!2026',
     enableAutoLogon: true,
-    // Выполняются один раз при первом входе — сюда, а не в шаблон,
-    // добавляется всё, что нужно включить в госте (WinRM/sshd и т.п.).
-    firstLogonCommands: [
-      'powershell -NoProfile -ExecutionPolicy Bypass -Command "Enable-PSRemoting -Force"',
-      'powershell -NoProfile -ExecutionPolicy Bypass -Command "Add-WindowsCapability -Online -Name OpenSSH.Server~~~~0.0.1.0"',
-      'powershell -NoProfile -ExecutionPolicy Bypass -Command "Set-Service -Name sshd -StartupType Automatic; Start-Service sshd"',
+    // Выполняются один раз при первом входе, по порядку. Каждый элемент —
+    // имя файла в src/guest-scripts/, а не литеральная команда: содержимое
+    // (реальный, читаемый PowerShell) живёт в самом .ps1-файле,
+    // src/lib/build-first-logon-commands.js только оборачивает его в
+    // -EncodedCommand (никакого экранирования кавычек в XML/JSON5).
+    // Текущий состав — диагностический: выясняем, есть ли у гостя сеть и
+    // действительно ли зависает Add-WindowsCapability, прежде чем решать,
+    // как ставить ssh (см. историю задачи).
+    firstLogonScripts: [
+      'enable-winrm-access.ps1',
+      'diagnose-guest-network.ps1',
+      'probe-openssh-capability-with-timeout.ps1',
+      'log-first-logon-complete.ps1',
     ],
     // Файл ответов доставляется отдельным маленьким USB-диском (removable
     // media — только там Setup его и ищет), не тем же носителем, что
@@ -103,10 +110,56 @@
     answerFileImageSizeBytes: 1474560,
   },
 
+  // Параметры guest-скриптов диагностики (src/guest-scripts/) — единый
+  // источник для всего, что раньше было бы "зашитыми defaults" внутри
+  // .ps1 (нарушение CONFIG-SINGLE-SOURCE/FULLCONF). Сами .ps1 — только
+  // шаблоны с {{TOKEN}}, значения подставляет build-first-logon-commands.js.
+  diagnostics: {
+    // Тот же физический COM-порт, что и qemu.serialLogFilename на хосте —
+    // единственный канал, не зависящий ни от сети гостя, ни от guest agent.
+    comPort: 'COM1',
+    // Проверяем именно измерением (DNS + TCP), а не предположением: есть
+    // ли у гостя рабочий путь наружу вообще (публичный IP, чтобы TCP-connect
+    // не зависел от DNS) и до конкретно того эндпоинта, который нужен для
+    // Add-WindowsCapability -Online.
+    networkProbeTargets: [
+      { host: '8.8.8.8', port: 53, label: 'public-dns-ip-tcp53' },
+      { host: 'download.windowsupdate.com', port: 443, label: 'windows-update-endpoint' },
+    ],
+    // Test-NetConnection сам себя ограничивает по времени — это верхний
+    // предохранитель на весь диагностический скрипт целиком, не гадание.
+    networkProbeTimeoutSeconds: 20,
+    // Add-WindowsCapability -Online — единственный шаг с доказанной историей
+    // зависания без таймаута (см. историю задачи). Оборачиваем в
+    // Start-Job/Wait-Job с этим верхним пределом, чтобы получить
+    // окончательный ответ "зависает/не зависает" и не блокировать
+    // остальные FirstLogonCommands навсегда.
+    capabilityProbeTimeoutSeconds: 90,
+  },
+
   qemu: {
     binary: 'qemu-system-x86_64',
     accel: 'kvm',
     cpu: 'host',
+    // Без этих флагов многоядерный Windows-гость под голым KVM может уйти
+    // в livelock при межпроцессорной синхронизации (TLB shootdown/IPI):
+    // N-1 vCPU крутятся в busy-spin на 100%, один простаивает, диск и
+    // экран замирают — воспроизведено и измерено эмпирически (top -H:
+    // 3 vCPU-потока по 99.6%, TPM спокоен, счётчики диска не двигаются).
+    // Это не хак под конкретную версию Windows — стандартный базовый
+    // набор Hyper-V enlightenment для любого Windows-гостя под QEMU/KVM
+    // (то же самое включают по умолчанию libvirt/Proxmox). Порядок важен
+    // для зависимостей QEMU: hv_synic требует hv_vpindex, hv_stimer
+    // требует hv_synic.
+    cpuHyperVEnlightenments: [
+      'hv_relaxed',
+      'hv_vapic',
+      'hv_spinlocks=0x1fff',
+      'hv_vpindex',
+      'hv_synic',
+      'hv_stimer',
+      'hv_time',
+    ],
     machine: 'q35',
     smp: 4,
     ramMiB: 8192,
@@ -132,6 +185,12 @@
     // Файл, в который QMP screendump сохраняет текущий кадр экрана VM —
     // рантайм-артефакт, живёт в cache/<vm>/ (см. config.js).
     screendumpFilename: 'screendump.ppm',
+
+    // COM1 гостя пишется в этот файл на хосте (qemu -chardev file) — канал
+    // диагностики, который не зависит ни от сети, ни от QMP/скриншотов:
+    // guest-скрипты (см. src/guest-scripts/) пишут туда через
+    // System.IO.Ports.SerialPort. Рантайм-артефакт, поэтому в cache/, не в db/.
+    serialLogFilename: 'com1.log',
 
     // Детерминированное прохождение "Press any key to boot from CD or DVD",
     // без единой зашитой "сколько ждать"/"сколько байт" величины — только

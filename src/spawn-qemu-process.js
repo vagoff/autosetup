@@ -42,10 +42,14 @@ export function buildQemuArgs() {
     .map((f) => `,hostfwd=${f.proto}::${f.hostPort}-:${f.guestPort}`)
     .join('');
 
+  // hv_* — Hyper-V enlightenment флаги, см. комментарий у
+  // qemu.cpuHyperVEnlightenments в data/config.json5 (почему они нужны).
+  const cpuModel = [qemu.cpu, ...qemu.cpuHyperVEnlightenments].join(',');
+
   return [
     '-name', qemu.vmName,
     '-machine', `${qemu.machine},accel=${qemu.accel}`,
-    '-cpu', qemu.cpu,
+    '-cpu', cpuModel,
     '-smp', String(qemu.smp),
     '-m', String(qemu.ramMiB),
     '-drive', `if=pflash,format=raw,readonly=on,file=${ovmfCode}`,
@@ -55,7 +59,15 @@ export function buildQemuArgs() {
     '-device', 'ide-hd,bus=ahci0.0,drive=disk0',
     '-drive', `if=none,id=${qemu.cdromDeviceId},media=cdrom,file=${isoPath},readonly=on`,
     '-device', `ide-cd,bus=ahci0.1,drive=${qemu.cdromDeviceId}`,
-    '-boot', `order=${qemu.bootFromInstaller ? 'dc' : 'cd'}`,
+    // once=d — CD грузится ТОЛЬКО на самом первом старте этого qemu-
+    // процесса (совпадает с confirmCdBootPrompt(), который ловит именно
+    // этот момент). Все последующие ребуты — а Windows Setup перезагружает
+    // VM саму несколько раз в процессе установки — идут сразу с диска
+    // (order=c), без повторного обращения к CD. Без этого разделения
+    // повторная загрузка с установочного носителя на промежуточном ребуте
+    // срывает уже начатую установку ("Windows could not complete the
+    // installation") — воспроизведено и измерено эмпирически.
+    '-boot', qemu.bootFromInstaller ? 'once=d,order=c' : 'order=cd',
     '-netdev', `user,id=net0${hostfwd}`,
     '-device', `${qemu.netDevice},netdev=net0`,
     // TPM: control-канал у swtpm — unix-сокет (см. tpm.ctrlSocketPath в
@@ -79,6 +91,12 @@ export function buildQemuArgs() {
     ...buildDisplayTransportArgs(qemu, network.loopbackHost),
     // QMP — управление скриптом/агентом (screendump, sendkey, powerdown).
     '-qmp', `tcp:${network.loopbackHost}:${qemu.qmpPort},server,nowait`,
+    // COM1 гостя → файл на хосте. Единственный канал диагностики guest-
+    // скриптов (см. src/guest-scripts/), не зависящий ни от сети гостя,
+    // ни от QMP/скриншотов. Стандартный ISA COM1 — Windows видит его без
+    // отдельного драйвера.
+    '-chardev', `file,id=com1log,path=${qemu.serialLogPath}`,
+    '-serial', 'chardev:com1log',
     '-rtc', 'base=localtime',
     '-pidfile', qemu.pidFile,
   ];

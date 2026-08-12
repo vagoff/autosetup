@@ -17,12 +17,15 @@ const paths = {
   vmDbDir: path.join(projectRoot, 'db', vmName),
   vmCacheDir: path.join(projectRoot, 'cache', vmName),
   isoDir: path.join(projectRoot, 'cache', 'iso'),
+  // .ps1-исходники FirstLogonCommands (см. src/lib/build-first-logon-commands.js).
+  guestScriptsDir: path.join(projectRoot, 'src', 'guest-scripts'),
 };
 
 export const config = {
   paths,
   network: raw.network,
   windowsIso: raw.windowsIso,
+  diagnostics: raw.diagnostics,
   unattend: {
     ...raw.unattend,
     // чистый build-артефакт из конфига, без накопленного состояния —
@@ -49,5 +52,6 @@ export const config = {
     vmName,
     pidFile: path.join(paths.vmCacheDir, 'qemu.pid'),
     screendumpPath: path.join(paths.vmCacheDir, raw.qemu.screendumpFilename),
+    serialLogPath: path.join(paths.vmCacheDir, raw.qemu.serialLogFilename),
   },
 };
