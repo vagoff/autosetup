@@ -10,6 +10,21 @@ const raw = JSON5.parse(readFileSync(CONFIG_FILE, 'utf8'));
 
 const { projectRoot, vmName } = raw;
 
+function resolveGuestPortForward(name, owner) {
+  const portForward = raw.qemu.guestPortForwards.find((forward) => forward.name === name);
+  if (portForward) return portForward;
+  throw new Error(`${owner}=${name}: соответствующий элемент qemu.guestPortForwards не найден`);
+}
+
+const openSshPortForward = resolveGuestPortForward(
+  raw.openSsh.guestPortForwardName,
+  'openSsh.guestPortForwardName'
+);
+const winRmPortForward = resolveGuestPortForward(
+  raw.winRm.guestPortForwardName,
+  'winRm.guestPortForwardName'
+);
+
 const paths = {
   dataDir: path.join(projectRoot, 'data'),
   dbDir: path.join(projectRoot, 'db'),
@@ -26,6 +41,21 @@ export const config = {
   network: raw.network,
   windowsIso: raw.windowsIso,
   diagnostics: raw.diagnostics,
+  serialAgent: raw.serialAgent,
+  openSsh: {
+    ...raw.openSsh,
+    archivePath: path.join(paths.cacheDir, 'openssh', raw.openSsh.archiveFilename),
+    clientPrivateKeyPath: path.join(paths.vmDbDir, raw.openSsh.clientPrivateKeyFilename),
+    clientPublicKeyPath: path.join(paths.vmDbDir, raw.openSsh.clientPublicKeyFilename),
+    knownHostsPath: path.join(paths.vmCacheDir, raw.openSsh.check.knownHostsFilename),
+    port: openSshPortForward.guestPort,
+    hostPort: openSshPortForward.hostPort,
+  },
+  winRm: {
+    ...raw.winRm,
+    port: winRmPortForward.guestPort,
+    hostPort: winRmPortForward.hostPort,
+  },
   unattend: {
     ...raw.unattend,
     // чистый build-артефакт из конфига, без накопленного состояния —
@@ -52,6 +82,5 @@ export const config = {
     vmName,
     pidFile: path.join(paths.vmCacheDir, 'qemu.pid'),
     screendumpPath: path.join(paths.vmCacheDir, raw.qemu.screendumpFilename),
-    serialLogPath: path.join(paths.vmCacheDir, raw.qemu.serialLogFilename),
   },
 };

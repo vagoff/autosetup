@@ -99,15 +99,73 @@
       'enable-winrm-access.ps1',
       'diagnose-guest-network.ps1',
       'probe-openssh-capability-with-timeout.ps1',
+      'install-openssh-access.ps1',
+      'install-serial-command-agent.ps1',
       'log-first-logon-complete.ps1',
     ],
-    // Файл ответов доставляется отдельным маленьким USB-диском (removable
-    // media — только там Setup его и ищет), не тем же носителем, что
-    // ISO. Классический размер 1.44MB — с большим запасом под несколько
-    // KB XML, максимально совместимый (см. обсуждение выбора libmount).
+    // Скрипты без FirstLogon CommandLine: доставляются на USB как payload,
+    // а обычный first-logon-модуль сам устанавливает и запускает их в фоне.
+    supportingGuestScripts: [
+      'serve-serial-command.ps1',
+    ],
+    // Файл ответов и guest-пакеты доставляются одним отдельным USB-диском
+    // (removable media — только там Setup ищет autounattend.xml), не тем
+    // же носителем, что ISO. 16 MiB достаточно для самого XML, PS1 и
+    // закреплённого OpenSSH-Win64.zip (~5.5 MiB); FAT12 сохраняет
+    // совместимость с Windows Setup.
     answerFileDeviceId: 'answerfile0',
     answerFileFilename: 'autounattend.xml',
-    answerFileImageSizeBytes: 1474560,
+    answerFileImageSizeBytes: 16777216,
+  },
+
+  // Автономный Win32-OpenSSH: официальный ZIP доставляется вместе с
+  // autounattend.xml на USB, поэтому установка вообще не использует
+  // DISM/FOD/Windows Update. URL, SHA-256 и все имена задаются здесь,
+  // чтобы смена версии была одним воспроизводимым изменением конфига.
+  openSsh: {
+    url: 'https://github.com/PowerShell/Win32-OpenSSH/releases/download/10.0.0.0p2-Preview/OpenSSH-Win64.zip',
+    archiveFilename: 'OpenSSH-Win64.zip',
+    expectedSha256: '23f50f3458c4c5d0b12217c6a5ddfde0137210a30fa870e98b29827f7b43aba5',
+    installationDirectoryName: 'OpenSSH-Win64',
+    serviceName: 'sshd',
+    firewallRuleName: 'OpenSSH-Server-In-TCP',
+    firewallRuleDisplayName: 'OpenSSH SSH Server (sshd)',
+    // Порт берётся из qemu.guestPortForwards по этому имени: порт 22
+    // объявлен ровно один раз, и firewall гостя не сможет разъехаться с
+    // пробросом QEMU.
+    guestPortForwardName: 'openssh',
+    adminAuthorizedKeysFilename: 'administrators_authorized_keys',
+    clientKeyAlgorithm: 'rsa',
+    clientKeyBits: 3072,
+    clientKeyComment: 'win11-1c-automation',
+    clientPrivateKeyFilename: 'openssh-client-key.pem',
+    clientPublicKeyFilename: 'openssh-client-key.pub',
+    check: {
+      clientBinary: 'ssh',
+      connectTimeoutSeconds: 20,
+      remoteCommand: 'whoami',
+      knownHostsFilename: 'openssh-known_hosts',
+      strictHostKeyChecking: 'accept-new',
+      batchMode: true,
+      passwordAuthentication: false,
+      keyboardInteractiveAuthentication: false,
+    },
+  },
+
+  // WinRM уже включён в госте. Для управления существующей Windows
+  // используем штатный Negotiate→NTLM по HTTP/loopback, не Basic и не
+  // AllowUnencrypted. Пароль и пользователь — единственный источник
+  // в unattend, здесь остаются параметры протокола.
+  winRm: {
+    guestPortForwardName: 'winrm',
+    authScheme: 'ntlm',
+    useHttps: false,
+    rejectUnauthorized: true,
+    // WinRM Negotiate в workgroup по умолчанию принимает лишь встроенный
+    // Administrator. Наша учётка admin — намеренно отдельная локальная
+    // администраторская учётка, поэтому включаем полный remote token для
+    // local Administrators. Доступ по-прежнему ограничен loopback hostfwd.
+    localAccountTokenFilterPolicyValue: 1,
   },
 
   // Параметры guest-скриптов диагностики (src/guest-scripts/) — единый
@@ -115,9 +173,10 @@
   // .ps1 (нарушение CONFIG-SINGLE-SOURCE/FULLCONF). Сами .ps1 — только
   // шаблоны с {{TOKEN}}, значения подставляет build-first-logon-commands.js.
   diagnostics: {
-    // Тот же физический COM-порт, что и qemu.serialLogFilename на хосте —
-    // единственный канал, не зависящий ни от сети гостя, ни от guest agent.
+    // Тот же физический COM-порт, что и qemu.serialTcpPort на хосте —
+    // единственный канал, не зависящий ни от сети гостя, ни от WinRM/SSH.
     comPort: 'COM1',
+    comBaudRate: 115200,
     // Проверяем именно измерением (DNS + TCP), а не предположением: есть
     // ли у гостя рабочий путь наружу вообще (публичный IP, чтобы TCP-connect
     // не зависел от DNS) и до конкретно того эндпоинта, который нужен для
@@ -135,6 +194,17 @@
     // окончательный ответ "зависает/не зависает" и не блокировать
     // остальные FirstLogonCommands навсегда.
     capabilityProbeTimeoutSeconds: 90,
+  },
+
+  // Отладочный command-agent поверх того же COM1. QEMU публикует порт
+  // только на TCP/loopback; команды и ответы — JSON с base64 payload,
+  // поэтому кодировка консоли Windows не влияет на протокол.
+  serialAgent: {
+    scriptFilename: 'serve-serial-command.ps1',
+    installationDirectoryName: 'WinTest',
+    installationScriptFilename: 'install-serial-command-agent.ps1',
+    commandTimeoutMs: 30000,
+    maxResponseBytes: 1048576,
   },
 
   qemu: {
@@ -186,11 +256,11 @@
     // рантайм-артефакт, живёт в cache/<vm>/ (см. config.js).
     screendumpFilename: 'screendump.ppm',
 
-    // COM1 гостя пишется в этот файл на хосте (qemu -chardev file) — канал
-    // диагностики, который не зависит ни от сети, ни от QMP/скриншотов:
-    // guest-скрипты (см. src/guest-scripts/) пишут туда через
-    // System.IO.Ports.SerialPort. Рантайм-артефакт, поэтому в cache/, не в db/.
-    serialLogFilename: 'com1.log',
+    // COM1 гостя ↔ host serial-клиент: двусторонний QEMU socket chardev
+    // на TCP/loopback. Порт 4002 продолжает ряд QMP=4000, TPM=4001;
+    // один TCP-клиент одновременно получает поток логов и может посылать
+    // JSON-команды serial-command-agent'у.
+    serialTcpPort: 4002,
 
     // Детерминированное прохождение "Press any key to boot from CD or DVD",
     // без единой зашитой "сколько ждать"/"сколько байт" величины — только
@@ -226,12 +296,12 @@
     spicePort: 6900,
     vncPort: 6901,
 
-    // проброс портов ИЗ ГОСТЯ наружу через SLIRP NAT. Это не имеет отношения
+  // проброс портов ИЗ ГОСТЯ на loopback host через SLIRP NAT. Это не имеет отношения
     // к общему сетевому пространству alpine/obarun — гостевая ОС всегда
     // сидит за NAT самого qemu, тут проброс обязателен.
     guestPortForwards: [
-      { proto: 'tcp', hostPort: 2222, guestPort: 22 },
-      { proto: 'tcp', hostPort: 5985, guestPort: 5985 },
+      { name: 'openssh', proto: 'tcp', hostPort: 2222, guestPort: 22 },
+      { name: 'winrm', proto: 'tcp', hostPort: 5985, guestPort: 5985 },
     ],
   },
 }

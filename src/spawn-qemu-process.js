@@ -39,7 +39,7 @@ export function buildQemuArgs() {
   // проброс портов ИЗ ГОСТЯ через SLIRP NAT — отдельная сущность от общего
   // сетевого пространства alpine/obarun, гость всегда за NAT самого qemu.
   const hostfwd = qemu.guestPortForwards
-    .map((f) => `,hostfwd=${f.proto}::${f.hostPort}-:${f.guestPort}`)
+    .map((f) => `,hostfwd=${f.proto}:${network.loopbackHost}:${f.hostPort}-:${f.guestPort}`)
     .join('');
 
   // hv_* — Hyper-V enlightenment флаги, см. комментарий у
@@ -91,12 +91,12 @@ export function buildQemuArgs() {
     ...buildDisplayTransportArgs(qemu, network.loopbackHost),
     // QMP — управление скриптом/агентом (screendump, sendkey, powerdown).
     '-qmp', `tcp:${network.loopbackHost}:${qemu.qmpPort},server,nowait`,
-    // COM1 гостя → файл на хосте. Единственный канал диагностики guest-
-    // скриптов (см. src/guest-scripts/), не зависящий ни от сети гостя,
-    // ни от QMP/скриншотов. Стандартный ISA COM1 — Windows видит его без
-    // отдельного драйвера.
-    '-chardev', `file,id=com1log,path=${qemu.serialLogPath}`,
-    '-serial', 'chardev:com1log',
+    // COM1 гостя ↔ host TCP-клиент. В отличие от прежнего chardev file
+    // этот канал двусторонний: guest-логи приходят на подключившийся
+    // клиент, а serial-agent может получать от него команды. Стандартный
+    // ISA COM1 Windows видит без отдельного драйвера.
+    '-chardev', `socket,id=com1,host=${network.loopbackHost},port=${qemu.serialTcpPort},server=on,wait=off`,
+    '-serial', 'chardev:com1',
     '-rtc', 'base=localtime',
     '-pidfile', qemu.pidFile,
   ];
