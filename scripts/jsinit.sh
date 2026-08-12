@@ -6,10 +6,17 @@ cat > package.json <<'EOF'
 {
   "license": "UNLICENSED",
   "private": true,
-  "type": "module"
+  "type": "module",
+  "overrides": {
+    "winrm-client": {
+      "fast-xml-parser": "5.10.1"
+    }
 }
 EOF
 
-npm add json5 libmount
+npm add json5 libmount basic-ftp node-ssh fast-xml-parser winrm-client
+npm install-scripts approve ssh2
+npm install-scripts approve cpu-features
+npm i
 
 exit 0
