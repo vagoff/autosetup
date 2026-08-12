@@ -26,11 +26,11 @@ $job = Start-Job -ScriptBlock {
 $completed = Wait-Job -Job $job -Timeout {{CAPABILITY_PROBE_TIMEOUT_SECONDS}}
 
 if (-not $completed) {
-  Write-ComLog "probe-openssh-capability: TIMEOUT after {{CAPABILITY_PROBE_TIMEOUT_SECONDS}}s - подтверждённое зависание, оставляю job и иду дальше"
+  Write-ComLog "probe-openssh-capability: TIMEOUT after {{CAPABILITY_PROBE_TIMEOUT_SECONDS}}s - confirmed hang, abandoning job and moving on"
   Stop-Job -Job $job -ErrorAction SilentlyContinue
 } else {
   $result = Receive-Job -Job $job -ErrorAction SilentlyContinue
-  Write-ComLog "probe-openssh-capability: завершился без зависания, result=$result"
+  Write-ComLog "probe-openssh-capability: finished without hanging, result=$result"
 }
 
 Remove-Job -Job $job -Force -ErrorAction SilentlyContinue
