@@ -51,6 +51,7 @@
   чётким вводом/выводом, без классов/фреймворков/слоёв ради слоёв.
   Модульность не равно энтерпрайз.
 - **NOSHELL**. скрипты пишем на нормальных человекочитаемых языках и проектируем тщательным образом.
+- **NOEXTRAMD**. не читай из папок `<projectroot>/doc/{tasks,fragments}`, `<projectroot>/{memo,garbage}` чтобы не замусоривать контекст, там лежат или потерявшие актуальность исторические документы или части системы управления контекстом на мета уровне.
 
 требования:
 
@@ -125,7 +126,7 @@ Windows 11 официально требует UEFI с поддержкой Secu
 - пакеты установлены: `qemu-desktop`(`qemu-ui-spice-core`), `edk2-ovmf`, `swtpm`, `qemu-tools`, `qemu-ui-spice-core`.
 - `node src/download-windows-iso.js` запускался (~5.1GB).
 - `node src/create-vm-resources.js` запускался — диска/OVMF vars/tpm dir есть.
-- `node src/run-vm.js` проверялся -- падает с ошибкой `qemu-system-x86_64: Could not access KVM kernel module: No such file or directory` / `qemu-system-x86_64: failed to initialize kvm: No such file or directory`.
+- `node src/run-vm.js` проверялся -- падает с ошибкой `swtpm: no valid data socket in message; cmsg = (nil)qemu-system-x86_64: -tpmdev emulator,id=tpm0,chardev=chrtpm: tpm-emulator: Failed to send CMD_SET_DATAFD`.
 
 известные пробелы (обсуждались, решения не доведены до кода):
 - QMP-порт открыт, но само управление (screendump/sendkey для будущей
