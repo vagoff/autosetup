@@ -11,7 +11,8 @@
 # каждым реальным guest-скриптом в build-first-logon-commands.js.
 function Write-ComLog {
   param([Parameter(Mandatory)][string]$Message)
-  $port = New-Object System.IO.Ports.SerialPort('{{COM_PORT}}', 115200, [System.IO.Ports.Parity]::None, 8, [System.IO.Ports.StopBits]::One)
+  $port = New-Object System.IO.Ports.SerialPort('{{COM_PORT}}', {{COM_BAUD_RATE}}, [System.IO.Ports.Parity]::None, 8, [System.IO.Ports.StopBits]::One)
+  $port.Encoding = [System.Text.Encoding]::ASCII
   $port.Open()
   try {
     $stamp = Get-Date -Format 'yyyy-MM-dd HH:mm:ss'
