@@ -1,0 +1,72 @@
+{
+  // единственное место, где путь захардкожен буквально — всё остальное
+  // выводится из него в src/config.js
+  projectRoot: '/data/wd/aibox/wintest',
+  vmName: 'win11-1c',
+
+  windowsIso: {
+    url: 'https://software-static.download.prss.microsoft.com/dbazure/888969d5-f34g-4e03-ac9d-1f9786c66749/26100.1742.240906-0331.ge_release_svc_refresh_CLIENT_LTSC_EVAL_x64FRE_en-us.iso',
+    filename: '26100.1742.240906-0331.ge_release_svc_refresh_CLIENT_LTSC_EVAL_x64FRE_en-us.iso',
+    expectedBytes: 5112850432,
+  },
+
+  disk: {
+    format: 'qcow2',
+    sizeGiB: 64,
+  },
+
+  // OVMF (UEFI firmware) ставится пакетом edk2-ovmf на Obarun. CODE — read-only
+  // шаблон, используется напрямую. VARS — read-write, копируется один раз
+  // per-VM в db/, чтобы состояние UEFI/secure-boot жило вместе с диском.
+  ovmf: {
+    codeTemplateCandidates: [
+      '/usr/share/edk2/x64/OVMF_CODE.4m.fd',
+      '/usr/share/edk2-ovmf/x64/OVMF_CODE.fd',
+      '/usr/share/OVMF/OVMF_CODE.fd',
+    ],
+    varsTemplateCandidates: [
+      '/usr/share/edk2/x64/OVMF_VARS.4m.fd',
+      '/usr/share/edk2-ovmf/x64/OVMF_VARS.fd',
+      '/usr/share/OVMF/OVMF_VARS.fd',
+    ],
+  },
+
+  tpm: {
+    binary: 'swtpm',
+    // control-канал между swtpm и qemu — tcp loopback, не unix-сокет
+    // (alpine и obarun делят сетевое пространство, пробрасывать нечего)
+    ctrlPort: 4001,
+  },
+
+  qemu: {
+    binary: 'qemu-system-x86_64',
+    accel: 'kvm',
+    cpu: 'host',
+    machine: 'q35',
+    smp: 4,
+    ramMiB: 8192,
+    netDevice: 'e1000e', // нативно поддерживается Windows, без доп. драйверов
+
+    // true = грузимся с CD (первая установка), false = грузимся с диска.
+    // Явный флаг конфига, не автоопределение по факту наличия ОС на диске.
+    bootFromInstaller: true,
+
+    // QMP (машинный протокол управления) — для скриптов/агента: screendump,
+    // sendkey, graceful shutdown и т.п. tcp loopback.
+    qmpPort: 4000,
+
+    // экран для человека: 'spice' (по умолчанию — буфер обмена, ресайз,
+    // меньше лагов курсора) или 'vnc'. Оба через tcp loopback.
+    displayProtocol: 'spice',
+    spicePort: 5900,
+    vncPort: 5901,
+
+    // проброс портов ИЗ ГОСТЯ наружу через SLIRP NAT. Это не имеет отношения
+    // к общему сетевому пространству alpine/obarun — гостевая ОС всегда
+    // сидит за NAT самого qemu, тут проброс обязателен.
+    guestPortForwards: [
+      { proto: 'tcp', hostPort: 2222, guestPort: 22 },
+      { proto: 'tcp', hostPort: 5985, guestPort: 5985 },
+    ],
+  },
+}
