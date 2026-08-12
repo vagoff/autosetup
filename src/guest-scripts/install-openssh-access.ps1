@@ -68,6 +68,24 @@ try {
   if ($LASTEXITCODE -ne 0) {
     throw "OpenSSH host-key generation failed with exit code $LASTEXITCODE"
   }
+
+  # ssh-keygen -A generates host keys with default ProgramData ACL
+  # inheritance, which sshd considers too open — it silently ignores such
+  # a key ("This private key will be ignored") rather than using it, and
+  # with all three keys ignored refuses to start at all
+  # ("no hostkeys available -- exiting"). Confirmed reproducible on a
+  # clean install: sshd.exe -t did not catch this, only the later
+  # Start-Service call failed ("Failed to start service"), so this isn't
+  # optional cleanup — without it the service cannot start, full stop.
+  # FixHostFilePermissions.ps1 is Microsoft's own script for exactly this,
+  # shipped in the same ZIP — not a hand-rolled icacls guess. ConfirmImpact
+  # is "High" in its own [CmdletBinding], so -Confirm:$false is required
+  # here or it hangs on an interactive prompt that can never be answered.
+  & (Join-Path $openSshDirectory 'FixHostFilePermissions.ps1') -Confirm:$false
+  if (-not $?) {
+    throw 'FixHostFilePermissions.ps1 failed'
+  }
+
   & (Join-Path $openSshDirectory 'sshd.exe') -t
   if ($LASTEXITCODE -ne 0) {
     throw "sshd configuration validation failed with exit code $LASTEXITCODE"
