@@ -9,8 +9,9 @@
 . "$PSScriptRoot\_lib-guest-script-prelude.ps1"
 
 try {
+  Set-ItemProperty -Path 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System' -Name 'LocalAccountTokenFilterPolicy' -Type DWord -Value {{WINRM_LOCAL_ACCOUNT_TOKEN_FILTER_POLICY_VALUE}} -ErrorAction Stop
   Enable-PSRemoting -Force -SkipNetworkProfileCheck -ErrorAction Stop
-  Write-ComLog 'enable-winrm-access: OK'
+  Write-ComLog 'enable-winrm-access: OK local-account-token-filter-policy={{WINRM_LOCAL_ACCOUNT_TOKEN_FILTER_POLICY_VALUE}}'
 } catch {
   Write-ComLog "enable-winrm-access: FAILED - $($_.Exception.Message)"
 }
