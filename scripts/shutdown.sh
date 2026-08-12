@@ -1,51 +1,102 @@
 #!/usr/bin/env bash
-
+# Тонкая обёртка: вся логика — в Node (NOSHELL), эта строка только вызывает
+# её. Останавливает запущенную qemu-сессию по qemu.pidFile и детерминированно
+# подтверждает смерть процесса (polling, не sleep-гадание) — в отличие от
+# QMP "quit", который ничего не подтверждает и который "while true"-обёртка
+# вокруг run-vm.js немедленно отменяет новым запуском.
 set -euo pipefail
-
-ps -eo pid,ppid,stat,args | rg 'qemu-system|swtpm|node src/run-vm'
-
-node --input-type=module -e "
-import { connectQmp } from './src/lib/connect-qmp.js';
-import { config } from './src/config.js';
-const qmp = await connectQmp(config.network.loopbackHost,config.qemu.qmpPort,config.qemu.qmpConnectTimeoutMs);
-await qmp.execute('quit');
-console.log('QEMU quit requested through QMP');
-"
-
-node --input-type=module -e "
+exec node --input-type=module - << 'NODE_EOF'
+import { existsSync, readFileSync, rmSync } from 'node:fs';
 import net from 'node:net';
 import { config } from './src/config.js';
-const ports=[config.qemu.qmpPort, config.qemu.serialLogTcpPort, config.qemu.serialCommandTcpPort, config.winRm.hostPort];
-await Promise.all(ports.map((port) => new Promise((resolve) => {
-    const socket = net.connect({host:'127.0.0.1',port}, () => {
-        console.log(port+': still listening');
-        socket.end();
-        resolve();
+
+function isAlive(pid) {
+  try {
+    process.kill(pid, 0);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+function waitForExit(pid, timeoutMs, pollIntervalMs) {
+  const deadline = Date.now() + timeoutMs;
+  return new Promise((resolve) => {
+    const check = () => {
+      if (!isAlive(pid)) return resolve(true);
+      if (Date.now() >= deadline) return resolve(false);
+      setTimeout(check, pollIntervalMs);
+    };
+    check();
+  });
+}
+
+function probePort(host, port, timeoutMs) {
+  return new Promise((resolve) => {
+    const socket = net.connect({ host, port });
+    socket.once('connect', () => {
+      socket.end();
+      resolve(true);
     });
-    socket.once('error', (error) => {
-        console.log(port+': '+error.code);
-        resolve();
+    socket.once('error', () => resolve(false));
+    socket.setTimeout(timeoutMs, () => {
+      socket.destroy();
+      resolve(false);
     });
-    socket.setTimeout(2000, () => {
-        console.log(port + ': timeout');
-        socket.destroy();
-        resolve();
-    });
-})));
-"
+  });
+}
 
-echo "DONE"
-exit 0
+const { pidFile } = config.qemu;
 
-node -e "
-import('./src/lib/connect-qmp.js').then(async ({connectQmp}) => {
-  const qmp = await connectQmp('127.0.0.1', 4000, 5000);
-  await qmp.execute('quit', undefined);
-  qmp.disconnect();
-  console.log('quit sent');
-});
-"
+if (!existsSync(pidFile)) {
+  console.log(`нечего останавливать: ${pidFile} не найден`);
+  process.exit(0);
+}
 
-sleep 2
+const pidText = readFileSync(pidFile, 'utf8').trim();
+const pid = Number(pidText);
+if (!Number.isInteger(pid) || pid <= 0) {
+  throw new Error(`${pidFile} содержит не PID: ${JSON.stringify(pidText)}`);
+}
 
-timeout 2 bash -c "echo | nc 127.0.0.1 4000" 2>&1; echo "qmp reachable after quit? exit=$?"
+if (!isAlive(pid)) {
+  console.log(`qemu (pid ${pid}) уже не запущен, чищу протухший ${pidFile}`);
+  rmSync(pidFile);
+  process.exit(0);
+}
+
+// SIGTERM только qemu-процессу — этого достаточно: run-vm.js (родительский
+// оркестратор) сам слушает qemu.on('exit', ...) и по нему каскадно гасит
+// swtpm и capture-serial-log.js (см. src/run-vm.js). Дублировать эту логику
+// здесь means MODULE-GRANULARITY/DRY нарушение — она уже есть в одном месте.
+console.log(`останавливаю qemu (pid ${pid}) через SIGTERM`);
+process.kill(pid, 'SIGTERM');
+
+let exited = await waitForExit(pid, 10000, 200);
+if (!exited) {
+  console.log(`qemu (pid ${pid}) не завершился за 10с — SIGKILL`);
+  process.kill(pid, 'SIGKILL');
+  exited = await waitForExit(pid, 5000, 200);
+}
+if (!exited) {
+  throw new Error(`qemu (pid ${pid}) не завершился даже после SIGKILL`);
+}
+console.log(`qemu (pid ${pid}) остановлен`);
+rmSync(pidFile, { force: true });
+
+// Верификация, а не предположение: порты действительно освободились.
+const ports = [
+  config.qemu.qmpPort,
+  config.qemu.serialLogTcpPort,
+  config.qemu.serialCommandTcpPort,
+  config.winRm.hostPort,
+];
+const stillListening = (
+  await Promise.all(ports.map(async (port) => ((await probePort(config.network.loopbackHost, port, 1000)) ? port : null)))
+).filter((port) => port !== null);
+
+if (stillListening.length > 0) {
+  throw new Error(`порты всё ещё слушают после остановки qemu: ${stillListening.join(', ')} (осиротевший процесс?)`);
+}
+console.log(`все порты (${ports.join(', ')}) освобождены`);
+NODE_EOF
