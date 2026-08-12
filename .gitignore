@@ -1,0 +1,13 @@
+/_vendor/
+/archive/
+/backup/
+/cache/
+/db/
+/doc/fragments/
+/doc/tasks/
+/garbage/
+/memo/
+/node_modules/
+/output/
+/tmp/
+/vendor/
