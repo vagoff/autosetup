@@ -93,6 +93,19 @@
 - скрипты для само обслуживания кладем в `/data/wd/aibox/wintest/scripts/`.
 - скрипты которые выполняют задачу в `/data/wd/aibox/wintest/src/`.
 
+инструменты для агента (в `scripts/`, не для человека):
+- `scripts/run-qmp-command.js <command> [argsJSON]` — разовая произвольная QMP-команда
+  (query-status, query-block, query-blockstats, quit, send-key, ...) поверх уже
+  существующего `src/lib/connect-qmp.js`, JSON-ответ в stdout. Завёлся вместо
+  повторяющихся одноразовых `node -e "..."` в ручной диагностике по QMP.
+  Пример: `node scripts/run-qmp-command.js query-status`.
+- `scripts/shutdown.sh` — только для человека на хосте: убивает qemu по
+  `qemu.pidFile` и подтверждает смерть процесса. Из sandboxed-контейнера агента
+  НЕ РАБОТАЕТ для реального qemu — PID-namespace не расшарен с хостом (расшарена
+  только сеть), поэтому `process.kill(pid, 0)` внутри контейнера всегда "никого
+  не находит", даже если на хосте процесс жив. Агенту для остановки VM — только
+  QMP `quit` по сети (`node scripts/run-qmp-command.js quit`), не PID-based kill.
+
 сохраненные пакеты для чтения и анализа:
 - `/data/wd/aibox/wintest/_vendor/v8runner`
 - `/data/wd/aibox/wintest/_vendor/vanessa-runner`
