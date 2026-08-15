@@ -12,45 +12,45 @@ import { config } from './config.js';
 // spawn-swtpm-process.js / spawn-qemu-process.js / confirm-cd-boot-prompt.js /
 // build-answer-file-image.js / capture-serial-log.js.
 async function runVm() {
-  if (config.qemu.bootFromInstaller) {
-    buildAnswerFileImage();
-  }
+    if (config.qemu.bootFromInstaller) {
+        buildAnswerFileImage();
+    }
 
-  const swtpm = await spawnSwtpmProcess();
+    const swtpm = await spawnSwtpmProcess();
 
-  const qemu = spawnQemuProcess();
+    const qemu = spawnQemuProcess();
 
-  // Чистый Node-код (не внешний бинарь), поэтому живёт в этом же
-  // процессе, а не отдельным spawn-*-process.js — без лишнего процесса
-  // ради процесса (ANTI-BLOAT).
-  const serialLogCapture = new AbortController();
-  captureSerialLog({ signal: serialLogCapture.signal }).catch((error) => {
-    console.error(`capture-serial-log: ${error.message}`);
-  });
+    // Чистый Node-код (не внешний бинарь), поэтому живёт в этом же
+    // процессе, а не отдельным spawn-*-process.js — без лишнего процесса
+    // ради процесса (ANTI-BLOAT).
+    const serialLogCapture = new AbortController();
+    captureSerialLog({ signal: serialLogCapture.signal }).catch((error) => {
+        console.error(`capture-serial-log: ${error.message}`);
+    });
 
-  const shutdown = (signal) => {
-    qemu.kill(signal);
-    swtpm.kill(signal);
-    serialLogCapture.abort();
-  };
-  process.on('SIGINT', () => shutdown('SIGINT'));
-  process.on('SIGTERM', () => shutdown('SIGTERM'));
+    const shutdown = (signal) => {
+        qemu.kill(signal);
+        swtpm.kill(signal);
+        serialLogCapture.abort();
+    };
+    process.on('SIGINT', () => shutdown('SIGINT'));
+    process.on('SIGTERM', () => shutdown('SIGTERM'));
 
-  qemu.on('exit', (code, signal) => {
-    swtpm.kill('SIGTERM');
-    serialLogCapture.abort();
-    process.exit(signal ? 1 : (code ?? 0));
-  });
+    qemu.on('exit', (code, signal) => {
+        swtpm.kill('SIGTERM');
+        serialLogCapture.abort();
+        process.exit(signal ? 1 : (code ?? 0));
+    });
 
-  // Прохождение CD-boot prompt имеет смысл только при загрузке с
-  // установочного носителя — на загрузке с диска (bootFromInstaller=false)
-  // этого экрана не существует, слать в него клавиши нельзя.
-  if (config.qemu.bootFromInstaller) {
-    await confirmCdBootPrompt();
-  }
+    // Прохождение CD-boot prompt имеет смысл только при загрузке с
+    // установочного носителя — на загрузке с диска (bootFromInstaller=false)
+    // этого экрана не существует, слать в него клавиши нельзя.
+    if (config.qemu.bootFromInstaller) {
+        await confirmCdBootPrompt();
+    }
 }
 
 runVm().catch((error) => {
-  console.error(error.message);
-  process.exit(1);
+    console.error(error.message);
+    process.exit(1);
 });

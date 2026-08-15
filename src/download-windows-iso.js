@@ -8,17 +8,17 @@ import { downloadArtifact } from './lib/download-artifact.js';
 // заранее известным значением из конфига (детерминированная проверка,
 // а не догадка по состоянию).
 export async function downloadWindowsIso() {
-  const targetPath = path.join(config.paths.isoDir, config.windowsIso.filename);
-  await downloadArtifact({
-    url: config.windowsIso.url,
-    targetPath,
-    expectedBytes: config.windowsIso.expectedBytes,
-  });
+    const targetPath = path.join(config.paths.isoDir, config.windowsIso.filename);
+    await downloadArtifact({
+        url: config.windowsIso.url,
+        targetPath,
+        expectedBytes: config.windowsIso.expectedBytes,
+    });
 }
 
 if (import.meta.url === `file://${process.argv[1]}`) {
-  downloadWindowsIso().catch((error) => {
-    console.error(error.message);
-    process.exit(1);
-  });
+    downloadWindowsIso().catch((error) => {
+        console.error(error.message);
+        process.exit(1);
+    });
 }

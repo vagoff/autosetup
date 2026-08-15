@@ -13,15 +13,15 @@ import { runProcess } from './lib/run-process.js';
 // не имеет смысла (задвоит ключи), поэтому отдельного fail-fast guard'а
 // тут нет: гарантия "файл свежий" — забота вызывающего оркестратора.
 export async function enrollSecureBootKeys() {
-  const { varsPath } = config.ovmf;
-  const { binary } = config.ovmf.secureBoot;
-  await runProcess(binary, ['--inplace', varsPath, '--enroll-microsoft', '--secure-boot']);
-  console.log(`заведены ключи Secure Boot в ${varsPath}`);
+    const { varsPath } = config.ovmf;
+    const { binary } = config.ovmf.secureBoot;
+    await runProcess(binary, ['--inplace', varsPath, '--enroll-microsoft', '--secure-boot']);
+    console.log(`заведены ключи Secure Boot в ${varsPath}`);
 }
 
 if (import.meta.url === `file://${process.argv[1]}`) {
-  enrollSecureBootKeys().catch((error) => {
-    console.error(error.message);
-    process.exit(1);
-  });
+    enrollSecureBootKeys().catch((error) => {
+        console.error(error.message);
+        process.exit(1);
+    });
 }

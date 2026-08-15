@@ -7,10 +7,10 @@ import { destroySshClientKey } from './destroy-ssh-client-key.js';
 // сносит все R/W-ресурсы VM (диск, OVMF vars, tpm state) для чистого
 // перезапуска установки с нуля. Никакой собственной логики.
 function destroyVmResources() {
-  destroyDiskImage();
-  destroyOvmfVars();
-  destroyTpmStateDir();
-  destroySshClientKey();
+    destroyDiskImage();
+    destroyOvmfVars();
+    destroyTpmStateDir();
+    destroySshClientKey();
 }
 
 destroyVmResources();

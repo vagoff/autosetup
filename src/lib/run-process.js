@@ -6,13 +6,13 @@ import { spawn } from 'node:child_process';
 // (в отличие от spawn-*-process.js, которые запускают долгоживущие
 // процессы вроде qemu/swtpm).
 export function runProcess(command, args) {
-  return new Promise((resolve, reject) => {
-    const child = spawn(command, args, { stdio: 'inherit' });
-    child.on('error', reject);
-    child.on('exit', (code, signal) => {
-      if (signal) return reject(new Error(`${command}: убит сигналом ${signal}`));
-      if (code !== 0) return reject(new Error(`${command}: код выхода ${code}`));
-      resolve();
+    return new Promise((resolve, reject) => {
+        const child = spawn(command, args, { stdio: 'inherit' });
+        child.on('error', reject);
+        child.on('exit', (code, signal) => {
+            if (signal) return reject(new Error(`${command}: убит сигналом ${signal}`));
+            if (code !== 0) return reject(new Error(`${command}: код выхода ${code}`));
+            resolve();
+        });
     });
-  });
 }

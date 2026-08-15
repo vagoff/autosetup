@@ -67,6 +67,7 @@
 - create-скрипты для stateful-ресурсов (диск/OVMF vars/tpm state) обязаны fail-fast, а не молча пропускать/перезаписывать.
 - делать установку разных необязательных для windows фич отдельными модулями. например установка всего нужного для того чтобы обеспечить вход по ssh и вход по rdp
   (десктоп сессию) пример двух таких модулей.
+- кириллицу не пишем в выводе скриптов, она на windows превращается в `?????`.
 
 архитектурные решения:
 
@@ -87,11 +88,11 @@
 ## что имеем на данным момент
 
 пути:
-- константные конфиги и таблицы и образы писать сюда `/data/wd/aibox/wintest/data`.
-- базы данных и образы r/w дисков сюда `/data/wd/aibox/wintest/db`.
-- discardable данные сюда `/data/wd/aibox/wintest/cache`.
-- скрипты для само обслуживания кладем в `/data/wd/aibox/wintest/scripts/`.
-- скрипты которые выполняют задачу в `/data/wd/aibox/wintest/src/`.
+- константные конфиги и таблицы и образы писать сюда `/data/wd/aibox/autosetup/data`.
+- базы данных и образы r/w дисков сюда `/data/wd/aibox/autosetup/db`.
+- discardable данные сюда `/data/wd/aibox/autosetup/cache`.
+- скрипты для само обслуживания кладем в `/data/wd/aibox/autosetup/scripts/`.
+- скрипты которые выполняют задачу в `/data/wd/aibox/autosetup/src/`.
 
 инструменты для агента (в `scripts/`, не для человека):
 - `scripts/run-qmp-command.js <command> [argsJSON]` — разовая произвольная QMP-команда
@@ -107,10 +108,10 @@
   QMP `quit` по сети (`node scripts/run-qmp-command.js quit`), не PID-based kill.
 
 сохраненные пакеты для чтения и анализа:
-- `/data/wd/aibox/wintest/_vendor/v8runner`
-- `/data/wd/aibox/wintest/_vendor/vanessa-runner`
-- `/data/wd/aibox/wintest/_vendor/1cmgmt.1.2.3.nupkg`
-(клонить надо через `git git clone --depth 1 --single-branch xxx`)
+- `/data/wd/aibox/autosetup/_vendor/v8runner`
+- `/data/wd/aibox/autosetup/_vendor/vanessa-runner`
+- `/data/wd/aibox/autosetup/_vendor/1cmgmt.1.2.3.nupkg`
+(если что-то клонить то через `git git clone --depth 1 --single-branch xxx`)
 
 среда: host = obarun linux, agent's container = alpine linux (musl), всё на одной машине с общей сетью, alpine в bwrap контейнере с `--unshare-all` и `--share-net`,
 если что-то ножно доставлять или редактировать в системе (obarun или alpine) надо записывать в виде скрипта и исполнять,
@@ -118,28 +119,10 @@
 
 QEMU и скрипт создания vm образов работает на host машине человека, если агенту надо их запустить, пусть просит человека.
 
-## Мелкое, но важное
-
+памятка:
 - Node ≥22 используется ради встроенного `zlib.crc32` в `ppm-to-png.js` (там же — самодельный PNG-энкодер без зависимостей).
-
-## Текущее состояние
-
-- Разобрать WinRM 401 через работающие SSH и serial-agent: собрать WinRM/NTLM диагностические факты в госте и исправить причину без включения Basic.
-- Сначала привести зависимость winrm-client в отдельный аккуратный commit, не смешивая её с вашими изменениями package.json/lockfile, затем перейти к диагностике WinRM.
-
-
-## Результаты диагностики
-
-1. **`enable-winrm-access: OK`** — WinRM включён.
-2. **`network-profile: Ethernet category=Public ipv4=Internet ipv6=LocalNetwork`** — два факта разом:
-   - профиль сети реально **Public** (подтверждает, что `-SkipNetworkProfileCheck` был не зря добавлен);
-   - NLA (Network Location Awareness) считает, что интернет **есть** (`ipv4=Internet` — это высшая категория, Windows реально проверяет достижимость через свой NCSI-эндпоинт и получает подтверждение).
-3. **`diagnose-guest-network: TIMEOUT after 20s`** — сами TCP-пробы (`8.8.8.8:53`, `download.windowsupdate.com:443` через `Test-NetConnection`) не уложились в 20 секунд — интересно само по себе, но не критично, разберём отдельно при желании.
-4. **`probe-openssh-capability: TIMEOUT after 90s`** — САМОЕ ГЛАВНОЕ: `Add-WindowsCapability -Online` для OpenSSH **подтверждённо виснет намертво даже при наличии интернета** (пункт 2 это доказывает). Это окончательно подтверждает исходную гипотезу: дело не в отсутствии сети, а именно в архитектурном ограничении LTSC (нет источника Feature-on-Demand через Windows Update). Больше не гипотеза — факт, измеренный дважды (таймаут сработал ровно как задумано, не заблокировал остальное).
-5. **`first-logon-commands: ALL DONE`** — цепочка дошла до конца, ничего не зависло навсегда.
-
-Мелкий баг для заметки: кириллица в одном из сообщений `Write-ComLog` превратилась в `?????` (проблема кодировки `SerialPort` — не критично, но стоит держать текст логов только на латинице/ASCII впредь).
 
 ## NOW
 
-сейчас срочно надо тщательно проверить что там наделал gpt, история им попушена в git.
+- сделать кнопочку для корректного выключения windows
+- сделать feature-пакет модуль для rdp (и проверить сразу)

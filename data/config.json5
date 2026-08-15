@@ -1,7 +1,7 @@
 {
   // единственное место, где путь захардкожен буквально — всё остальное
   // выводится из него в src/config.js
-  projectRoot: '/data/wd/aibox/wintest',
+  projectRoot: '/data/wd/aibox/autosetup',
   vmName: 'win11-1c',
 
   network: {

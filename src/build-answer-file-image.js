@@ -12,74 +12,74 @@ import { config } from './config.js';
 // в отличие от create-disk-image.js и др. никакого fail-fast-guard на
 // "уже существует" не нужно.
 export function buildAnswerFileImage() {
-  const { unattend, openSsh } = config;
-  const { answerFileImageSizeBytes, answerFileFilename, answerFileImagePath } = unattend;
+    const { unattend, openSsh } = config;
+    const { answerFileImageSizeBytes, answerFileFilename, answerFileImagePath } = unattend;
 
-  if (!existsSync(openSsh.archivePath)) {
-    throw new Error(`нет OpenSSH ZIP: ${openSsh.archivePath}. Сначала запусти download-open-ssh-archive.js`);
-  }
-  if (!existsSync(openSsh.clientPublicKeyPath)) {
-    throw new Error(`нет SSH public key: ${openSsh.clientPublicKeyPath}. Сначала запусти create-ssh-client-key.js`);
-  }
-
-  // label — опциональный, ожидает уже закодированный в OEM-кодовую
-  // страницу Uint8Array (внутренний хелпер libmount под это не
-  // экспортирован публично) — пропускаем, Setup на метку тома не смотрит.
-  const format = mkfsvfat(answerFileImageSizeBytes, { type: 'FAT12' });
-  if (!format) {
-    throw new Error(`libmount.mkfsvfat отказался форматировать образ размером ${answerFileImageSizeBytes} байт`);
-  }
-
-  const image = new Uint8Array(answerFileImageSizeBytes);
-  const disk = mount(image);
-  disk.write(format.sectors);
-
-  const fs = disk.getFileSystem();
-  if (!fs) {
-    throw new Error('libmount: файловая система не примонтировалась сразу после форматирования');
-  }
-
-  // firstLogonScripts (имена .ps1-файлов) → короткие CommandLine-строки
-  // (bootstrap) + реальное содержимое скриптов, которое едет на этот же
-  // образ файлами (см. комментарий в build-first-logon-commands.js —
-  // почему не инлайн). renderAutounattendXml остаётся агностичен к тому,
-  // как получен firstLogonCommands (SRP) — просто XML-экранирует готовые
-  // строки.
-  const { scriptFiles, firstLogonCommands } = buildFirstLogonCommands({
-    guestScriptsDir: config.paths.guestScriptsDir,
-    firstLogonScripts: unattend.firstLogonScripts,
-    supportingGuestScripts: unattend.supportingGuestScripts,
-    diagnostics: config.diagnostics,
-    openSsh,
-    serialAgent: config.serialAgent,
-    winRm: config.winRm,
-  });
-  const xml = renderAutounattendXml({ ...unattend, firstLogonCommands });
-
-  const writeRootFile = (filename, content) => {
-    const file = fs.getRoot().makeFile(filename);
-    if (!file) {
-      throw new Error(`libmount: не смог создать файл "${filename}" в корне образа`);
+    if (!existsSync(openSsh.archivePath)) {
+        throw new Error(`нет OpenSSH ZIP: ${openSsh.archivePath}. Сначала запусти download-open-ssh-archive.js`);
     }
-    file.open().writeData(content);
-  };
+    if (!existsSync(openSsh.clientPublicKeyPath)) {
+        throw new Error(`нет SSH public key: ${openSsh.clientPublicKeyPath}. Сначала запусти create-ssh-client-key.js`);
+    }
 
-  writeRootFile(answerFileFilename, new TextEncoder().encode(xml));
-  for (const { filename, content } of scriptFiles) {
-    writeRootFile(filename, new TextEncoder().encode(content));
-  }
-  writeRootFile(openSsh.archiveFilename, readFileSync(openSsh.archivePath));
-  writeRootFile(openSsh.clientPublicKeyFilename, readFileSync(openSsh.clientPublicKeyPath));
+    // label — опциональный, ожидает уже закодированный в OEM-кодовую
+    // страницу Uint8Array (внутренний хелпер libmount под это не
+    // экспортирован публично) — пропускаем, Setup на метку тома не смотрит.
+    const format = mkfsvfat(answerFileImageSizeBytes, { type: 'FAT12' });
+    if (!format) {
+        throw new Error(`libmount.mkfsvfat отказался форматировать образ размером ${answerFileImageSizeBytes} байт`);
+    }
 
-  writeFileSync(answerFileImagePath, image);
-  console.log(`собран ${answerFileImagePath} (${answerFileFilename} + ${scriptFiles.length} guest-скриптов + OpenSSH ZIP + SSH public key, ${xml.length} байт XML)`);
+    const image = new Uint8Array(answerFileImageSizeBytes);
+    const disk = mount(image);
+    disk.write(format.sectors);
+
+    const fs = disk.getFileSystem();
+    if (!fs) {
+        throw new Error('libmount: файловая система не примонтировалась сразу после форматирования');
+    }
+
+    // firstLogonScripts (имена .ps1-файлов) → короткие CommandLine-строки
+    // (bootstrap) + реальное содержимое скриптов, которое едет на этот же
+    // образ файлами (см. комментарий в build-first-logon-commands.js —
+    // почему не инлайн). renderAutounattendXml остаётся агностичен к тому,
+    // как получен firstLogonCommands (SRP) — просто XML-экранирует готовые
+    // строки.
+    const { scriptFiles, firstLogonCommands } = buildFirstLogonCommands({
+        guestScriptsDir: config.paths.guestScriptsDir,
+        firstLogonScripts: unattend.firstLogonScripts,
+        supportingGuestScripts: unattend.supportingGuestScripts,
+        diagnostics: config.diagnostics,
+        openSsh,
+        serialAgent: config.serialAgent,
+        winRm: config.winRm,
+    });
+    const xml = renderAutounattendXml({ ...unattend, firstLogonCommands });
+
+    const writeRootFile = (filename, content) => {
+        const file = fs.getRoot().makeFile(filename);
+        if (!file) {
+            throw new Error(`libmount: не смог создать файл "${filename}" в корне образа`);
+        }
+        file.open().writeData(content);
+    };
+
+    writeRootFile(answerFileFilename, new TextEncoder().encode(xml));
+    for (const { filename, content } of scriptFiles) {
+        writeRootFile(filename, new TextEncoder().encode(content));
+    }
+    writeRootFile(openSsh.archiveFilename, readFileSync(openSsh.archivePath));
+    writeRootFile(openSsh.clientPublicKeyFilename, readFileSync(openSsh.clientPublicKeyPath));
+
+    writeFileSync(answerFileImagePath, image);
+    console.log(`собран ${answerFileImagePath} (${answerFileFilename} + ${scriptFiles.length} guest-скриптов + OpenSSH ZIP + SSH public key, ${xml.length} байт XML)`);
 }
 
 if (import.meta.url === `file://${process.argv[1]}`) {
-  try {
-    buildAnswerFileImage();
-  } catch (error) {
-    console.error(error.message);
-    process.exit(1);
-  }
+    try {
+        buildAnswerFileImage();
+    } catch (error) {
+        console.error(error.message);
+        process.exit(1);
+    }
 }

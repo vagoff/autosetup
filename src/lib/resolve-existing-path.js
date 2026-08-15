@@ -6,11 +6,11 @@ import { existsSync } from 'node:fs';
 // ресурс, аналогично поиску исполняемого файла в PATH. При отсутствии
 // падает с чётким списком проверенных путей (fail-fast).
 export function resolveExistingPath(candidates, description) {
-  for (const candidate of candidates) {
-    if (existsSync(candidate)) return candidate;
-  }
-  throw new Error(
-    `${description}: не найден ни один из путей:\n` +
+    for (const candidate of candidates) {
+        if (existsSync(candidate)) return candidate;
+    }
+    throw new Error(
+        `${description}: не найден ни один из путей:\n` +
     candidates.map((c) => `  - ${c}`).join('\n')
-  );
+    );
 }

@@ -9,7 +9,7 @@ sudo pacman -S libgovirt
 sudo pacman -Sdd virt-viewer spice-gtk phodav
 echo do  remote-viewer spice://localhost:6900
 
-cd /data/wd/aibox/wintest
+cd /data/wd/aibox/autosetup
 
 node src/download-windows-iso.js                # разово, ~5.1GB
 node src/create-vm-resources.js                 # разово: диск + OVMF vars + tpm dir

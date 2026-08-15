@@ -15,7 +15,8 @@ cat > package.json <<'EOF'
 }
 EOF
 
-npm add json5 libmount node-ssh fast-xml-parser winrm-client
+npm add json5 libmount node-ssh fast-xml-parser
+# winrm-client
 # basic-ftp 
 npm install-scripts approve ssh2
 npm install-scripts approve cpu-features

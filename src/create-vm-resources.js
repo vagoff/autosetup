@@ -8,14 +8,14 @@ import { createSshClientKey } from './create-ssh-client-key.js';
 // ресурсов, без собственной логики. Запускается один раз перед первым
 // стартом VM. Каждый шаг сам решает, fail-fast ему или нет.
 async function createVmResources() {
-  await createDiskImage();
-  provisionOvmfVars();
-  await enrollSecureBootKeys();
-  createTpmStateDir();
-  createSshClientKey();
+    await createDiskImage();
+    provisionOvmfVars();
+    await enrollSecureBootKeys();
+    createTpmStateDir();
+    createSshClientKey();
 }
 
 createVmResources().catch((error) => {
-  console.error(error.message);
-  process.exit(1);
+    console.error(error.message);
+    process.exit(1);
 });

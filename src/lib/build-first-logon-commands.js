@@ -13,7 +13,7 @@ import { encodePowerShellCommand } from './encode-powershell-command.js';
 // короткий bootstrap: находит букву диска флешки по имени файла и
 // запускает его.
 function buildBootstrapScript(filename) {
-  return `foreach($l in 68..90){$p="$([char]$l):\\${filename}";if(Test-Path $p){& $p;if($?){exit 0}else{exit 1}}};throw "USB script not found: ${filename}"`;
+    return `foreach($l in 68..90){$p="$([char]$l):\\${filename}";if(Test-Path $p){& $p;if($?){exit 0}else{exit 1}}};throw "USB script not found: ${filename}"`;
 }
 
 // Из firstLogonScripts (имена файлов в src/guest-scripts/) собирает:
@@ -22,59 +22,59 @@ function buildBootstrapScript(filename) {
 //    каждым скриптом через $PSScriptRoot — не нужно ничего инлайнить);
 //  - firstLogonCommands: короткие CommandLine-строки для unattend.xml.
 export function buildFirstLogonCommands({
-  guestScriptsDir,
-  firstLogonScripts,
-  supportingGuestScripts,
-  diagnostics,
-  openSsh,
-  serialAgent,
-  winRm,
+    guestScriptsDir,
+    firstLogonScripts,
+    supportingGuestScripts,
+    diagnostics,
+    openSsh,
+    serialAgent,
+    winRm,
 }) {
-  const preludeFilename = '_lib-guest-script-prelude.ps1';
-  const preludeContent = renderGuestScriptTemplate(path.join(guestScriptsDir, preludeFilename), {
-    COM_PORT: diagnostics.comPort,
-    COM_BAUD_RATE: diagnostics.comBaudRate,
-  });
+    const preludeFilename = '_lib-guest-script-prelude.ps1';
+    const preludeContent = renderGuestScriptTemplate(path.join(guestScriptsDir, preludeFilename), {
+        COM_PORT: diagnostics.comPort,
+        COM_BAUD_RATE: diagnostics.comBaudRate,
+    });
 
-  const networkProbeTargetsPs = diagnostics.networkProbeTargets
-    .map((t) => `  [pscustomobject]@{ Host = '${t.host}'; Port = ${t.port}; Label = '${t.label}' }`)
-    .join(',\n');
+    const networkProbeTargetsPs = diagnostics.networkProbeTargets
+        .map((t) => `  [pscustomobject]@{ Host = '${t.host}'; Port = ${t.port}; Label = '${t.label}' }`)
+        .join(',\n');
 
-  const scriptFiles = [{ filename: preludeFilename, content: preludeContent }];
-  const firstLogonCommands = [];
+    const scriptFiles = [{ filename: preludeFilename, content: preludeContent }];
+    const firstLogonCommands = [];
 
-  const renderScript = (filename) => renderGuestScriptTemplate(path.join(guestScriptsDir, filename), {
-    COM_PORT: diagnostics.comPort,
-    COM_BAUD_RATE: diagnostics.comBaudRate,
-    NETWORK_PROBE_TARGETS_PS_ARRAY: networkProbeTargetsPs,
-    NETWORK_PROBE_TIMEOUT_SECONDS: diagnostics.networkProbeTimeoutSeconds,
-    CAPABILITY_PROBE_TIMEOUT_SECONDS: diagnostics.capabilityProbeTimeoutSeconds,
-    OPENSSH_ARCHIVE_FILENAME: openSsh.archiveFilename,
-    OPENSSH_INSTALLATION_DIRECTORY_NAME: openSsh.installationDirectoryName,
-    OPENSSH_SERVICE_NAME: openSsh.serviceName,
-    OPENSSH_FIREWALL_RULE_NAME: openSsh.firewallRuleName,
-    OPENSSH_FIREWALL_RULE_DISPLAY_NAME: openSsh.firewallRuleDisplayName,
-    OPENSSH_PORT: openSsh.port,
-    OPENSSH_ADMIN_AUTHORIZED_KEYS_FILENAME: openSsh.adminAuthorizedKeysFilename,
-    OPENSSH_CLIENT_PUBLIC_KEY_FILENAME: openSsh.clientPublicKeyFilename,
-    SERIAL_AGENT_COM_PORT: serialAgent.comPort,
-    SERIAL_AGENT_COM_BAUD_RATE: serialAgent.comBaudRate,
-    SERIAL_AGENT_SCRIPT_FILENAME: serialAgent.scriptFilename,
-    SERIAL_AGENT_INSTALLATION_DIRECTORY_NAME: serialAgent.installationDirectoryName,
-    SERIAL_AGENT_LOG_FILENAME: serialAgent.logFilename,
-    SERIAL_AGENT_TASK_NAME: serialAgent.taskName,
-    SERIAL_AGENT_COMMAND_TIMEOUT_MS: serialAgent.commandTimeoutMs,
-    SERIAL_AGENT_MAX_RESPONSE_BYTES: serialAgent.maxResponseBytes,
-    WINRM_LOCAL_ACCOUNT_TOKEN_FILTER_POLICY_VALUE: winRm.localAccountTokenFilterPolicyValue,
-  });
+    const renderScript = (filename) => renderGuestScriptTemplate(path.join(guestScriptsDir, filename), {
+        COM_PORT: diagnostics.comPort,
+        COM_BAUD_RATE: diagnostics.comBaudRate,
+        NETWORK_PROBE_TARGETS_PS_ARRAY: networkProbeTargetsPs,
+        NETWORK_PROBE_TIMEOUT_SECONDS: diagnostics.networkProbeTimeoutSeconds,
+        CAPABILITY_PROBE_TIMEOUT_SECONDS: diagnostics.capabilityProbeTimeoutSeconds,
+        OPENSSH_ARCHIVE_FILENAME: openSsh.archiveFilename,
+        OPENSSH_INSTALLATION_DIRECTORY_NAME: openSsh.installationDirectoryName,
+        OPENSSH_SERVICE_NAME: openSsh.serviceName,
+        OPENSSH_FIREWALL_RULE_NAME: openSsh.firewallRuleName,
+        OPENSSH_FIREWALL_RULE_DISPLAY_NAME: openSsh.firewallRuleDisplayName,
+        OPENSSH_PORT: openSsh.port,
+        OPENSSH_ADMIN_AUTHORIZED_KEYS_FILENAME: openSsh.adminAuthorizedKeysFilename,
+        OPENSSH_CLIENT_PUBLIC_KEY_FILENAME: openSsh.clientPublicKeyFilename,
+        SERIAL_AGENT_COM_PORT: serialAgent.comPort,
+        SERIAL_AGENT_COM_BAUD_RATE: serialAgent.comBaudRate,
+        SERIAL_AGENT_SCRIPT_FILENAME: serialAgent.scriptFilename,
+        SERIAL_AGENT_INSTALLATION_DIRECTORY_NAME: serialAgent.installationDirectoryName,
+        SERIAL_AGENT_LOG_FILENAME: serialAgent.logFilename,
+        SERIAL_AGENT_TASK_NAME: serialAgent.taskName,
+        SERIAL_AGENT_COMMAND_TIMEOUT_MS: serialAgent.commandTimeoutMs,
+        SERIAL_AGENT_MAX_RESPONSE_BYTES: serialAgent.maxResponseBytes,
+        WINRM_LOCAL_ACCOUNT_TOKEN_FILTER_POLICY_VALUE: winRm.localAccountTokenFilterPolicyValue,
+    });
 
-  for (const filename of firstLogonScripts) {
-    scriptFiles.push({ filename, content: renderScript(filename) });
-    firstLogonCommands.push(encodePowerShellCommand(buildBootstrapScript(filename)));
-  }
-  for (const filename of supportingGuestScripts) {
-    scriptFiles.push({ filename, content: renderScript(filename) });
-  }
+    for (const filename of firstLogonScripts) {
+        scriptFiles.push({ filename, content: renderScript(filename) });
+        firstLogonCommands.push(encodePowerShellCommand(buildBootstrapScript(filename)));
+    }
+    for (const filename of supportingGuestScripts) {
+        scriptFiles.push({ filename, content: renderScript(filename) });
+    }
 
-  return { scriptFiles, firstLogonCommands };
+    return { scriptFiles, firstLogonCommands };
 }

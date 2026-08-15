@@ -21,50 +21,50 @@ import { config } from './config.js';
 //   3. дождаться ВТОРОГО, повторного роста — только он означает, что
 //      prompt принял клавишу и начался настоящий стриминг Windows.
 export async function confirmCdBootPrompt() {
-  const { loopbackHost } = config.network;
-  const { qmpPort, qmpConnectTimeoutMs, cdromDeviceId, bootPromptConfirmation } = config.qemu;
-  const { key, pollIntervalMs, requiredStableSamples, maxAttempts } = bootPromptConfirmation;
+    const { loopbackHost } = config.network;
+    const { qmpPort, qmpConnectTimeoutMs, cdromDeviceId, bootPromptConfirmation } = config.qemu;
+    const { key, pollIntervalMs, requiredStableSamples, maxAttempts } = bootPromptConfirmation;
 
-  const qmp = await connectQmp(loopbackHost, qmpPort, qmpConnectTimeoutMs);
-  try {
-    const captureState = () => queryCdromBytesRead(qmp, cdromDeviceId);
-    const onEachAttempt = () => sendGuestKey(qmp, key);
-    const isUnchanged = (current, baseline) => current === baseline;
+    const qmp = await connectQmp(loopbackHost, qmpPort, qmpConnectTimeoutMs);
+    try {
+        const captureState = () => queryCdromBytesRead(qmp, cdromDeviceId);
+        const onEachAttempt = () => sendGuestKey(qmp, key);
+        const isUnchanged = (current, baseline) => current === baseline;
 
-    await waitForObservableChange({
-      captureState,
-      isUnchanged,
-      onEachAttempt,
-      pollIntervalMs,
-      maxAttempts,
-      timeoutHint: `CD-привод "${cdromDeviceId}" не читался вообще ни разу — прошивка не дошла до загрузочного меню`,
-    });
+        await waitForObservableChange({
+            captureState,
+            isUnchanged,
+            onEachAttempt,
+            pollIntervalMs,
+            maxAttempts,
+            timeoutHint: `CD-привод "${cdromDeviceId}" не читался вообще ни разу — прошивка не дошла до загрузочного меню`,
+        });
 
-    await waitForStableState({
-      captureState,
-      onEachAttempt,
-      pollIntervalMs,
-      requiredStableSamples,
-      maxAttempts,
-      timeoutHint: `чтение с CD-привода "${cdromDeviceId}" после первого всплеска не улеглось`,
-    });
+        await waitForStableState({
+            captureState,
+            onEachAttempt,
+            pollIntervalMs,
+            requiredStableSamples,
+            maxAttempts,
+            timeoutHint: `чтение с CD-привода "${cdromDeviceId}" после первого всплеска не улеглось`,
+        });
 
-    await waitForObservableChange({
-      captureState,
-      isUnchanged,
-      onEachAttempt,
-      pollIntervalMs,
-      maxAttempts,
-      timeoutHint: `CD-привод "${cdromDeviceId}" так и не начал читаться повторно — прошивка не приняла нажатие клавиши`,
-    });
-  } finally {
-    qmp.disconnect();
-  }
+        await waitForObservableChange({
+            captureState,
+            isUnchanged,
+            onEachAttempt,
+            pollIntervalMs,
+            maxAttempts,
+            timeoutHint: `CD-привод "${cdromDeviceId}" так и не начал читаться повторно — прошивка не приняла нажатие клавиши`,
+        });
+    } finally {
+        qmp.disconnect();
+    }
 }
 
 if (import.meta.url === `file://${process.argv[1]}`) {
-  confirmCdBootPrompt().catch((error) => {
-    console.error(error.message);
-    process.exit(1);
-  });
+    confirmCdBootPrompt().catch((error) => {
+        console.error(error.message);
+        process.exit(1);
+    });
 }

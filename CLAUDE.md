@@ -1,1 +1,0 @@
-doc/incremental-rolling-protocol.md

@@ -10,13 +10,13 @@ import { readFileSync } from 'node:fs';
 // а не "просто оставим как есть" — такой скрипт в госте либо не
 // исполнится, либо исполнится не так, как задумано.
 export function renderGuestScriptTemplate(templatePath, tokens) {
-  let text = readFileSync(templatePath, 'utf8');
-  for (const [key, value] of Object.entries(tokens)) {
-    text = text.replaceAll(`{{${key}}}`, String(value));
-  }
-  const unresolved = text.match(/{{[A-Z0-9_]+}}/g);
-  if (unresolved) {
-    throw new Error(`${templatePath}: неразрешённые токены: ${unresolved.join(', ')}`);
-  }
-  return text;
+    let text = readFileSync(templatePath, 'utf8');
+    for (const [key, value] of Object.entries(tokens)) {
+        text = text.replaceAll(`{{${key}}}`, String(value));
+    }
+    const unresolved = text.match(/{{[A-Z0-9_]+}}/g);
+    if (unresolved) {
+        throw new Error(`${templatePath}: неразрешённые токены: ${unresolved.join(', ')}`);
+    }
+    return text;
 }

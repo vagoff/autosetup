@@ -1,5 +1,5 @@
 function sleep(ms) {
-  return new Promise((resolve) => setTimeout(resolve, ms));
+    return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 // Генерализованный примитив: повторяет действие (onEachAttempt), пока
@@ -16,16 +16,16 @@ function sleep(ms) {
 // значений: data/config.json5 (CONFIG-SINGLE-SOURCE), никаких default
 // значений в этой сигнатуре быть не должно.
 export async function waitForObservableChange({ captureState, isUnchanged, onEachAttempt, pollIntervalMs, maxAttempts, timeoutHint }) {
-  const baseline = await captureState();
+    const baseline = await captureState();
 
-  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
-    await onEachAttempt();
-    await sleep(pollIntervalMs);
-    const current = await captureState();
-    if (!isUnchanged(current, baseline)) return;
-  }
+    for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+        await onEachAttempt();
+        await sleep(pollIntervalMs);
+        const current = await captureState();
+        if (!isUnchanged(current, baseline)) return;
+    }
 
-  throw new Error(
-    `состояние VM не изменилось за ${maxAttempts} попыток (интервал ${pollIntervalMs}мс): ${timeoutHint}`
-  );
+    throw new Error(
+        `состояние VM не изменилось за ${maxAttempts} попыток (интервал ${pollIntervalMs}мс): ${timeoutHint}`
+    );
 }

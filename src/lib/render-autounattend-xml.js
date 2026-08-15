@@ -1,26 +1,26 @@
 function escapeXml(value) {
-  return String(value)
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&apos;');
+    return String(value)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&apos;');
 }
 
 function renderFirstLogonCommands(commands) {
-  return commands
-    .map((commandLine, index) => `
+    return commands
+        .map((commandLine, index) => `
       <SynchronousCommand wcm:action="add">
         <Order>${index + 1}</Order>
         <CommandLine>${escapeXml(commandLine)}</CommandLine>
         <Description>first-logon command ${index + 1}</Description>
       </SynchronousCommand>`)
-    .join('');
+        .join('');
 }
 
 function renderAutoLogon(unattend) {
-  if (!unattend.enableAutoLogon) return '';
-  return `
+    if (!unattend.enableAutoLogon) return '';
+    return `
       <AutoLogon>
         <Password>
           <Value>${escapeXml(unattend.adminPassword)}</Value>
@@ -36,7 +36,7 @@ function renderAutoLogon(unattend) {
 // autounattend.xml. Никаких побочных эффектов, никакого чтения файлов —
 // вся сборка образа диска (build-answer-file-image.js) отдельно.
 export function renderAutounattendXml(unattend) {
-  return `<?xml version="1.0" encoding="utf-8"?>
+    return `<?xml version="1.0" encoding="utf-8"?>
 <unattend xmlns="urn:schemas-microsoft-com:unattend">
   <settings pass="windowsPE">
     <component name="Microsoft-Windows-International-Core-WinPE" processorArchitecture="amd64" publicKeyToken="31bf3856ad364e35" language="neutral" versionScope="nonSxS" xmlns:wcm="http://schemas.microsoft.com/WMIConfig/2002/State" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
