@@ -4,11 +4,19 @@
 # подтверждает смерть процесса (polling, не sleep-гадание) — в отличие от
 # QMP "quit", который ничего не подтверждает и который "while true"-обёртка
 # вокруг run-vm.js немедленно отменяет новым запуском.
+#
+# Это ЖЁСТКАЯ остановка (SIGTERM/SIGKILL самому процессу qemu — для
+# гостя внутри это как выдернуть вилку из розетки, без штатного
+# завершения служб). Основной путь — src/shutdown-guest.js (ACPI
+# system_powerdown, гость сам решает, как штатно выключиться); этот
+# скрипт — аварийный резерв на случай, если гость завис и не
+# выключается сам, и PID-based (работает только у человека на хосте —
+# см. src/wait-for-qemu-exit.js про то же самое для агента по сети).
 set -euo pipefail
 exec node --input-type=module - << 'NODE_EOF'
 import { existsSync, readFileSync, rmSync } from 'node:fs';
-import net from 'node:net';
 import { config } from './src/config.js';
+import { probeTcpPort } from './src/lib/probe-tcp-port.js';
 
 function isAlive(pid) {
   try {
@@ -28,21 +36,6 @@ function waitForExit(pid, timeoutMs, pollIntervalMs) {
       setTimeout(check, pollIntervalMs);
     };
     check();
-  });
-}
-
-function probePort(host, port, timeoutMs) {
-  return new Promise((resolve) => {
-    const socket = net.connect({ host, port });
-    socket.once('connect', () => {
-      socket.end();
-      resolve(true);
-    });
-    socket.once('error', () => resolve(false));
-    socket.setTimeout(timeoutMs, () => {
-      socket.destroy();
-      resolve(false);
-    });
   });
 }
 
@@ -92,7 +85,7 @@ const ports = [
   config.winRm.hostPort,
 ];
 const stillListening = (
-  await Promise.all(ports.map(async (port) => ((await probePort(config.network.loopbackHost, port, 1000)) ? port : null)))
+  await Promise.all(ports.map(async (port) => ((await probeTcpPort(config.network.loopbackHost, port, 1000)) ? port : null)))
 ).filter((port) => port !== null);
 
 if (stillListening.length > 0) {

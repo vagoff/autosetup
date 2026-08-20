@@ -3,6 +3,9 @@ import { spawnQemuProcess } from './spawn-qemu-process.js';
 import { confirmCdBootPrompt } from './confirm-cd-boot-prompt.js';
 import { buildAnswerFileImage } from './build-answer-file-image.js';
 import { captureSerialLog } from './capture-serial-log.js';
+import { resolveBootFromInstaller } from './lib/resolve-boot-from-installer.js';
+import { spawnOrphanWatchdog } from './lib/spawn-orphan-watchdog.js';
+import { restartInstallIfInterrupted } from './restart-install-if-interrupted.js';
 import { config } from './config.js';
 
 // Тонкий оркестратор: поднимает swtpm, дожидается сокета, при установке —
@@ -12,13 +15,34 @@ import { config } from './config.js';
 // spawn-swtpm-process.js / spawn-qemu-process.js / confirm-cd-boot-prompt.js /
 // build-answer-file-image.js / capture-serial-log.js.
 async function runVm() {
-    if (config.qemu.bootFromInstaller) {
+    // Если предыдущая попытка установки прервалась на середине — пересобрать
+    // VM с нуля раньше, чем что-либо ещё; см. restart-install-if-interrupted.js
+    // про то, какой ценой обходится не делать это (интерактивный диалог
+    // Windows Setup, который иначе пришлось бы распознавать на экране).
+    await restartInstallIfInterrupted();
+
+    // Считается один раз в начале запуска: bootFromInstaller — это факт
+    // про диск на момент старта (см. resolve-boot-from-installer.js), не
+    // то, что может измениться за время жизни этого процесса.
+    const bootFromInstaller = resolveBootFromInstaller();
+
+    if (bootFromInstaller) {
         buildAnswerFileImage();
     }
 
     const swtpm = await spawnSwtpmProcess();
 
     const qemu = spawnQemuProcess();
+
+    // Переживает даже SIGKILL этого самого процесса — см. doc/BUGS.md
+    // ("SIGKILL по run-vm-cli.js оставляет qemu и swtpm сиротами") и
+    // комментарий в spawn-orphan-watchdog.js про то, почему обычные
+    // обработчики сигналов этот случай в принципе не могут покрыть.
+    spawnOrphanWatchdog({
+        parentPid: process.pid,
+        watchedPids: [qemu.pid, swtpm.pid],
+        pollIntervalMs: config.qemu.orphanWatchdogPollIntervalMs,
+    });
 
     // Чистый Node-код (не внешний бинарь), поэтому живёт в этом же
     // процессе, а не отдельным spawn-*-process.js — без лишнего процесса
@@ -45,12 +69,12 @@ async function runVm() {
     // Прохождение CD-boot prompt имеет смысл только при загрузке с
     // установочного носителя — на загрузке с диска (bootFromInstaller=false)
     // этого экрана не существует, слать в него клавиши нельзя.
-    if (config.qemu.bootFromInstaller) {
+    if (bootFromInstaller) {
         await confirmCdBootPrompt();
     }
 }
 
-runVm().catch((error) => {
+runVm().catch((error) => { // [!] unwrapped main [!]
     console.error(error.message);
     process.exit(1);
 });

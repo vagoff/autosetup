@@ -25,7 +25,7 @@ function waitForUnixSocket(socketPath, timeoutMs) {
 
 // Запускает swtpm (виртуальный TPM 2.0). Control-канал — unix-сокет
 // (единственное исключение из "tcp, не unix sockets", см. комментарий в
-// data/config.json5: qemu передаёт fd через CMD_SET_DATAFD/SCM_RIGHTS, что
+// data/base.json5: qemu передаёт fd через CMD_SET_DATAFD/SCM_RIGHTS, что
 // физически возможно только на AF_UNIX). Дожидается готовности сокета,
 // прежде чем отдать управление вызывающему.
 export async function spawnSwtpmProcess() {

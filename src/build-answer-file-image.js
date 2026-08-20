@@ -1,4 +1,4 @@
-import { existsSync, readFileSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { mkfsvfat, mount } from 'libmount';
 import { renderAutounattendXml } from './lib/render-autounattend-xml.js';
 import { buildFirstLogonCommands } from './lib/build-first-logon-commands.js';
@@ -47,12 +47,8 @@ export function buildAnswerFileImage() {
     // строки.
     const { scriptFiles, firstLogonCommands } = buildFirstLogonCommands({
         guestScriptsDir: config.paths.guestScriptsDir,
-        firstLogonScripts: unattend.firstLogonScripts,
-        supportingGuestScripts: unattend.supportingGuestScripts,
         diagnostics: config.diagnostics,
-        openSsh,
-        serialAgent: config.serialAgent,
-        winRm: config.winRm,
+        guestFeatures: config.guestFeatures,
     });
     const xml = renderAutounattendXml({ ...unattend, firstLogonCommands });
 
@@ -71,6 +67,9 @@ export function buildAnswerFileImage() {
     writeRootFile(openSsh.archiveFilename, readFileSync(openSsh.archivePath));
     writeRootFile(openSsh.clientPublicKeyFilename, readFileSync(openSsh.clientPublicKeyPath));
 
+    // cache/<vmName>/ может ещё не существовать (первый запуск для этой
+    // VM — до этого шага никто в конвейере его не создавал).
+    mkdirSync(config.paths.vmCacheDir, { recursive: true });
     writeFileSync(answerFileImagePath, image);
     console.log(`собран ${answerFileImagePath} (${answerFileFilename} + ${scriptFiles.length} guest-скриптов + OpenSSH ZIP + SSH public key, ${xml.length} байт XML)`);
 }

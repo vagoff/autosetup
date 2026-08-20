@@ -1,14 +1,42 @@
-import { readFileSync } from 'node:fs';
+import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import path from 'node:path';
 import JSON5 from 'json5';
 
-// Единственный источник правды — data/config.json5 (человекоредактируемый,
-// с комментариями). Этот файл только парсит его и довычисляет пути —
-// никаких собственных констант тут быть не должно.
-const CONFIG_FILE = '/data/wd/aibox/autosetup/data/config.json5';
-const raw = JSON5.parse(readFileSync(CONFIG_FILE, 'utf8'));
+// Единственный источник правды — человекоредактируемые файлы с
+// комментариями в data/:
+//  - vars.json5   — голые пути и номера TCP-портов;
+//  - base.json5   — ядро: как ставить и настраивать VM, не зависит от
+//                    выбора фич;
+//  - profiles/*.json5 — какая это VM (vmName) и какой набор опциональных
+//                    фич у неё включён, по порядку;
+//  - features/*.json5 — параметры и guest-скрипты одной опциональной
+//                    фичи (openssh/winrm/serial-agent/...), одна фича —
+//                    один файл.
+// Этот модуль только парсит, резолвит и сливает всё это в один
+// config-объект прежней плоской формы — никаких собственных констант
+// тут быть не должно.
+const DATA_DIR = '/data/wd/aibox/autosetup/data';
+const vars = JSON5.parse(readFileSync(path.join(DATA_DIR, 'vars.json5'), 'utf8'));
+const base = JSON5.parse(readFileSync(path.join(DATA_DIR, 'base.json5'), 'utf8'));
 
-const { projectRoot, vmName } = raw;
+// vars.qemu и base.qemu описывают непересекающиеся подмножества полей
+// одного и того же логического qemu{} — при случайном дублировании ключа
+// падаем сразу (fail-fast), а не молча даём одному файлу перезаписать
+// другой в неопределённом порядке.
+for (const key of Object.keys(vars.qemu)) {
+    if (key in base.qemu) {
+        throw new Error(`data/vars.json5 и data/base.json5 оба определяют qemu.${key}`);
+    }
+}
+
+const raw = {
+    ...base,
+    projectRoot: vars.projectRoot,
+    network: vars.network,
+    qemu: { ...base.qemu, ...vars.qemu },
+};
+
+const { projectRoot } = raw;
 
 function resolveGuestPortForward(name, owner) {
     const portForward = raw.qemu.guestPortForwards.find((forward) => forward.name === name);
@@ -16,17 +44,48 @@ function resolveGuestPortForward(name, owner) {
     throw new Error(`${owner}=${name}: соответствующий элемент qemu.guestPortForwards не найден`);
 }
 
-const openSshPortForward = resolveGuestPortForward(
-    raw.openSsh.guestPortForwardName,
-    'openSsh.guestPortForwardName'
-);
-const winRmPortForward = resolveGuestPortForward(
-    raw.winRm.guestPortForwardName,
-    'winRm.guestPortForwardName'
-);
+// Профиль — явный выбор человека/агента, какую VM и с каким набором фич
+// собираем. Пока в data/profiles/ лежит один файл — выбирать нечего,
+// используем его; как только появится второй — дальше без явного
+// AUTOSETUP_PROFILE не поедем (fail-fast на неоднозначность, а не
+// "первый попавшийся"/угадывание).
+function resolveActiveProfilePath() {
+    const profilesDir = path.join(DATA_DIR, 'profiles');
+    const envPath = process.env.AUTOSETUP_PROFILE;
+    if (envPath) {
+        const resolved = path.resolve(envPath);
+        if (!existsSync(resolved)) throw new Error(`AUTOSETUP_PROFILE=${envPath}: файл не найден`);
+        return resolved;
+    }
+    const candidates = readdirSync(profilesDir).filter((f) => f.endsWith('.json5'));
+    if (candidates.length === 0) throw new Error(`нет ни одного профиля в ${profilesDir}`);
+    if (candidates.length > 1) {
+        throw new Error(
+            `в ${profilesDir} несколько профилей (${candidates.join(', ')}) — укажи явно через переменную окружения AUTOSETUP_PROFILE=data/profiles/<имя>.json5`
+        );
+    }
+    return path.join(profilesDir, candidates[0]);
+}
+
+const profilePath = resolveActiveProfilePath();
+const profile = JSON5.parse(readFileSync(profilePath, 'utf8'));
+const { vmName } = profile;
+
+const seenFeatureIds = new Set();
+for (const id of profile.features) {
+    if (seenFeatureIds.has(id)) throw new Error(`${profilePath}: фича "${id}" перечислена в features дважды`);
+    seenFeatureIds.add(id);
+}
+
+const rawFeaturesById = {};
+for (const id of profile.features) {
+    const featurePath = path.join(DATA_DIR, 'features', `${id}.json5`);
+    if (!existsSync(featurePath)) throw new Error(`${profilePath}: фича "${id}" — нет файла ${featurePath}`);
+    rawFeaturesById[id] = JSON5.parse(readFileSync(featurePath, 'utf8'));
+}
 
 const paths = {
-    dataDir: path.join(projectRoot, 'data'),
+    dataDir: DATA_DIR,
     dbDir: path.join(projectRoot, 'db'),
     cacheDir: path.join(projectRoot, 'cache'),
     vmDbDir: path.join(projectRoot, 'db', vmName),
@@ -36,26 +95,86 @@ const paths = {
     guestScriptsDir: path.join(projectRoot, 'src', 'guest-scripts'),
 };
 
+// Наблюдаемый факт "этот диск уже пережил один успешный install Windows",
+// не конфиг — в db/, потому что обязан пережить перезапуск процесса/хоста
+// (в отличие от cache/), и жить ровно столько же, сколько сам диск (см.
+// src/mark-windows-install-complete.js, src/lib/resolve-boot-from-installer.js,
+// src/destroy-windows-install-complete-marker.js).
+paths.installCompleteMarkerPath = path.join(paths.vmDbDir, 'install-complete.marker');
+
+// Один деривер на фичу: превращает "сырой" data/features/<id>.json5 в то,
+// что дальше потребляют src/*.js (добавляет вычисленные пути и
+// разрешённые из vars.json5 порты). Добавление новой фичи — это добавить
+// сюда одну запись, а не трогать чужие: та же логика, что уже была для
+// openSsh/winRm, просто явно поимённо привязана к id фичи вместо
+// позиционных аргументов.
+const FEATURE_DERIVERS = {
+    openssh: (feature) => {
+        const portForward = resolveGuestPortForward(feature.guestPortForwardName, 'features/openssh.json5: guestPortForwardName');
+        return {
+            ...feature,
+            archivePath: path.join(paths.cacheDir, 'openssh', feature.archiveFilename),
+            clientPrivateKeyPath: path.join(paths.vmDbDir, feature.clientPrivateKeyFilename),
+            clientPublicKeyPath: path.join(paths.vmDbDir, feature.clientPublicKeyFilename),
+            knownHostsPath: path.join(paths.vmCacheDir, feature.check.knownHostsFilename),
+            port: portForward.guestPort,
+            hostPort: portForward.hostPort,
+        };
+    },
+    winrm: (feature) => {
+        const portForward = resolveGuestPortForward(feature.guestPortForwardName, 'features/winrm.json5: guestPortForwardName');
+        return { ...feature, port: portForward.guestPort, hostPort: portForward.hostPort };
+    },
+    rdp: (feature) => {
+        const portForward = resolveGuestPortForward(feature.guestPortForwardName, 'features/rdp.json5: guestPortForwardName');
+        return { ...feature, port: portForward.guestPort, hostPort: portForward.hostPort };
+    },
+    'serial-agent': (feature) => ({ ...feature }),
+};
+
+// config-ключ, под которым деривированные данные фичи видны потребителям
+// (config.openSsh/config.winRm/config.rdp/config.serialAgent) — имена
+// исторические (camelCase, а не kebab-case id файла), меняются с
+// одобрения по всему src/, а не молча.
+const FEATURE_EXPORT_KEYS = { openssh: 'openSsh', winrm: 'winRm', rdp: 'rdp', 'serial-agent': 'serialAgent' };
+
+const derivedFeaturesById = {};
+for (const id of profile.features) {
+    const derive = FEATURE_DERIVERS[id];
+    if (!derive) throw new Error(`${profilePath}: фича "${id}" — нет деривера в FEATURE_DERIVERS (src/config.js)`);
+    derivedFeaturesById[id] = derive(rawFeaturesById[id]);
+}
+
+// Упорядоченный (по профилю) список фич с их деривированным конфигом и
+// именами guest-скриптов — единственное, что нужно
+// build-first-logon-commands.js, чтобы собрать USB-образ без знания
+// заранее о конкретных фичах (openssh/winrm/...).
+const guestFeatures = profile.features.map((id) => ({
+    id,
+    config: derivedFeaturesById[id],
+    guestScripts: {
+        firstLogon: rawFeaturesById[id].guestScripts?.firstLogon ?? [],
+        supporting: rawFeaturesById[id].guestScripts?.supporting ?? [],
+    },
+}));
+
+const namedFeatureConfigs = {};
+for (const [id, featureConfig] of Object.entries(derivedFeaturesById)) {
+    namedFeatureConfigs[FEATURE_EXPORT_KEYS[id]] = featureConfig;
+}
+
 export const config = {
     paths,
     network: raw.network,
     windowsIso: raw.windowsIso,
     diagnostics: raw.diagnostics,
-    serialAgent: raw.serialAgent,
-    openSsh: {
-        ...raw.openSsh,
-        archivePath: path.join(paths.cacheDir, 'openssh', raw.openSsh.archiveFilename),
-        clientPrivateKeyPath: path.join(paths.vmDbDir, raw.openSsh.clientPrivateKeyFilename),
-        clientPublicKeyPath: path.join(paths.vmDbDir, raw.openSsh.clientPublicKeyFilename),
-        knownHostsPath: path.join(paths.vmCacheDir, raw.openSsh.check.knownHostsFilename),
-        port: openSshPortForward.guestPort,
-        hostPort: openSshPortForward.hostPort,
-    },
-    winRm: {
-        ...raw.winRm,
-        port: winRmPortForward.guestPort,
-        hostPort: winRmPortForward.hostPort,
-    },
+    guestFeatures,
+    // openSsh / winRm / serialAgent присутствуют только если
+    // соответствующая фича включена в активном профиле (см.
+    // data/profiles/*.json5) — обращение к отсутствующей фиче из
+    // src/*.js упадёт явной ошибкой доступа к undefined, что и есть
+    // fail-fast для "эта фича не выбрана в профиле, а код её требует".
+    ...namedFeatureConfigs,
     unattend: {
         ...raw.unattend,
         // чистый build-артефакт из конфига, без накопленного состояния —
@@ -74,7 +193,7 @@ export const config = {
         ...raw.tpm,
         stateDir: path.join(paths.vmDbDir, 'tpm'),
         // сокет — рантайм-артефакт процесса, не состояние TPM, поэтому в cache,
-        // а не в db (см. data/config.json5 про причину unix-сокета здесь).
+        // а не в db (см. data/base.json5 про причину unix-сокета здесь).
         ctrlSocketPath: path.join(paths.vmCacheDir, raw.tpm.ctrlSocketFilename),
     },
     qemu: {

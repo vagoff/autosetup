@@ -1,0 +1,27 @@
+// Фича: отладочный command-agent на своём отдельном COM2
+// (qemu.serialCommandTcpPort в data/vars.json5) — намеренно другой
+// физический порт, чем diagnostics.comPort (COM1, только лог, см.
+// data/base.json5). Причина: serve-serial-command.ps1 держит SerialPort
+// открытым бессрочно (это его единственная работа — слушать запросы), а
+// System.IO.Ports.SerialPort даёт эксклюзивный доступ ровно одному
+// хендлу за раз. Раздели этот порт с diagnostics.comPort — и любой
+// Write-ComLog после старта агента гарантированно и навсегда падал бы
+// с UnauthorizedAccessException. QEMU публикует оба порта только на
+// TCP/loopback; команды и ответы — JSON с base64 payload, поэтому
+// кодировка консоли Windows не влияет на протокол.
+{
+  comPort: 'COM2',
+  comBaudRate: 115200,
+  scriptFilename: 'serve-serial-command.ps1',
+  installationDirectoryName: 'WinTest',
+  installationScriptFilename: 'install-serial-command-agent.ps1',
+  logFilename: 'serial-command-agent.log',
+  taskName: 'WinTestSerialCommandAgent',
+  taskStopTimeoutMs: 10000,
+  commandTimeoutMs: 30000,
+  maxResponseBytes: 1048576,
+  guestScripts: {
+    firstLogon: ['install-serial-command-agent.ps1'],
+    supporting: ['serve-serial-command.ps1'],
+  },
+}

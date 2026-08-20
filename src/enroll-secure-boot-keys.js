@@ -5,7 +5,7 @@ import { runProcess } from './lib/run-process.js';
 // в per-VM копии OVMF_VARS через внешний virt-fw-vars — свежескопированный
 // шаблон приходит совсем пустым (без единой EFI-переменной), а Windows 11
 // Setup жёстко требует именно ВКЛЮЧЁННЫЙ Secure Boot, не просто
-// поддержку прошивкой (см. обоснование в data/config.json5).
+// поддержку прошивкой (см. обоснование в data/base.json5).
 //
 // Модифицирует vars-файл in-place. Вызывается ровно один раз, сразу
 // после provisionOvmfVars() в create-vm-resources.js, пока файл гарантированно

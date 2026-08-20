@@ -1,6 +1,7 @@
 import path from 'node:path';
 import { renderGuestScriptTemplate } from './render-guest-script-template.js';
 import { encodePowerShellCommand } from './encode-powershell-command.js';
+import { GUEST_FEATURE_TOKEN_BUILDERS } from './guest-feature-token-builders.js';
 
 // Windows Setup валидирует значение <CommandLine> в FirstLogonCommands и
 // отбраковывает ("Value is invalid", видно в C:\Windows\Panther\
@@ -16,64 +17,60 @@ function buildBootstrapScript(filename) {
     return `foreach($l in 68..90){$p="$([char]$l):\\${filename}";if(Test-Path $p){& $p;if($?){exit 0}else{exit 1}}};throw "USB script not found: ${filename}"`;
 }
 
-// Из firstLogonScripts (имена файлов в src/guest-scripts/) собирает:
+// Финальный маркер — core-часть, не привязан ни к одной опциональной
+// фиче: выполняется последним из FirstLogonCommands независимо от того,
+// какие фичи выбраны в активном профиле (см. лог com1.log —
+// "first-logon-commands: ALL DONE" — единственный надёжный сигнал, что
+// вся цепочка FirstLogonCommands дошла до конца).
+const COMPLETION_MARKER_SCRIPT_FILENAME = 'log-first-logon-complete.ps1';
+
+// Из config.guestFeatures (упорядоченный по активному профилю список
+// включённых фич, каждая — { id, config, guestScripts }) собирает:
 //  - scriptFiles: что записать на USB-образ (сами .ps1 с подставленными
 //    токенами + общий префикс логирования отдельным файлом, подключается
 //    каждым скриптом через $PSScriptRoot — не нужно ничего инлайнить);
 //  - firstLogonCommands: короткие CommandLine-строки для unattend.xml.
-export function buildFirstLogonCommands({
-    guestScriptsDir,
-    firstLogonScripts,
-    supportingGuestScripts,
-    diagnostics,
-    openSsh,
-    serialAgent,
-    winRm,
-}) {
+// Про содержимое токенов конкретной фичи этот модуль ничего не знает —
+// это GUEST_FEATURE_TOKEN_BUILDERS (SRP): добавление новой фичи не
+// требует правки этого файла.
+export function buildFirstLogonCommands({ guestScriptsDir, diagnostics, guestFeatures }) {
+    const preludeTokens = { COM_PORT: diagnostics.comPort, COM_BAUD_RATE: diagnostics.comBaudRate };
     const preludeFilename = '_lib-guest-script-prelude.ps1';
-    const preludeContent = renderGuestScriptTemplate(path.join(guestScriptsDir, preludeFilename), {
-        COM_PORT: diagnostics.comPort,
-        COM_BAUD_RATE: diagnostics.comBaudRate,
-    });
-
-    const networkProbeTargetsPs = diagnostics.networkProbeTargets
-        .map((t) => `  [pscustomobject]@{ Host = '${t.host}'; Port = ${t.port}; Label = '${t.label}' }`)
-        .join(',\n');
+    const preludeContent = renderGuestScriptTemplate(path.join(guestScriptsDir, preludeFilename), preludeTokens);
 
     const scriptFiles = [{ filename: preludeFilename, content: preludeContent }];
     const firstLogonCommands = [];
 
-    const renderScript = (filename) => renderGuestScriptTemplate(path.join(guestScriptsDir, filename), {
-        COM_PORT: diagnostics.comPort,
-        COM_BAUD_RATE: diagnostics.comBaudRate,
-        NETWORK_PROBE_TARGETS_PS_ARRAY: networkProbeTargetsPs,
-        NETWORK_PROBE_TIMEOUT_SECONDS: diagnostics.networkProbeTimeoutSeconds,
-        CAPABILITY_PROBE_TIMEOUT_SECONDS: diagnostics.capabilityProbeTimeoutSeconds,
-        OPENSSH_ARCHIVE_FILENAME: openSsh.archiveFilename,
-        OPENSSH_INSTALLATION_DIRECTORY_NAME: openSsh.installationDirectoryName,
-        OPENSSH_SERVICE_NAME: openSsh.serviceName,
-        OPENSSH_FIREWALL_RULE_NAME: openSsh.firewallRuleName,
-        OPENSSH_FIREWALL_RULE_DISPLAY_NAME: openSsh.firewallRuleDisplayName,
-        OPENSSH_PORT: openSsh.port,
-        OPENSSH_ADMIN_AUTHORIZED_KEYS_FILENAME: openSsh.adminAuthorizedKeysFilename,
-        OPENSSH_CLIENT_PUBLIC_KEY_FILENAME: openSsh.clientPublicKeyFilename,
-        SERIAL_AGENT_COM_PORT: serialAgent.comPort,
-        SERIAL_AGENT_COM_BAUD_RATE: serialAgent.comBaudRate,
-        SERIAL_AGENT_SCRIPT_FILENAME: serialAgent.scriptFilename,
-        SERIAL_AGENT_INSTALLATION_DIRECTORY_NAME: serialAgent.installationDirectoryName,
-        SERIAL_AGENT_LOG_FILENAME: serialAgent.logFilename,
-        SERIAL_AGENT_TASK_NAME: serialAgent.taskName,
-        SERIAL_AGENT_COMMAND_TIMEOUT_MS: serialAgent.commandTimeoutMs,
-        SERIAL_AGENT_MAX_RESPONSE_BYTES: serialAgent.maxResponseBytes,
-        WINRM_LOCAL_ACCOUNT_TOKEN_FILTER_POLICY_VALUE: winRm.localAccountTokenFilterPolicyValue,
-    });
+    const renderScript = (filename, tokens) => renderGuestScriptTemplate(path.join(guestScriptsDir, filename), tokens);
 
-    for (const filename of firstLogonScripts) {
-        scriptFiles.push({ filename, content: renderScript(filename) });
-        firstLogonCommands.push(encodePowerShellCommand(buildBootstrapScript(filename)));
+    const tokensByFeatureId = new Map();
+    for (const feature of guestFeatures) {
+        const buildTokens = GUEST_FEATURE_TOKEN_BUILDERS[feature.id];
+        if (!buildTokens) throw new Error(`фича "${feature.id}": нет token-builder в src/lib/guest-feature-token-builders.js`);
+        tokensByFeatureId.set(feature.id, { ...preludeTokens, ...buildTokens(feature.config) });
     }
-    for (const filename of supportingGuestScripts) {
-        scriptFiles.push({ filename, content: renderScript(filename) });
+
+    // Сначала ВСЕ firstLogon-скрипты всех фич по порядку профиля, потом
+    // маркер завершения, и только потом supporting-скрипты — тот же
+    // порядок, что и раньше при плоском unattend.firstLogonScripts +
+    // unattend.supportingGuestScripts (порядок байт на USB-образе
+    // — не случайное свойство, а сознательно сохранённая совместимость).
+    for (const feature of guestFeatures) {
+        const tokens = tokensByFeatureId.get(feature.id);
+        for (const filename of feature.guestScripts.firstLogon) {
+            scriptFiles.push({ filename, content: renderScript(filename, tokens) });
+            firstLogonCommands.push(encodePowerShellCommand(buildBootstrapScript(filename)));
+        }
+    }
+
+    scriptFiles.push({ filename: COMPLETION_MARKER_SCRIPT_FILENAME, content: renderScript(COMPLETION_MARKER_SCRIPT_FILENAME, preludeTokens) });
+    firstLogonCommands.push(encodePowerShellCommand(buildBootstrapScript(COMPLETION_MARKER_SCRIPT_FILENAME)));
+
+    for (const feature of guestFeatures) {
+        const tokens = tokensByFeatureId.get(feature.id);
+        for (const filename of feature.guestScripts.supporting) {
+            scriptFiles.push({ filename, content: renderScript(filename, tokens) });
+        }
     }
 
     return { scriptFiles, firstLogonCommands };

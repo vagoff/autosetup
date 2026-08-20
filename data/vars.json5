@@ -1,0 +1,47 @@
+// Единый реестр путей и "голых" TCP-портов проекта — единственное место,
+// где объявлены числа портов и корневой путь на диске (CONFIG-SINGLE-SOURCE
+// для этого конкретного класса значений). Что именно на этих портах
+// работает и почему — в data/base.json5 (и позже в data/features/*.json5),
+// здесь только таблица номеров, чтобы при добавлении нового порта было
+// видно всё занятое разом, в одном месте, и нельзя было случайно
+// столкнуть два форварда на один и тот же хостовый порт.
+{
+  // единственное место, где путь захардкожен буквально — всё остальное
+  // выводится из него в src/config.js
+  projectRoot: '/data/wd/aibox/autosetup',
+
+  network: {
+    // единственное место, где объявлен loopback-адрес для всей tcp-связи
+    // агент/qemu/swtpm/человек (spice, vnc, qmp) — см. CONFIG-SINGLE-SOURCE
+    loopbackHost: '127.0.0.1',
+  },
+
+  qemu: {
+    // QMP (машинный протокол управления) — для скриптов/агента: screendump,
+    // sendkey, graceful shutdown и т.п. tcp loopback.
+    qmpPort: 4000,
+
+    // Экран человеку: SPICE или VNC (выбор протокола — qemu.displayProtocol
+    // в data/base.json5), оба всегда tcp loopback.
+    spicePort: 6900,
+    vncPort: 6901,
+
+    // Два НЕЗАВИСИМЫХ ISA-serial порта гостя, каждый — свой физический COM
+    // у Windows (COM1 = только лог, COM2 = только serial command agent) —
+    // почему это два порта, а не один общий, см. комментарий у serialAgent
+    // и diagnostics в data/base.json5.
+    serialLogTcpPort: 4002,
+    serialCommandTcpPort: 4003,
+
+    // Проброс портов ИЗ ГОСТЯ на loopback host через SLIRP NAT — не имеет
+    // отношения к общему сетевому пространству alpine/obarun, гостевая ОС
+    // всегда сидит за NAT самого qemu, тут проброс обязателен. guestPort —
+    // факт о самом протоколе фичи (ssh всегда 22, winrm всегда 5985), а не
+    // произвольный выбор, поэтому живёт в той же записи, что и hostPort.
+    guestPortForwards: [
+      { name: 'openssh', proto: 'tcp', hostPort: 2222, guestPort: 22 },
+      { name: 'winrm', proto: 'tcp', hostPort: 5985, guestPort: 5985 },
+      { name: 'rdp', proto: 'tcp', hostPort: 3389, guestPort: 3389 },
+    ],
+  },
+}

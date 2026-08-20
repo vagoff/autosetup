@@ -7,7 +7,7 @@ import { config } from './config.js';
 // Одно действие: снять текущий кадр экрана VM и сохранить его как PNG по
 // заданному пути — для человека/агента, независимо от того, каким
 // протоколом (spice/vnc) в этот момент подключён человек (см.
-// data/config.json5 про screendump как отдельный от display канал).
+// data/base.json5 про screendump как отдельный от display канал).
 export async function captureVmScreenshot(outputPngPath) {
     const { loopbackHost } = config.network;
     const { qmpPort, qmpConnectTimeoutMs, screendumpPath } = config.qemu;

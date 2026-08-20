@@ -1,6 +1,6 @@
 # Долгоживущий command agent: принимает один JSON request на строку COM2
 # (СВОЙ отдельный физический порт, не COM1 — тот целиком отдан
-# Write-ComLog; см. serialAgent.comPort в data/config.json5), исполняет
+# Write-ComLog; см. serialAgent.comPort в data/base.json5), исполняет
 # cmd.exe с явным deadline и возвращает JSON response. Все произвольные
 # байты команды/вывода передаются Base64, поэтому serial line остаётся
 # ASCII и не страдает от codepage Windows. Держит SerialPort открытым

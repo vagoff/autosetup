@@ -32,7 +32,7 @@ function renderAutoLogon(unattend) {
       </AutoLogon>`;
 }
 
-// Чистая функция: секция unattend из config.json5 → готовый XML
+// Чистая функция: секция unattend из base.json5 → готовый XML
 // autounattend.xml. Никаких побочных эффектов, никакого чтения файлов —
 // вся сборка образа диска (build-answer-file-image.js) отдельно.
 export function renderAutounattendXml(unattend) {

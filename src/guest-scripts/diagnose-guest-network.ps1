@@ -1,6 +1,6 @@
 # Модуль: измерить, а не предположить, есть ли у гостя рабочий сетевой
 # путь наружу — профиль подключения (NLA-категория) + DNS/TCP-достижимость
-# конкретных целей из config.json5 (diagnostics.networkProbeTargets).
+# конкретных целей из base.json5 (diagnostics.networkProbeTargets).
 #
 # Сами TCP-пробы завёрнуты в Start-Job/Wait-Job с явным верхним пределом
 # (diagnostics.networkProbeTimeoutSeconds) — тот же защитный паттерн, что

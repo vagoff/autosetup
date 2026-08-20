@@ -13,7 +13,7 @@ function sleep(ms) {
 // Критерий остановки — наблюдаемое состояние, а не время.
 //
 // Все параметры обязательные явные аргументы — единственный источник их
-// значений: data/config.json5 (CONFIG-SINGLE-SOURCE), никаких default
+// значений: data/*.json5 (CONFIG-SINGLE-SOURCE), никаких default
 // значений в этой сигнатуре быть не должно.
 export async function waitForObservableChange({ captureState, isUnchanged, onEachAttempt, pollIntervalMs, maxAttempts, timeoutHint }) {
     const baseline = await captureState();

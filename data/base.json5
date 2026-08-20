@@ -1,0 +1,223 @@
+// Ядро VM — то, что не выбирается профилем и всегда присутствует
+// (установка Windows, диск, прошивка, TPM, железо qemu). Пути и голые
+// номера портов — в data/vars.json5. Идентичность конкретной VM
+// (vmName) и опциональные фичи (winrm/openssh/serial-agent/...) — в
+// data/profiles/*.json5 и data/features/*.json5 соответственно.
+{
+  windowsIso: {
+    url: 'https://software-static.download.prss.microsoft.com/dbazure/888969d5-f34g-4e03-ac9d-1f9786c66749/26100.1742.240906-0331.ge_release_svc_refresh_CLIENT_LTSC_EVAL_x64FRE_en-us.iso',
+    filename: '26100.1742.240906-0331.ge_release_svc_refresh_CLIENT_LTSC_EVAL_x64FRE_en-us.iso',
+    expectedBytes: 5112850432,
+  },
+
+  disk: {
+    format: 'qcow2',
+    sizeGiB: 64,
+  },
+
+  // OVMF (UEFI firmware) ставится пакетом edk2-ovmf на Obarun. CODE — read-only
+  // шаблон, используется напрямую. VARS — read-write, копируется один раз
+  // per-VM в db/, чтобы состояние UEFI/secure-boot жило вместе с диском.
+  ovmf: {
+    // .secboot-вариант первым: Windows 11 Setup жёстко требует Secure
+    // Boot, а обычный OVMF_CODE.4m.fd эту возможность прошивки физически
+    // не собирает — не просто "выключено", а отсутствует как класс.
+    codeTemplateCandidates: [
+      '/usr/share/edk2/x64/OVMF_CODE.secboot.4m.fd',
+      '/usr/share/edk2/x64/OVMF_CODE.4m.fd',
+      '/usr/share/edk2-ovmf/x64/OVMF_CODE.fd',
+      '/usr/share/OVMF/OVMF_CODE.fd',
+    ],
+    varsTemplateCandidates: [
+      '/usr/share/edk2/x64/OVMF_VARS.4m.fd',
+      '/usr/share/edk2-ovmf/x64/OVMF_VARS.fd',
+      '/usr/share/OVMF/OVMF_VARS.fd',
+    ],
+    // Свежескопированный OVMF_VARS.4m.fd приходит СОВСЕМ пустым — ни
+    // одной переменной (проверено эмпирически через virt-fw-vars
+    // --print на этом ISO/пакете edk2-ovmf 202605-1). Значит ни PK/KEK/db,
+    // ни состояния SecureBoot там нет вообще — заводим сами сразу после
+    // копирования (см. src/enroll-secure-boot-keys.js).
+    secureBoot: {
+      binary: 'virt-fw-vars',
+    },
+  },
+
+  tpm: {
+    binary: 'swtpm',
+    // control-канал между swtpm и qemu — ЕДИНСТВЕННОЕ осознанное исключение
+    // из общего правила "tcp, не unix sockets": qemu передаёт swtpm файловый
+    // дескриптор данных через CMD_SET_DATAFD (SCM_RIGHTS), а это возможность
+    // ядра, которой в принципе не существует у TCP-сокетов — только у
+    // AF_UNIX. swtpm и qemu-system-x86_64 всегда сидят на одном хосте
+    // (obarun), никогда не пересекают границу alpine/obarun, так что unix-
+    // сокет тут не нарушает мотив исходного правила (тот был про границу
+    // между двумя сетевыми пространствами, которой здесь нет).
+    ctrlSocketFilename: 'swtpm-ctrl.sock',
+  },
+
+  // Автоматизация установки Windows через autounattend.xml — Setup сам
+  // ищет этот файл на подключённом removable-носителе, никакого выбора
+  // руками. Один источник всех ответов; шаблон в
+  // src/lib/render-autounattend-xml.js только подставляет эти значения.
+  unattend: {
+    locale: 'en-US',
+    inputLocale: '0409:00000409', // US QWERTY
+    timezone: 'UTC',
+    // единственный образ в install.wim этого ISO (Enterprise LTSC Eval) —
+    // если окажется не так, Setup явно покажет ошибку выбора образа.
+    imageIndex: 1,
+    // NetBIOS-имя ограничено 15 символами.
+    computerName: 'WIN11-1C',
+    // Не 'Administrator': встроенная учётка так называется, но она
+    // отключена по умолчанию — создавать <LocalAccount> с тем же именем
+    // означало бы либо конфликтовать с ней, либо городить отдельную ветку
+    // шаблона под "это builtin-аккаунт". Отдельное имя с правами
+    // Administrators — проще и без этой развилки.
+    adminUsername: 'admin',
+    // Тестовый пароль одноразовой VM: доступ только с loopback хоста
+    // (SPICE/VNC/QMP/WinRM/ssh — ничего наружу не пробрасывается за
+    // пределы localhost), наружу не торчит. Поменять здесь при желании —
+    // единственный источник.
+    adminPassword: 'ChangeMe!2026',
+    enableAutoLogon: true,
+    // Файл ответов и guest-пакеты доставляются одним отдельным USB-диском
+    // (removable media — только там Setup ищет autounattend.xml), не тем
+    // же носителем, что ISO. 16 MiB достаточно для самого XML, PS1 и
+    // закреплённого OpenSSH-Win64.zip (~5.5 MiB); FAT12 сохраняет
+    // совместимость с Windows Setup.
+    answerFileDeviceId: 'answerfile0',
+    answerFileFilename: 'autounattend.xml',
+    answerFileImageSizeBytes: 16777216,
+  },
+
+  // Core-параметры guest-скриптов (src/guest-scripts/), общие для ЛЮБОГО
+  // набора фич — единый источник для того, что раньше было бы "зашитыми
+  // defaults" внутри .ps1 (нарушение CONFIG-SINGLE-SOURCE/FULLCONF).
+  // Опциональные фичи (openssh/winrm/serial-agent/...) несут свои
+  // собственные параметры в data/features/*.json5.
+  diagnostics: {
+    // Отдельный, только-логовый физический COM-порт (qemu.serialLogTcpPort
+    // в data/vars.json5) — единственный канал, не зависящий ни от сети
+    // гостя, ни от какой-либо опциональной фичи (у serial-agent свой
+    // отдельный COM2, см. data/features/serial-agent.json5). Write-ComLog
+    // (используется ВСЕМИ guest-скриптами через общий prelude) открывает
+    // и закрывает порт на каждый вызов — с этим портом больше никто и
+    // никогда не держит хендл открытым долго, поэтому конфликтов
+    // эксклюзивного доступа к COM-порту не бывает по построению, а не по
+    // случайному везению в очерёдности FirstLogonCommands.
+    comPort: 'COM1',
+    comBaudRate: 115200,
+  },
+
+  qemu: {
+    binary: 'qemu-system-x86_64',
+    accel: 'kvm',
+    cpu: 'host',
+    // Без этих флагов многоядерный Windows-гость под голым KVM может уйти
+    // в livelock при межпроцессорной синхронизации (TLB shootdown/IPI):
+    // N-1 vCPU крутятся в busy-spin на 100%, один простаивает, диск и
+    // экран замирают — воспроизведено и измерено эмпирически (top -H:
+    // 3 vCPU-потока по 99.6%, TPM спокоен, счётчики диска не двигаются).
+    // Это не хак под конкретную версию Windows — стандартный базовый
+    // набор Hyper-V enlightenment для любого Windows-гостя под QEMU/KVM
+    // (то же самое включают по умолчанию libvirt/Proxmox). Порядок важен
+    // для зависимостей QEMU: hv_synic требует hv_vpindex, hv_stimer
+    // требует hv_synic.
+    cpuHyperVEnlightenments: [
+      'hv_relaxed',
+      'hv_vapic',
+      'hv_spinlocks=0x1fff',
+      'hv_vpindex',
+      'hv_synic',
+      'hv_stimer',
+      'hv_time',
+    ],
+    machine: 'q35',
+    smp: 4,
+    ramMiB: 8192,
+    netDevice: 'e1000e', // нативно поддерживается Windows, без доп. драйверов
+
+    // Грузиться ли с CD (первая установка) или с диска — это НЕ конфиг:
+    // наблюдаемый факт про конкретный db/<vmName>/disk.qcow2 (пережил он
+    // уже один успешный install или нет), вычисляется динамически через
+    // src/lib/resolve-boot-from-installer.js по наличию db/<vmName>/
+    // install-complete.marker. Здесь его сознательно нет — если бы это
+    // поле осталось конфигом, его пришлось бы вручную мутировать после
+    // каждой установки, а конфиг обязан оставаться декларативным.
+
+    // id блочного устройства CD — используется и при сборке argv qemu, и
+    // при опросе query-blockstats в confirm-cd-boot-prompt.js, поэтому
+    // единственный источник — здесь, а не литерал в обоих местах.
+    cdromDeviceId: 'cdrom0',
+
+    // сколько ждать (мс), пока после старта qemu-процесса не поднимется
+    // QMP-listener — это ожидание локального forka/bind, а не гадание о
+    // поведении гостя внутри VM (тот же класс, что ctrl-сокет swtpm).
+    qmpConnectTimeoutMs: 10000,
+
+    // Верхний предохранитель для src/wait-for-qemu-exit.js: сколько ждать
+    // штатного ACPI-выключения гостя (system_powerdown), прежде чем
+    // считать это зависанием/отказом, а не расчёт SLA — точное типичное
+    // время появится после первого живого прогона (см. план
+    // тестирования). Сознательно с запасом: Windows под нагрузкой
+    // (например, со службами 1С) может останавливаться заметно дольше
+    // голой установки.
+    guestShutdownTimeoutMs: 180000,
+
+    // src/lib/spawn-orphan-watchdog.js: как часто проверять, жив ли ещё
+    // родительский процесс run-vm.js. SIGKILL самому run-vm.js (например,
+    // от process-manager после исчерпания stop_timeout_sec) не даёт
+    // сработать ни одному JS-обработчику — ни SIGTERM/SIGINT в run-vm.js,
+    // ни его qemu.on('exit'), — и осиротевшие qemu/swtpm держат
+    // порты/файлы состояния дальше, пока их не убьёт кто-то извне. Не
+    // историческая величина, не гонка за скоростью — просто "не busy-loop".
+    orphanWatchdogPollIntervalMs: 2000,
+
+    // Файл, в который QMP screendump сохраняет текущий кадр экрана VM —
+    // рантайм-артефакт, живёт в cache/<vm>/ (см. config.js).
+    screendumpFilename: 'screendump.ppm',
+
+    // Файл, в который capture-serial-log.js дописывает поток COM1 —
+    // рантайм-артефакт (не состояние VM), поэтому в cache/<vm>/, не в db/.
+    serialLogFilename: 'com1.log',
+    // Пауза перед повторной попыткой TCP-подключения к serialLogTcpPort,
+    // если qemu ещё не поднял listener или соединение оборвалось
+    // (например, VM перезагружается) — capture-serial-log.js работает,
+    // пока его явно не остановят, и не должен занятым busy-loop'ом.
+    serialLogReconnectDelayMs: 500,
+
+    // Детерминированное прохождение "Press any key to boot from CD or DVD",
+    // без единой зашитой "сколько ждать"/"сколько байт" величины — только
+    // форма поведения счётчика rd_bytes у cdrom (query-blockstats):
+    //
+    // Прошивка САМА, безусловно (даже без единого нажатия клавиши),
+    // вычитывает El Torito загрузчик перед показом prompt'а — измерено
+    // эмпирически: рост, затем НАВСЕГДА плоско, если клавиша не поймана.
+    // При успехе картина другая: тот же начальный рост, тот же временный
+    // штиль (prompt ждёт ввода), но потом чтение ВОЗОБНОВЛЯЕТСЯ (стриминг
+    // boot.wim). "Перестало расти" — это сигнатура ОТКАЗА, а не успеха.
+    //
+    // Поэтому два шага (см. confirm-cd-boot-prompt.js):
+    //  1. wait-for-stable-state — дождаться, пока фоновое чтение
+    //     загрузчика затихнет (requiredStableSamples одинаковых подряд) —
+    //     не важно, какого оно объёма.
+    //  2. wait-for-observable-change — от этой точки отсчёта ждать ЛЮБОГО
+    //     дальнейшего роста (уже без всякого порога — базовая линия
+    //     честная, шум уже позади).
+    //
+    // maxAttempts × pollIntervalMs — верхний предохранитель на каждый шаг
+    // (fail-fast при реальной поломке), не расчёт "сколько ждать".
+    bootPromptConfirmation: {
+      key: 'ret',
+      pollIntervalMs: 300,
+      requiredStableSamples: 2,
+      maxAttempts: 100,
+    },
+
+    // экран для человека: 'spice' (по умолчанию — буфер обмена, ресайз,
+    // меньше лагов курсора) или 'vnc'. Оба через tcp loopback. Сами номера
+    // портов (spicePort/vncPort) — в data/vars.json5.
+    displayProtocol: 'spice',
+  },
+}

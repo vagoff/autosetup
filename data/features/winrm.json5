@@ -1,0 +1,29 @@
+// Фича: включить WinRM (PowerShell Remoting) на госте. Базовая
+// возможность ОС, не Feature-on-Demand — работает без сети и без
+// ограничений LTSC. Гостевой скрипт — enable-winrm-access.ps1.
+//
+// DEFERRED (не развиваем дальше сейчас, см. историю задачи): SSH
+// (openssh-фича, check-ssh-access.js) и serial-agent (execute-serial-
+// command.js) уже проверены живьём и покрывают всю потребность в
+// host→guest execution. Живая проверка показала, что guest-сторона
+// WinRM полностью исправна (тот же локальный admin, Invoke-Command с
+// Negotiate внутри гостя проходит без ошибок) — 401 снаружи даёт
+// исключительно npm-пакет winrm-client (версия 0.0.12, незрелая).
+// Host-сторону (check-winrm-access.js, run-winrm-powershell.js,
+// зависимость winrm-client) дальше не чиним, пока не появится
+// конкретная причина, для которой SSH/serial-agent не хватает. Фича
+// остаётся включённой в профиле — бесплатна и не мешает.
+{
+  guestPortForwardName: 'winrm',
+  authScheme: 'ntlm',
+  useHttps: false,
+  rejectUnauthorized: true,
+  // WinRM Negotiate в workgroup по умолчанию принимает лишь встроенный
+  // Administrator. Наша учётка admin — намеренно отдельная локальная
+  // администраторская учётка, поэтому включаем полный remote token для
+  // local Administrators. Доступ по-прежнему ограничен loopback hostfwd.
+  localAccountTokenFilterPolicyValue: 1,
+  guestScripts: {
+    firstLogon: ['enable-winrm-access.ps1'],
+  },
+}

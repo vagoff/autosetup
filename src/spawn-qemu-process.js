@@ -3,6 +3,7 @@ import { existsSync } from 'node:fs';
 import path from 'node:path';
 import { config } from './config.js';
 import { resolveExistingPath } from './lib/resolve-existing-path.js';
+import { resolveBootFromInstaller } from './lib/resolve-boot-from-installer.js';
 
 // Флаги показа экрана человеку — протокол выбирается конфигом
 // (qemu.displayProtocol), а не хардкодится. И spice, и vnc — tcp/loopback.
@@ -20,6 +21,7 @@ function buildDisplayTransportArgs(qemu, loopbackHost) {
 // константы вне единого источника (CONFIG-SINGLE-SOURCE).
 export function buildQemuArgs() {
     const { disk, ovmf, qemu, windowsIso, paths, tpm, network, unattend } = config;
+    const bootFromInstaller = resolveBootFromInstaller();
 
     if (!existsSync(disk.path)) {
         throw new Error(`нет диска: ${disk.path}. Сначала запусти create-vm-resources.js`);
@@ -32,7 +34,7 @@ export function buildQemuArgs() {
     if (!existsSync(isoPath)) {
         throw new Error(`нет Windows ISO: ${isoPath}. Сначала запусти download-windows-iso.js`);
     }
-    if (qemu.bootFromInstaller && !existsSync(unattend.answerFileImagePath)) {
+    if (bootFromInstaller && !existsSync(unattend.answerFileImagePath)) {
         throw new Error(`нет образа файла ответов: ${unattend.answerFileImagePath}. Сначала запусти build-answer-file-image.js`);
     }
 
@@ -43,7 +45,7 @@ export function buildQemuArgs() {
         .join('');
 
     // hv_* — Hyper-V enlightenment флаги, см. комментарий у
-    // qemu.cpuHyperVEnlightenments в data/config.json5 (почему они нужны).
+    // qemu.cpuHyperVEnlightenments в data/base.json5 (почему они нужны).
     const cpuModel = [qemu.cpu, ...qemu.cpuHyperVEnlightenments].join(',');
 
     return [
@@ -67,7 +69,7 @@ export function buildQemuArgs() {
         // повторная загрузка с установочного носителя на промежуточном ребуте
         // срывает уже начатую установку ("Windows could not complete the
         // installation") — воспроизведено и измерено эмпирически.
-        '-boot', qemu.bootFromInstaller ? 'once=d,order=c' : 'order=cd',
+        '-boot', bootFromInstaller ? 'once=d,order=c' : 'order=cd',
         '-netdev', `user,id=net0${hostfwd}`,
         '-device', `${qemu.netDevice},netdev=net0`,
         // TPM: control-канал у swtpm — unix-сокет (см. tpm.ctrlSocketPath в
@@ -82,7 +84,7 @@ export function buildQemuArgs() {
         // Файл ответов — отдельный съёмный USB-накопитель (не тот же носитель,
         // что ISO): Windows Setup ищет autounattend.xml только на removable
         // media, актуально лишь пока идёт установка.
-        ...(qemu.bootFromInstaller ? [
+        ...(bootFromInstaller ? [
             '-drive', `if=none,id=${unattend.answerFileDeviceId},format=raw,file=${unattend.answerFileImagePath},readonly=on`,
             '-device', `usb-storage,bus=usb0.0,drive=${unattend.answerFileDeviceId},removable=true`,
         ] : []),
@@ -100,7 +102,8 @@ export function buildQemuArgs() {
         //  - COM2 = только serial command agent (serve-serial-command.ps1),
         //    двусторонний, host пишет и читает через execute-serial-command.js.
         // Разделены физически, а не только по протоколу — см. комментарий у
-        // qemu.serialLogTcpPort/serialCommandTcpPort в data/config.json5 про
+        // serialAgent/diagnostics в data/base.json5 (номера портов —
+        // qemu.serialLogTcpPort/serialCommandTcpPort в data/vars.json5) про
         // то, почему один общий COM тут не годится.
         '-chardev', `socket,id=com1,host=${network.loopbackHost},port=${qemu.serialLogTcpPort},server=on,wait=off`,
         '-serial', 'chardev:com1',

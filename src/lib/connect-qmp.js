@@ -6,10 +6,21 @@ import net from 'node:net';
 // забота вызывающих модулей (SRP).
 //
 // connectTimeoutMs обязателен явным аргументом (не default-значением в
-// сигнатуре) — единственный источник этого числа: data/config.json5.
+// сигнатуре) — единственный источник этого числа: data/base.json5.
 export function connectQmp(host, port, connectTimeoutMs) {
+    return attemptConnectQmp(host, port, connectTimeoutMs, Date.now() + connectTimeoutMs);
+}
+
+// totalTimeoutMs — исходное, неизменное на все ретраи значение, только
+// для текста финальной ошибки; deadline — единственный источник решения
+// "ретраить ещё или сдаться". Раньше это был один и тот же параметр
+// connectTimeoutMs, который на каждый ретрай пересчитывался как остаток
+// (deadline - Date.now()) — к моменту финального отказа он мог быть уже
+// околонулевым или даже отрицательным (гонка между setTimeout(..., 100)
+// и Date.now() >= deadline), и сообщение об ошибке показывало не тот
+// таймаут, который реально был запрошен.
+function attemptConnectQmp(host, port, totalTimeoutMs, deadline) {
     return new Promise((resolve, reject) => {
-        const deadline = Date.now() + connectTimeoutMs;
         let buffer = '';
         let greeted = false;
         const pending = [];
@@ -24,10 +35,10 @@ export function connectQmp(host, port, connectTimeoutMs) {
         const retryOrFail = (error) => {
             socket.destroy();
             if (Date.now() >= deadline) {
-                reject(new Error(`QMP ${host}:${port}: не поднялся за ${connectTimeoutMs}мс: ${error.message}`));
+                reject(new Error(`QMP ${host}:${port}: не поднялся за ${totalTimeoutMs}мс: ${error.message}`));
                 return;
             }
-            setTimeout(() => connectQmp(host, port, deadline - Date.now()).then(resolve, reject), 100);
+            setTimeout(() => attemptConnectQmp(host, port, totalTimeoutMs, deadline).then(resolve, reject), 100);
         };
 
         socket.once('error', retryOrFail);
