@@ -7,14 +7,23 @@ import { quotePowerShell } from './execute-guest-powershell.js';
 //
 // Текст запроса НИКОГДА не попадает в командную строку: он лежит в файле на
 // госте (кириллица + лимит длины cmd.exe). queryPath читается как UTF-8.
-export function buildComQueryScript(oneCConfiguration, { queryPath, maxRows }) {
+// Пролог "подключиться к файловой ИБ через внешнее соединение". Общий для
+// всех COM-модулей: запросов, пробы соединения, блокировки внешних ресурсов и
+// чтения версий подсистем. Строка подключения существует ровно здесь.
+export function buildComConnectionScript(oneCConfiguration) {
     const { database } = oneCConfiguration;
     const connectionString = `File="${database.directory}";Usr=${database.userName};Pwd=${database.password};`;
     return [
         '$ErrorActionPreference = "Stop"',
-        `$queryText = [IO.File]::ReadAllText(${quotePowerShell(queryPath)}, [Text.Encoding]::UTF8)`,
         "$connector = New-Object -ComObject 'V83.COMConnector'",
         `$connection = $connector.Connect(${quotePowerShell(connectionString)})`,
+    ];
+}
+
+export function buildComQueryScript(oneCConfiguration, { queryPath, maxRows }) {
+    return [
+        ...buildComConnectionScript(oneCConfiguration),
+        `$queryText = [IO.File]::ReadAllText(${quotePowerShell(queryPath)}, [Text.Encoding]::UTF8)`,
         '$query = $connection.NewObject("Query", $queryText)',
         '$result = $query.Execute()',
         '$columns = @($result.Columns | ForEach-Object { $_.Name })',

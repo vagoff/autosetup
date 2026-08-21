@@ -1,5 +1,6 @@
 import { config } from './config.js';
-import { executeGuestPowerShell, quotePowerShell } from './lib/execute-guest-powershell.js';
+import { buildComConnectionScript } from './lib/build-1c-com-query-script.js';
+import { executeGuestPowerShell } from './lib/execute-guest-powershell.js';
 import { withGuestSession } from './lib/with-guest-session.js';
 
 // Одно проверяемое действие: пометить восстановленную ИБ как КОПИЮ, заблокировав
@@ -12,13 +13,10 @@ import { withGuestSession } from './lib/with-guest-session.js';
 //
 // Идемпотентно: если блокировка уже стоит, повторный вызов ничего не меняет.
 function buildScript(oneCConfiguration) {
-    const { database, externalResourcesLock } = oneCConfiguration;
-    const connectionString = `File="${database.directory}";Usr=${database.userName};Pwd=${database.password};`;
+    const { externalResourcesLock } = oneCConfiguration;
     const module = `$connection.${externalResourcesLock.moduleName}`;
     return [
-        '$ErrorActionPreference = "Stop"',
-        "$connector = New-Object -ComObject 'V83.COMConnector'",
-        `$connection = $connector.Connect(${quotePowerShell(connectionString)})`,
+        ...buildComConnectionScript(oneCConfiguration),
         `$before = [bool]${module}.${externalResourcesLock.stateMethodName}()`,
         `if (-not $before) { ${module}.${externalResourcesLock.lockMethodName}() | Out-Null }`,
         `$after = [bool]${module}.${externalResourcesLock.stateMethodName}()`,
