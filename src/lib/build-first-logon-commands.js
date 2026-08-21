@@ -33,7 +33,7 @@ const COMPLETION_MARKER_SCRIPT_FILENAME = 'log-first-logon-complete.ps1';
 // Про содержимое токенов конкретной фичи этот модуль ничего не знает —
 // это GUEST_FEATURE_TOKEN_BUILDERS (SRP): добавление новой фичи не
 // требует правки этого файла.
-export function buildFirstLogonCommands({ guestScriptsDir, diagnostics, guestFeatures }) {
+export function buildFirstLogonCommands({ guestScriptsDir, diagnostics, guestFeatures, firstLogonCompletionLogLine }) {
     const preludeTokens = { COM_PORT: diagnostics.comPort, COM_BAUD_RATE: diagnostics.comBaudRate };
     const preludeFilename = '_lib-guest-script-prelude.ps1';
     const preludeContent = renderGuestScriptTemplate(path.join(guestScriptsDir, preludeFilename), preludeTokens);
@@ -63,7 +63,13 @@ export function buildFirstLogonCommands({ guestScriptsDir, diagnostics, guestFea
         }
     }
 
-    scriptFiles.push({ filename: COMPLETION_MARKER_SCRIPT_FILENAME, content: renderScript(COMPLETION_MARKER_SCRIPT_FILENAME, preludeTokens) });
+    scriptFiles.push({
+        filename: COMPLETION_MARKER_SCRIPT_FILENAME,
+        content: renderScript(COMPLETION_MARKER_SCRIPT_FILENAME, {
+            ...preludeTokens,
+            FIRST_LOGON_COMPLETION_LOG_LINE: firstLogonCompletionLogLine,
+        }),
+    });
     firstLogonCommands.push(encodePowerShellCommand(buildBootstrapScript(COMPLETION_MARKER_SCRIPT_FILENAME)));
 
     for (const feature of guestFeatures) {

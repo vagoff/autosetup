@@ -5,4 +5,4 @@
 # сработал так, как задуман).
 . "$PSScriptRoot\_lib-guest-script-prelude.ps1"
 
-Write-ComLog 'first-logon-commands: ALL DONE'
+Write-ComLog '{{FIRST_LOGON_COMPLETION_LOG_LINE}}'

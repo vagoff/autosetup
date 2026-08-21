@@ -89,6 +89,10 @@
     answerFileDeviceId: 'answerfile0',
     answerFileFilename: 'autounattend.xml',
     answerFileImageSizeBytes: 16777216,
+    // Единственный наблюдаемый сигнал успешного завершения всех
+    // FirstLogonCommands. Его пишет финальный guest-скрипт в COM1, затем
+    // host-side watcher создаёт db/<vmName>/install-complete.marker.
+    firstLogonCompletionLogLine: 'first-logon-commands: ALL DONE',
   },
 
   // Core-параметры guest-скриптов (src/guest-scripts/), общие для ЛЮБОГО

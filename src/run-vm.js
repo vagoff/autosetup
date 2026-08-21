@@ -6,6 +6,8 @@ import { captureSerialLog } from './capture-serial-log.js';
 import { resolveBootFromInstaller } from './lib/resolve-boot-from-installer.js';
 import { spawnOrphanWatchdog } from './lib/spawn-orphan-watchdog.js';
 import { restartInstallIfInterrupted } from './restart-install-if-interrupted.js';
+import { waitForWindowsInstallComplete } from './wait-for-windows-install-complete.js';
+import { markWindowsInstallComplete } from './mark-windows-install-complete.js';
 import { config } from './config.js';
 
 // Тонкий оркестратор: поднимает swtpm, дожидается сокета, при установке —
@@ -51,6 +53,22 @@ async function runVm() {
     captureSerialLog({ signal: serialLogCapture.signal }).catch((error) => {
         console.error(`capture-serial-log: ${error.message}`);
     });
+
+    // После подтверждённого конца FirstLogonCommands переводим durable
+    // сигнал COM1 в persistent marker автоматически. Раньше это требовало
+    // отдельного ручного запуска mark-windows-install-complete.js; при
+    // перезапуске VM до него restart-install-if-interrupted.js ошибочно
+    // считал полностью готовый диск прерванной установкой и пересоздавал
+    // его. wait-for-windows-install-complete.js ожидает файловое событие,
+    // не «примерное время установки Windows».
+    if (bootFromInstaller) {
+        waitForWindowsInstallComplete()
+            .then(() => {
+                markWindowsInstallComplete();
+                console.log(`отмечена успешная установка Windows: ${config.paths.installCompleteMarkerPath}`);
+            })
+            .catch((error) => console.error(`mark-windows-install-complete: ${error.message}`));
+    }
 
     const shutdown = (signal) => {
         qemu.kill(signal);

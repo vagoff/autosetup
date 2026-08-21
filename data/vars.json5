@@ -42,6 +42,9 @@
       { name: 'openssh', proto: 'tcp', hostPort: 2222, guestPort: 22 },
       { name: 'winrm', proto: 'tcp', hostPort: 5985, guestPort: 5985 },
       { name: 'rdp', proto: 'tcp', hostPort: 3389, guestPort: 3389 },
+      // Apache внутри гостя: доступ к будущим публикациям 1С/OData только
+      // с loopback хоста через SLIRP, как и к SSH/WinRM/RDP.
+      { name: 'apache-http', proto: 'tcp', hostPort: 8080, guestPort: 80 },
     ],
   },
 }

@@ -49,6 +49,7 @@ export function buildAnswerFileImage() {
         guestScriptsDir: config.paths.guestScriptsDir,
         diagnostics: config.diagnostics,
         guestFeatures: config.guestFeatures,
+        firstLogonCompletionLogLine: config.unattend.firstLogonCompletionLogLine,
     });
     const xml = renderAutounattendXml({ ...unattend, firstLogonCommands });
 

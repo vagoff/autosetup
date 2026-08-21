@@ -1,0 +1,14 @@
+// Отдельный от установки платформы сторонний патч techsys.dll. Применяется
+// только явной командой: оригинальная и обновлённая версии зафиксированы
+// хешами, поэтому модуль не заменит неизвестный файл.
+{
+  sourceDirectory: 'vendor/1C/UPDATE',
+  filename: 'techsys.dll',
+  expectedBytes: 417280,
+  expectedSha256: '2afecb921f68581ae7c76e9db70c5960c601b0bddf28c6f773e6a4ed856d40f5',
+  expectedOriginalSha256: '57b5d0dc8adcd043cc9cb5333c194cc9267350b1bf5977b330ae1c716466bdc3',
+  backupFilename: 'techsys_5.dll',
+  guest: {
+    stagingDirectory: 'C:\\ProgramData\\AutoSetup\\staging\\1c-techsys-update',
+  },
+}

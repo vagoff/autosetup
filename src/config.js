@@ -18,6 +18,10 @@ import JSON5 from 'json5';
 const DATA_DIR = '/data/wd/aibox/autosetup/data';
 const vars = JSON5.parse(readFileSync(path.join(DATA_DIR, 'vars.json5'), 'utf8'));
 const base = JSON5.parse(readFileSync(path.join(DATA_DIR, 'base.json5'), 'utf8'));
+const oneC = JSON5.parse(readFileSync(path.join(DATA_DIR, '1c-platform.json5'), 'utf8'));
+const oneCConfiguration = JSON5.parse(readFileSync(path.join(DATA_DIR, '1c-configuration.json5'), 'utf8'));
+const oneCTechsysUpdate = JSON5.parse(readFileSync(path.join(DATA_DIR, '1c-techsys-update.json5'), 'utf8'));
+const apacheHttpd = JSON5.parse(readFileSync(path.join(DATA_DIR, 'apache-httpd.json5'), 'utf8'));
 
 // vars.qemu и base.qemu описывают непересекающиеся подмножества полей
 // одного и того же логического qemu{} — при случайном дублировании ключа
@@ -91,9 +95,17 @@ const paths = {
     vmDbDir: path.join(projectRoot, 'db', vmName),
     vmCacheDir: path.join(projectRoot, 'cache', vmName),
     isoDir: path.join(projectRoot, 'cache', 'iso'),
+    vendorDir: path.join(projectRoot, 'vendor'),
     // .ps1-исходники FirstLogonCommands (см. src/lib/build-first-logon-commands.js).
     guestScriptsDir: path.join(projectRoot, 'src', 'guest-scripts'),
 };
+
+const apachePortForward = resolveGuestPortForward('apache-http', 'data/apache-httpd.json5');
+if (apacheHttpd.listenPort !== apachePortForward.guestPort) {
+    throw new Error(
+        `data/apache-httpd.json5 listenPort=${apacheHttpd.listenPort} does not match apache-http guestPort=${apachePortForward.guestPort} in data/vars.json5`
+    );
+}
 
 // Наблюдаемый факт "этот диск уже пережил один успешный install Windows",
 // не конфиг — в db/, потому что обязан пережить перезапуск процесса/хоста
@@ -168,6 +180,30 @@ export const config = {
     network: raw.network,
     windowsIso: raw.windowsIso,
     diagnostics: raw.diagnostics,
+    oneC: {
+        ...oneC,
+        sourceDirectory: path.join(projectRoot, oneC.sourceDirectory),
+    },
+    oneCConfiguration: {
+        ...oneCConfiguration,
+        sourceDirectory: path.join(projectRoot, oneCConfiguration.sourceDirectory),
+    },
+    oneCTechsysUpdate: {
+        ...oneCTechsysUpdate,
+        sourceDirectory: path.join(projectRoot, oneCTechsysUpdate.sourceDirectory),
+        targetPath: path.join(oneC.installationDirectory, 'bin', oneCTechsysUpdate.filename),
+        backupPath: path.join(oneC.installationDirectory, 'bin', oneCTechsysUpdate.backupFilename),
+    },
+    apacheHttpd: {
+        ...apacheHttpd,
+        archivePath: path.join(paths.vendorDir, 'apache', apacheHttpd.archiveFilename),
+        visualCppRuntime: {
+            ...apacheHttpd.visualCppRuntime,
+            path: path.join(paths.vendorDir, 'apache', apacheHttpd.visualCppRuntime.filename),
+        },
+        hostPort: apachePortForward.hostPort,
+        port: apachePortForward.guestPort,
+    },
     guestFeatures,
     // openSsh / winRm / serialAgent присутствуют только если
     // соответствующая фича включена в активном профиле (см.

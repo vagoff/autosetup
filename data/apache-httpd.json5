@@ -1,0 +1,31 @@
+// Внешний Apache — отдельный продукт: платформа 1С содержит wsap24.dll,
+// но не сам HTTP-сервер. Здесь закреплён точный x64 архив Apache Lounge и
+// хеш, опубликованный поставщиком.
+{
+  version: '2.4.68',
+  url: 'https://www.apachelounge.com/download/VS18/binaries/httpd-2.4.68-260617-Win64-VS18.zip',
+  archiveFilename: 'httpd-2.4.68-260617-Win64-VS18.zip',
+  expectedBytes: 13602524,
+  expectedSha256: 'eac38a9f8d21b6ba0817cd1576a3d291cc771afd3c6a210d120bdea6f4aa4aeb',
+  visualCppRuntime: {
+    // Microsoft direct download selected by current aka.ms/vs/18/release
+    // redirect on 2026-08-20; URL includes immutable content identity.
+    url: 'https://download.visualstudio.microsoft.com/download/pr/ebdab8e5-1d7b-4d9f-a11b-cbb1720c3b12/843068991DAAA1F73AD9F6239BCE4D0F6A07A51F18C37EA2A867E9BECA71295C/VC_redist.x64.exe',
+    filename: 'VC_redist.x64-14.51.36247.exe',
+    expectedBytes: 18731856,
+    expectedSha256: '843068991daaa1f73ad9f6239bce4d0f6a07a51f18c37ea2a867e9beca71295c',
+  },
+  installationDirectory: 'C:\\Apache24',
+  serviceName: 'AutoSetupApache24',
+  listenPort: 80,
+  firewallRuleName: 'AutoSetup-Apache-HTTP-In',
+  firewallRuleDisplayName: 'AutoSetup Apache HTTP Server (inbound)',
+  guest: {
+    stagingDirectory: 'C:\\ProgramData\\AutoSetup\\staging\\apache-httpd',
+    configurationFilename: 'autosetup-1c.conf',
+    httpReadyTimeoutMs: 30000,
+    httpReadyPollIntervalMs: 500,
+    rebootTimeoutMs: 300000,
+    sshReconnectIntervalMs: 1000,
+  },
+}

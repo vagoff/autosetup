@@ -1,0 +1,61 @@
+// Единственная декларация воспроизводимого состояния прикладной части 1С.
+// Эти файлы не скачиваются: они вручную помещены в vendor/ и каждый запуск
+// проверяет размер и SHA-256 до передачи в гостя.
+{
+  sourceDirectory: 'vendor/1C/CONF',
+
+  database: {
+    // Восстановление DT намеренно заменяет именно этот каталог целиком.
+    directory: 'C:\\1C\\ib\\production-copy',
+    userName: 'Администратор',
+    password: '',
+  },
+
+  artifacts: {
+    dt: {
+      filename: '1Cv8.dt',
+      expectedBytes: 476397570,
+      expectedSha256: 'a4417523f3742a7da4cb8929d7a4b45130a7aeab44faf19304d998c38edf1087',
+    },
+    cf: {
+      filename: 'росса1009.cf',
+      expectedBytes: 481500823,
+      expectedSha256: 'b9786ec37cc6f17555dba4eac0713c582463d561beae584f7b008d3be25786ab',
+    },
+    epf: {
+      filename: 'Консоль запросов для УП.epf',
+      expectedBytes: 93175,
+      expectedSha256: '0eda688cf401528d3ae81a60ca6f74e2fc32a4e806848f3e81bef58359bf86e4',
+    },
+  },
+
+  guest: {
+    stagingDirectory: 'C:\\ProgramData\\AutoSetup\\staging\\1c-configuration',
+    logDirectory: 'C:\\ProgramData\\AutoSetup\\logs',
+    restoreLogFilename: '1c-infobase-restore.log',
+    loadConfigurationLogFilename: '1c-configuration-load.log',
+    updateDatabaseConfigurationLogFilename: '1c-database-configuration-update.log',
+    shortcutScriptFilename: 'create-unicode-shortcut.ps1',
+  },
+
+  epf: {
+    // Постоянная копия имеет ASCII-имя, чтобы путь одинаково работал в
+    // shortcut, CLI и логах независимо от активной code page Windows.
+    targetDirectory: 'C:\\ProgramData\\AutoSetup\\1c\\epf',
+    targetFilename: 'query-console.epf',
+    shortcutPath: 'C:\\Users\\Public\\Desktop\\1C Query Console.lnk',
+    shortcutDescription: '1C query console for the production copy',
+    executeAfterInstall: false,
+  },
+
+  infobaseShortcuts: {
+    enterprise: {
+      path: 'C:\\Users\\Public\\Desktop\\1C Enterprise.lnk',
+      description: '1C Enterprise for the production copy',
+    },
+    designer: {
+      path: 'C:\\Users\\Public\\Desktop\\1C Designer.lnk',
+      description: '1C Designer for the production copy',
+    },
+  },
+}

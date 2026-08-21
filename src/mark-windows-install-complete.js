@@ -12,10 +12,9 @@ import { config } from './config.js';
 // остальные create-*.js (диск/OVMF vars/tpm state). Вызывается один раз,
 // явно, после того как человек/агент уже убедился, что первый вход
 // гостя завершился (например, check-ssh-access.js прошёл первый раз).
-const COMPLETION_MARKER_LINE = 'first-logon-commands: ALL DONE';
-
 export function markWindowsInstallComplete() {
     const { serialLogPath } = config.qemu;
+    const { firstLogonCompletionLogLine } = config.unattend;
     const { installCompleteMarkerPath } = config.paths;
 
     if (existsSync(installCompleteMarkerPath)) {
@@ -25,8 +24,8 @@ export function markWindowsInstallComplete() {
         throw new Error(`нет COM1-лога: ${serialLogPath}. VM ещё ни разу не запускалась?`);
     }
     const serialLog = readFileSync(serialLogPath, 'utf8');
-    if (!serialLog.includes(COMPLETION_MARKER_LINE)) {
-        throw new Error(`в ${serialLogPath} нет строки "${COMPLETION_MARKER_LINE}" — install ещё не завершён`);
+    if (!serialLog.includes(firstLogonCompletionLogLine)) {
+        throw new Error(`в ${serialLogPath} нет строки "${firstLogonCompletionLogLine}" — install ещё не завершён`);
     }
 
     // exclusive create ('wx') — та же fail-fast гарантия и от гонки

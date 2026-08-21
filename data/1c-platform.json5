@@ -1,0 +1,47 @@
+// Декларация именно того дистрибутива платформы 1С, который допустимо
+// установить. Исходные файлы живут в vendor/ и проверяются до отправки в
+// гостя: наличие одноимённого файла с другими байтами — ошибка, не новая
+// «версия по умолчанию».
+{
+  sourceDirectory: 'vendor/1C/BAF',
+  productCode: '{00D36FCE-132B-4952-9099-0BF45B1833F5}',
+  version: '8.3.19.1529',
+  // Этот дистрибутив имеет ProductName "BAF (x86-64)" и сам MSI задаёт
+  // INSTALLDIR под C:\\Program Files\\BAF (измерено в его verbose log), а
+  // не в стандартном для обычной поставки 1С каталоге 1cv8.
+  installationDirectory: 'C:\\Program Files\\BAF\\8.3.19.1529',
+  // Русский transform из поставки. UI установки выключен, но transform
+  // фиксирует локализованные ресурсы и язык продукта.
+  transformFilename: '1058.mst',
+  msiProperties: ['ADDLOCAL=ALL', 'REBOOT=ReallySuppress'],
+  expectedFiles: [
+    {
+      filename: 'BAF (x86-64).msi',
+      expectedBytes: 4853760,
+      expectedSha256: '8ec049d78173e283db130ad1b5055594ea878c614994c4832ef1581cab3012f5',
+    },
+    {
+      filename: 'Data1.cab',
+      expectedBytes: 438412506,
+      expectedSha256: '898e178de998496da5609d5356579481942eef9be25b8fbff5ba43b69cca0af2',
+    },
+    {
+      filename: '1058.mst',
+      expectedBytes: 155648,
+      expectedSha256: 'ce98d3ca9d9b728bd7c724bb64d5ee36b95a8409238a74d7c79f32cd2e194260',
+    },
+    {
+      filename: 'vc_redist.x64.exe',
+      expectedBytes: 15311608,
+      expectedSha256: '5b0cbb977f2f5253b1ebe5c9d30edbda35dbd68fb70de7af5faac6423db575b5',
+    },
+  ],
+  requiredInstalledFiles: ['bin\\1cv8.exe', 'bin\\ragent.exe', 'bin\\rac.exe', 'bin\\ras.exe', 'bin\\comcntr.dll', 'bin\\wsap24.dll'],
+  guest: {
+    stagingDirectory: 'C:\\ProgramData\\AutoSetup\\staging\\1c-platform',
+    logDirectory: 'C:\\ProgramData\\AutoSetup\\logs',
+    msiLogFilename: '1c-platform-install.log',
+    rebootTimeoutMs: 300000,
+    sshReconnectIntervalMs: 1000,
+  },
+}
