@@ -1,0 +1,16 @@
+// Headless-проверки ИБ: Designer даёт наблюдаемый XML-снимок состава
+// конфигурации, V83.COMConnector исполняет запросы. В отличие от запуска
+// внешней обработки, этот путь не открывает стартовую форму конфигурации.
+{
+  guest: {
+    stagingDirectory: 'C:\\ProgramData\\AutoSetup\\staging\\1c-headless-query',
+    // Корень намеренно короткий: у production-конфигурации есть очень
+    // длинные имена шаблонов, и Designer иначе упирается в Win32 260.
+    metadataDumpRootDirectory: 'C:\\x',
+    logDirectory: 'C:\\ProgramData\\AutoSetup\\logs',
+    metadataDumpLogFilename: '1c-configuration-metadata-dump.log',
+    configurationXmlFilename: 'Configuration.xml',
+  },
+  maxDocumentsTop: 1000,
+  documentsTopTimeoutSeconds: 300,
+}

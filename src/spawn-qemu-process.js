@@ -41,7 +41,7 @@ export function buildQemuArgs() {
     // проброс портов ИЗ ГОСТЯ через SLIRP NAT — отдельная сущность от общего
     // сетевого пространства alpine/obarun, гость всегда за NAT самого qemu.
     const hostfwd = qemu.guestPortForwards
-        .map((f) => `,hostfwd=${f.proto}:${network.loopbackHost}:${f.hostPort}-:${f.guestPort}`)
+        .map((f) => `,hostfwd=${f.proto}:${f.hostAddress}:${f.hostPort}-:${f.guestPort}`)
         .join('');
 
     // hv_* — Hyper-V enlightenment флаги, см. комментарий у

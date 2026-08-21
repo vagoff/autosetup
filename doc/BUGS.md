@@ -5,6 +5,13 @@
 в `deferred-todo.md`, инварианты в `INVARIANTS.md`.
 
 
+---
+
+stageSourceTree and stageGuestFiles -- code dup?
+
+---
+
+stageGuestFiles засирает папку назначения, не убирая за собой никогда
 
 ---
 

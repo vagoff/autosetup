@@ -20,7 +20,9 @@ const vars = JSON5.parse(readFileSync(path.join(DATA_DIR, 'vars.json5'), 'utf8')
 const base = JSON5.parse(readFileSync(path.join(DATA_DIR, 'base.json5'), 'utf8'));
 const oneC = JSON5.parse(readFileSync(path.join(DATA_DIR, '1c-platform.json5'), 'utf8'));
 const oneCConfiguration = JSON5.parse(readFileSync(path.join(DATA_DIR, '1c-configuration.json5'), 'utf8'));
+const oneCOData = JSON5.parse(readFileSync(path.join(DATA_DIR, '1c-odata.json5'), 'utf8'));
 const oneCQueryRunner = JSON5.parse(readFileSync(path.join(DATA_DIR, '1c-query-runner.json5'), 'utf8'));
+const oneCHeadlessQuery = JSON5.parse(readFileSync(path.join(DATA_DIR, '1c-headless-query.json5'), 'utf8'));
 const oneCTechsysUpdate = JSON5.parse(readFileSync(path.join(DATA_DIR, '1c-techsys-update.json5'), 'utf8'));
 const apacheHttpd = JSON5.parse(readFileSync(path.join(DATA_DIR, 'apache-httpd.json5'), 'utf8'));
 
@@ -196,11 +198,16 @@ export const config = {
         ...oneCConfiguration,
         sourceDirectory: path.join(projectRoot, oneCConfiguration.sourceDirectory),
     },
+    oneCOData: {
+        ...oneCOData,
+        passwordStatePath: path.join(paths.vmDbDir, oneCOData.user.passwordStateFilename),
+    },
     oneCQueryRunner: {
         ...oneCQueryRunner,
         sourceDirectory: path.join(projectRoot, oneCQueryRunner.sourceDirectory),
         templateSourceDirectory: path.join(projectRoot, oneCQueryRunner.templateSourceDirectory),
     },
+    oneCHeadlessQuery,
     oneCTechsysUpdate: {
         ...oneCTechsysUpdate,
         sourceDirectory: path.join(projectRoot, oneCTechsysUpdate.sourceDirectory),

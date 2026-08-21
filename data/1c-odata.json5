@@ -1,0 +1,34 @@
+// Декларация отдельного применяемого модуля стандартного OData для уже
+// работающих Windows, платформы 1С и production-copy.
+{
+  publicationName: 'production-copy',
+  endpointPath: 'odata/standard.odata',
+  serverTimezone: 'Europe/Kyiv',
+  web: {
+    publicationDirectory: 'C:\\1C\\web\\production-copy',
+    descriptorFilename: 'odata.vrd',
+  },
+  user: {
+    name: 'autosetup-odata',
+    passwordStateFilename: 'odata-user-password.txt',
+    passwordLength: 24,
+    // Имя сверено с реальной Configuration.xml BAS ERP, а не угадано из
+    // англоязычной документации БСП.
+    roleNames: ['УдаленныйДоступСтандартныйИнтерфейсOData'],
+  },
+  // Если rights отсутствует, модуль публикует все поддерживаемые типы и
+  // операции. При наличии объекта ключ — имя документа метаданных, значение
+  // — разрешённые OData-операции для него.
+  rights: {
+    МаршрутныйЛистПроизводства: ['read', 'update'],
+    ВыпускПродукции: ['read', 'update'],
+    ПоступлениеТоваровУслуг: ['read', 'update'],
+  },
+  guest: {
+    stagingDirectory: 'C:\\ProgramData\\AutoSetup\\staging\\1c-odata',
+    logDirectory: 'C:\\ProgramData\\AutoSetup\\logs',
+    publicationLogFilename: '1c-odata-publication.log',
+    healthCheckTimeoutMs: 30000,
+    healthCheckPollIntervalMs: 500,
+  },
+}

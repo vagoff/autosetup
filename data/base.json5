@@ -144,6 +144,23 @@
   guestScriptStagingDirectory: 'C:\\ProgramData\\AutoSetup\\staging\\guest-scripts',
 
   diagnostics: {
+    guestTextInput: {
+      interactiveTaskTimeoutSeconds: 30,
+      interactiveTaskPollMilliseconds: 100,
+    },
+    guestSystemDisk: {
+      // Обе границы обязательны: свободных гигабайт должно хватить для
+      // абсолютного минимума, процентов — для устойчивой работы каждого
+      // fixed-тома Windows.
+      minFreeGiB: 5,
+      minFreePercent: 10,
+    },
+    guestDiskWriters: {
+      writeSampleSeconds: 2,
+      maxWriteSampleSeconds: 60,
+      defaultWriterLimit: 10,
+      maxWriterLimit: 100,
+    },
     // Отдельный, только-логовый физический COM-порт (qemu.serialLogTcpPort
     // в data/vars.json5) — единственный канал, не зависящий ни от сети
     // гостя, ни от какой-либо опциональной фичи (у serial-agent свой
