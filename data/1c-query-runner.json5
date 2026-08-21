@@ -2,13 +2,12 @@
 // ИБ. Исходники EPF лежат в Git; собранный EPF существует лишь во временном
 // staging гостя и никогда не становится артефактом конфигурации.
 {
-  sourceDirectory: 'features/1c-query-runner/src',
-  // Проверенная XML-оболочка EPF из сохранённого vanessa-runner. Наша
-  // бизнес-логика всё равно живёт в sourceDirectory ниже.
-  templateSourceDirectory: 'vendor/vanessa-runner/epf/ШаблонОбработки',
+  // Полные исходники EPF, принадлежащие нам (скопированы один раз из
+  // vanessa-runner, дальше правятся руками -- инвариант OWNTHESOURCE).
+  // Ничего не генерируется и не патчится: каталог целиком уезжает в staging
+  // и собирается Конфигуратором как есть.
+  sourceDirectory: 'features/1c-query-runner/src/epf',
   rootXmlFilename: 'ШаблонОбработки.xml',
-  moduleRelativePath: 'ШаблонОбработки/Forms/Форма/Ext/Form/Module.bsl',
-  featureBusinessLogicPath: 'QueryRunner/BusinessLogic.bsl',
   guest: {
     stagingDirectory: 'C:\\ProgramData\\AutoSetup\\staging\\1c-query-runner',
     logDirectory: 'C:\\ProgramData\\AutoSetup\\logs',

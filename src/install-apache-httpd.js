@@ -77,9 +77,9 @@ function apacheArtifactFiles(apacheHttpd) {
 }
 
 async function verifyApacheAccess() {
-    const { apacheHttpd, network } = config;
+    const { apacheHttpd } = config;
     await waitForHttp({
-        url: `http://${network.loopbackHost}:${apacheHttpd.hostPort}/`,
+        url: `http://${apacheHttpd.hostAddress}:${apacheHttpd.hostPort}/`,
         timeoutMs: apacheHttpd.guest.httpReadyTimeoutMs,
         pollIntervalMs: apacheHttpd.guest.httpReadyPollIntervalMs,
     });

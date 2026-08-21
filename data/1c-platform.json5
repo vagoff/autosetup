@@ -45,6 +45,27 @@
   thinClientExecutableRelativePath: 'bin\\1cv8c.exe',
   comConnectorRelativePath: 'bin\\comcntr.dll',
   requiredInstalledFiles: ['bin\\1cv8.exe', 'bin\\1cv8c.exe', 'bin\\ragent.exe', 'bin\\rac.exe', 'bin\\ras.exe', 'bin\\comcntr.dll', 'bin\\wsap24.dll'],
+
+  // Windows показывает модальный запрос "разрешить этой программе доступ в
+  // сеть?" в момент, когда программа впервые открывает слушающий сокет. Для
+  // 1С это происходит при первом запуске Конфигуратора, и человек отвечает на
+  // него руками -- ровно та неавтоматизированная развилка, которую запрещает
+  // FULLAUTO: ответ человека становится невидимым состоянием гостя, которого
+  // на чистой машине не будет.
+  //
+  // Файловой ИБ входящие соединения не нужны вообще, поэтому мы объявляем
+  // ЯВНЫЕ запрещающие правила заранее: правило уже есть -> Windows не
+  // спрашивает. Это не "закрыть доступ", а "принять решение в конфиге, а не
+  // мышкой".
+  firewall: {
+    // NotifyOnListen выключается для всех профилей: любой другой installer
+    // (Apache, техподдержка) иначе принесёт тот же самый модальный вопрос.
+    suppressListenNotifications: true,
+    inboundBlockRules: [
+      { name: 'AutoSetup-1C-Enterprise-In-Block', displayName: 'AutoSetup 1C Enterprise (inbound, blocked)', programRelativePath: 'bin\\1cv8.exe' },
+      { name: 'AutoSetup-1C-ThinClient-In-Block', displayName: 'AutoSetup 1C thin client (inbound, blocked)', programRelativePath: 'bin\\1cv8c.exe' },
+    ],
+  },
   guest: {
     stagingDirectory: 'C:\\ProgramData\\AutoSetup\\staging\\1c-platform',
     logDirectory: 'C:\\ProgramData\\AutoSetup\\logs',

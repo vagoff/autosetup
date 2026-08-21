@@ -46,7 +46,7 @@ function buildConfigureScript(oneC, apacheHttpd) {
 }
 
 export async function configureOneCApacheWebExtension() {
-    const { oneC, apacheHttpd, network } = config;
+    const { oneC, apacheHttpd } = config;
     await withGuestSession(async ({ ssh }) => {
         await assertOneCPlatformInstalled(ssh, oneC);
         const apacheState = await readApacheHttpdState(ssh, apacheHttpd);
@@ -56,7 +56,7 @@ export async function configureOneCApacheWebExtension() {
         await executeGuestPowerShell(ssh, buildConfigureScript(oneC, apacheHttpd), 'configure Apache 1C web extension');
     });
     await waitForHttp({
-        url: `http://${network.loopbackHost}:${apacheHttpd.hostPort}/`,
+        url: `http://${apacheHttpd.hostAddress}:${apacheHttpd.hostPort}/`,
         timeoutMs: apacheHttpd.guest.httpReadyTimeoutMs,
         pollIntervalMs: apacheHttpd.guest.httpReadyPollIntervalMs,
     });

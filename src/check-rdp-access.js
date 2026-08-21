@@ -15,18 +15,18 @@ import { probeTcpPort } from './lib/probe-tcp-port.js';
 // вручную. Эта проверка только подтверждает, что автоматика
 // (enable-rdp-access.ps1) реально отработала.
 export async function checkRdpAccess() {
-    const { rdp, openSsh, network, unattend } = config;
+    const { rdp, openSsh, unattend } = config;
     if (!rdp) throw new Error('в активном профиле нет фичи rdp — проверять нечего (см. data/profiles/*.json5)');
 
-    const portOpen = await probeTcpPort(network.loopbackHost, rdp.hostPort, 5000);
+    const portOpen = await probeTcpPort(rdp.hostAddress, rdp.hostPort, 5000);
     if (!portOpen) {
-        throw new Error(`RDP: порт ${network.loopbackHost}:${rdp.hostPort} не отвечает`);
+        throw new Error(`RDP: порт ${rdp.hostAddress}:${rdp.hostPort} не отвечает`);
     }
 
     const ssh = new NodeSSH();
     try {
         await ssh.connect({
-            host: network.loopbackHost,
+            host: openSsh.hostAddress,
             port: openSsh.hostPort,
             username: unattend.adminUsername,
             privateKeyPath: openSsh.clientPrivateKeyPath,

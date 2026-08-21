@@ -6,14 +6,14 @@ import { config } from './config.js';
 // открытый TCP-порт. Использует уже установленный node-ssh, поэтому
 // проверка не зависит от наличия системного ssh binary в Alpine.
 export async function checkSshAccess() {
-    const { openSsh, network, unattend } = config;
+    const { openSsh, unattend } = config;
     if (!existsSync(openSsh.clientPrivateKeyPath)) {
         throw new Error(`нет SSH private key: ${openSsh.clientPrivateKeyPath}. Сначала запусти create-ssh-client-key.js`);
     }
     const ssh = new NodeSSH();
     try {
         await ssh.connect({
-            host: network.loopbackHost,
+            host: openSsh.hostAddress,
             port: openSsh.hostPort,
             username: unattend.adminUsername,
             privateKeyPath: openSsh.clientPrivateKeyPath,

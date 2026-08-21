@@ -77,12 +77,12 @@ export function renderAutounattendXml({ unattend, windowsUpdate }) {
   <settings pass="windowsPE">
     <component name="Microsoft-Windows-International-Core-WinPE" processorArchitecture="amd64" publicKeyToken="31bf3856ad364e35" language="neutral" versionScope="nonSxS" xmlns:wcm="http://schemas.microsoft.com/WMIConfig/2002/State" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
       <SetupUILanguage>
-        <UILanguage>${escapeXml(unattend.locale)}</UILanguage>
+        <UILanguage>${escapeXml(unattend.uiLanguage)}</UILanguage>
       </SetupUILanguage>
       <InputLocale>${escapeXml(unattend.inputLocale)}</InputLocale>
-      <SystemLocale>${escapeXml(unattend.locale)}</SystemLocale>
-      <UILanguage>${escapeXml(unattend.locale)}</UILanguage>
-      <UserLocale>${escapeXml(unattend.locale)}</UserLocale>
+      <SystemLocale>${escapeXml(unattend.systemLocale)}</SystemLocale>
+      <UILanguage>${escapeXml(unattend.uiLanguage)}</UILanguage>
+      <UserLocale>${escapeXml(unattend.userLocale)}</UserLocale>
     </component>
     <component name="Microsoft-Windows-Setup" processorArchitecture="amd64" publicKeyToken="31bf3856ad364e35" language="neutral" versionScope="nonSxS" xmlns:wcm="http://schemas.microsoft.com/WMIConfig/2002/State" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
       <DiskConfiguration>
@@ -154,6 +154,15 @@ export function renderAutounattendXml({ unattend, windowsUpdate }) {
     </component>${renderWindowsUpdatePolicyCommands(windowsUpdate)}
   </settings>
   <settings pass="oobeSystem">
+    <!-- Проход windowsPE настраивает только сам WinPE. Локаль УСТАНОВЛЕННОЙ
+         системы закрепляет именно этот компонент, и он применяется до первого
+         входа, то есть до FirstLogonCommands, которые ставят 1С. -->
+    <component name="Microsoft-Windows-International-Core" processorArchitecture="amd64" publicKeyToken="31bf3856ad364e35" language="neutral" versionScope="nonSxS" xmlns:wcm="http://schemas.microsoft.com/WMIConfig/2002/State" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+      <InputLocale>${escapeXml(unattend.inputLocale)}</InputLocale>
+      <SystemLocale>${escapeXml(unattend.systemLocale)}</SystemLocale>
+      <UILanguage>${escapeXml(unattend.uiLanguage)}</UILanguage>
+      <UserLocale>${escapeXml(unattend.userLocale)}</UserLocale>
+    </component>
     <component name="Microsoft-Windows-Shell-Setup" processorArchitecture="amd64" publicKeyToken="31bf3856ad364e35" language="neutral" versionScope="nonSxS" xmlns:wcm="http://schemas.microsoft.com/WMIConfig/2002/State" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
       <OOBE>
         <HideEULAPage>true</HideEULAPage>

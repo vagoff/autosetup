@@ -47,8 +47,12 @@ const { projectRoot } = raw;
 
 function resolveGuestPortForward(name, owner) {
     const portForward = raw.qemu.guestPortForwards.find((forward) => forward.name === name);
-    if (portForward) return portForward;
-    throw new Error(`${owner}=${name}: соответствующий элемент qemu.guestPortForwards не найден`);
+    if (!portForward) throw new Error(`${owner}=${name}: соответствующий элемент qemu.guestPortForwards не найден`);
+    // hostAddress обязателен и не имеет default: адрес прослушивания — это
+    // решение о доступности гостя снаружи, оно должно быть видно в конфиге
+    // глазами, а не унаследовано молча из network.loopbackHost.
+    if (!portForward.hostAddress) throw new Error(`qemu.guestPortForwards[${name}]: hostAddress обязателен и должен быть задан явно`);
+    return portForward;
 }
 
 // Профиль — явный выбор человека/агента, какую VM и с каким набором фич
@@ -136,15 +140,16 @@ const FEATURE_DERIVERS = {
             knownHostsPath: path.join(paths.vmCacheDir, feature.check.knownHostsFilename),
             port: portForward.guestPort,
             hostPort: portForward.hostPort,
+            hostAddress: portForward.hostAddress,
         };
     },
     winrm: (feature) => {
         const portForward = resolveGuestPortForward(feature.guestPortForwardName, 'features/winrm.json5: guestPortForwardName');
-        return { ...feature, port: portForward.guestPort, hostPort: portForward.hostPort };
+        return { ...feature, port: portForward.guestPort, hostPort: portForward.hostPort, hostAddress: portForward.hostAddress };
     },
     rdp: (feature) => {
         const portForward = resolveGuestPortForward(feature.guestPortForwardName, 'features/rdp.json5: guestPortForwardName');
-        return { ...feature, port: portForward.guestPort, hostPort: portForward.hostPort };
+        return { ...feature, port: portForward.guestPort, hostPort: portForward.hostPort, hostAddress: portForward.hostAddress };
     },
     'serial-agent': (feature) => ({ ...feature }),
 };
@@ -205,7 +210,6 @@ export const config = {
     oneCQueryRunner: {
         ...oneCQueryRunner,
         sourceDirectory: path.join(projectRoot, oneCQueryRunner.sourceDirectory),
-        templateSourceDirectory: path.join(projectRoot, oneCQueryRunner.templateSourceDirectory),
     },
     oneCHeadlessQuery,
     oneCTechsysUpdate: {
@@ -223,6 +227,7 @@ export const config = {
             path: path.join(paths.vendorDir, apacheHttpd.vendorSubdirectory, apacheHttpd.visualCppRuntime.filename),
         },
         hostPort: apachePortForward.hostPort,
+        hostAddress: apachePortForward.hostAddress,
         port: apachePortForward.guestPort,
     },
     guestFeatures,

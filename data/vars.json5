@@ -39,12 +39,20 @@
     // факт о самом протоколе фичи (ssh всегда 22, winrm всегда 5985), а не
     // произвольный выбор, поэтому живёт в той же записи, что и hostPort.
     guestPortForwards: [
+      // hostAddress задан явно у КАЖДОГО форварда и является единственным
+      // источником адреса как для слушателя qemu (-netdev hostfwd), так и
+      // для всех host-side клиентов (ssh/winrm/rdp/http-проверки). Раньше
+      // клиенты молча брали network.loopbackHost, из-за чего значение,
+      // отличное от 127.0.0.1, меняло только слушателя — расхождение,
+      // которое "работало" лишь потому, что 0.0.0.0 включает loopback.
       { name: 'openssh', proto: 'tcp', hostAddress: '127.0.0.1', hostPort: 2222, guestPort: 22 },
       { name: 'winrm', proto: 'tcp', hostAddress: '127.0.0.1', hostPort: 5985, guestPort: 5985 },
       { name: 'rdp', proto: 'tcp', hostAddress: '127.0.0.1', hostPort: 3389, guestPort: 3389 },
-      // OData должен быть доступен снаружи; фильтрация доступа — обязанность
-      // firewall хоста, а не неявное ограничение loopback в QEMU.
-      { name: 'apache-http', proto: 'tcp', hostAddress: '0.0.0.0', hostPort: 8080, guestPort: 80 },
+      // OData предназначен для внешнего nodejs-приложения, поэтому адрес
+      // тут — сознательно отдельная ручка, а не копия loopbackHost. Пока
+      // 127.0.0.1: открывать наружу вместе с ИБ-копией продакшена и
+      // тестовым паролем из base.json5 нельзя. Меняется здесь, одним местом.
+      { name: 'apache-http', proto: 'tcp', hostAddress: '127.0.0.1', hostPort: 8080, guestPort: 80 },
     ],
   },
 }

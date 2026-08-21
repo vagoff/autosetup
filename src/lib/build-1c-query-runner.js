@@ -1,65 +1,6 @@
-import { createHash } from 'node:crypto';
-import { readFile, readdir, stat } from 'node:fs/promises';
 import path from 'node:path';
+import { readdir, stat } from 'node:fs/promises';
 import { hashFileSha256 } from './hash-file-sha256.js';
-
-function sha256Text(sourceText) {
-    return createHash('sha256').update(sourceText, 'utf8').digest('hex');
-}
-
-function replaceBusinessLogic(templateModule, businessLogic) {
-    const region = /#Область БизнесЛогика\r?\n[\s\S]*?#КонецОбласти/u;
-    if (!region.test(templateModule)) throw new Error('1C query runner template has no BusinessLogic region');
-    return templateModule.replace(region, `#Область БизнесЛогика\n\n${businessLogic.trim()}\n\n#КонецОбласти`);
-}
-
-function makeResultWriterAtomic(templateModule) {
-    const writer = /&НаСервереБезКонтекста\r?\nПроцедура ЗаписатьФайлРезультата\([\s\S]*?\r?\nКонецПроцедуры/u;
-    if (!writer.test(templateModule)) throw new Error('1C query runner template has no result writer');
-    return templateModule.replace(writer, [
-        '&НаСервереБезКонтекста',
-        'Процедура ЗаписатьФайлРезультата(Знач ПутьФайла, Знач Результат)',
-        '',
-        '    Если ПустаяСтрока(ПутьФайла) Тогда',
-        '        Возврат;',
-        '    КонецЕсли;',
-        '',
-        '    ВременныйФайл = ПутьФайла + ".tmp";',
-        '    Попытка',
-        '        Данные = Новый Структура;',
-        '        Данные.Вставить("КодВозврата", Результат.КодВозврата);',
-        '        Данные.Вставить("Сообщения", Результат.Сообщения);',
-        '        Данные.Вставить("Ошибка", Результат.Ошибка);',
-        '        ЗаписьJSON = Новый ЗаписьJSON;',
-        '        ЗаписьJSON.ОткрытьФайл(ВременныйФайл, "UTF-8");',
-        '        ЗаписатьJSON(ЗаписьJSON, Данные);',
-        '        ЗаписьJSON.Закрыть();',
-        '        ПереместитьФайл(ВременныйФайл, ПутьФайла);',
-        '    Исключение',
-        '        // Невозможность записать результат не должна оставить клиент открытым.',
-        '    КонецПопытки;',
-        '',
-        'КонецПроцедуры',
-    ].join('\n'));
-}
-
-function useAsciiLaunchParameters(templateModule) {
-    const normalizedTemplate = templateModule.replaceAll('\r\n', '\n');
-    const resultFileAssignment = [
-        'Если ПараметрыЗапуска.Свойство("ФайлРезультата") Тогда',
-        '\t\t\tПутьФайлаРезультата = ПараметрыЗапуска.ФайлРезультата;',
-        '\t\tКонецЕсли;',
-    ].join('\n');
-    if (!normalizedTemplate.includes(resultFileAssignment)) throw new Error('1C query runner template has an unknown result-file parameter block');
-    const withResultFile = normalizedTemplate.replace(resultFileAssignment, [
-        'Если ПараметрыЗапуска.Свойство("ResultFile") Тогда',
-        '\t\t\tПутьФайлаРезультата = ПараметрыЗапуска.ResultFile;',
-        '\t\tКонецЕсли;',
-    ].join('\n'));
-    const exitFlag = 'ЗавершитьРаботуСистемыЗапрошено = ПараметрыЗапуска.Свойство("ЗавершитьРаботуСистемы");';
-    if (!withResultFile.includes(exitFlag)) throw new Error('1C query runner template has an unknown exit parameter block');
-    return withResultFile.replace(exitFlag, 'ЗавершитьРаботуСистемыЗапрошено = ПараметрыЗапуска.Свойство("Exit");');
-}
 
 async function collectFiles(rootDirectory) {
     const files = [];
@@ -86,36 +27,22 @@ async function collectFiles(rootDirectory) {
     return files;
 }
 
-// В XML-шаблоне Vanessa остаются форма и надёжная инфраструктура lifecycle.
-// Feature заменяет только документированную область BusinessLogic, поэтому
-// результат всегда записывается единым проверенным механизмом шаблона.
+// Исходники EPF -- обычные файлы нашего дерева (features/1c-query-runner/src/epf),
+// поэтому "сборка" сводится к перечислению и хешированию: ничего не
+// генерируется и ничего не патчится. Раньше этот модуль восстанавливал модуль
+// формы из vendor/vanessa-runner подстановками по regexp -- см. инвариант
+// OWNTHESOURCE о том, почему так больше нельзя.
 export async function buildQueryRunnerStagedFiles(queryRunner, extraFiles) {
-    const sourceFiles = await collectFiles(queryRunner.templateSourceDirectory);
-    const templateModule = sourceFiles.find((file) => file.relativePath === queryRunner.moduleRelativePath);
-    if (!templateModule) throw new Error(`1C query runner template module is missing: ${queryRunner.moduleRelativePath}`);
-    const businessLogicPath = path.join(queryRunner.sourceDirectory, queryRunner.featureBusinessLogicPath);
-    const preparedTemplate = useAsciiLaunchParameters(makeResultWriterAtomic(
-        await readFile(templateModule.filePath, 'utf8'),
-    ));
-    const moduleSourceText = replaceBusinessLogic(
-        preparedTemplate,
-        await readFile(businessLogicPath, 'utf8'),
-    );
-    const generatedModule = {
-        relativePath: queryRunner.moduleRelativePath,
-        sourceText: moduleSourceText,
-        bytes: Buffer.byteLength(moduleSourceText, 'utf8'),
-        sha256: sha256Text(moduleSourceText),
-    };
     return [
-        ...sourceFiles.filter((file) => file.relativePath !== queryRunner.moduleRelativePath),
-        generatedModule,
+        ...await collectFiles(queryRunner.sourceDirectory),
         ...extraFiles.map((file) => ({ ...file, relativePath: file.filename })),
     ];
 }
 
 export function buildQueryRunnerLaunchParameter(args, remoteDirectory) {
     const resultPath = path.win32.join(remoteDirectory, 'result.json');
+    // Имена параметров ASCII намеренно: управляющий канал не должен зависеть
+    // от активной ANSI code page гостя. См. шапку Module.bsl.
     const templateParameters = `ResultFile=${resultPath};Exit`;
     if (args.mode === 'documents-top') return `Mode=documents-top;Top=${args.top};${templateParameters}`;
     if (args.mode === 'infobase-probe') return `Mode=infobase-probe;${templateParameters}`;

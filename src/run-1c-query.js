@@ -1,6 +1,6 @@
 import { randomUUID } from 'node:crypto';
 import { existsSync } from 'node:fs';
-import { mkdir, mkdtemp, rm, stat, writeFile } from 'node:fs/promises';
+import { mkdir, stat, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { config } from './config.js';
 import { buildQueryRunnerLaunchParameter, buildQueryRunnerStagedFiles, parseQueryRunnerResult } from './lib/build-1c-query-runner.js';
@@ -19,33 +19,13 @@ function resolveTimeoutSeconds(args, queryRunner) {
 }
 
 function assertLocalSources(queryRunner) {
-    const rootXmlPath = path.join(queryRunner.templateSourceDirectory, queryRunner.rootXmlFilename);
+    const rootXmlPath = path.join(queryRunner.sourceDirectory, queryRunner.rootXmlFilename);
     if (!existsSync(rootXmlPath)) throw new Error(`1C query runner root XML is missing: ${rootXmlPath}`);
-    const businessLogicPath = path.join(queryRunner.sourceDirectory, queryRunner.featureBusinessLogicPath);
-    if (!existsSync(businessLogicPath)) throw new Error(`1C query runner business logic is missing: ${businessLogicPath}`);
     return rootXmlPath;
 }
 
-async function materializeGeneratedSources(cacheDirectory, sourceFiles) {
-    await mkdir(cacheDirectory, { recursive: true });
-    const temporaryDirectory = await mkdtemp(path.join(cacheDirectory, '1c-query-runner-'));
-    const materialized = [];
-    for (const file of sourceFiles) {
-        if (file.sourceText === undefined) {
-            materialized.push(file);
-            continue;
-        }
-        const filePath = path.join(temporaryDirectory, file.relativePath);
-        await mkdir(path.dirname(filePath), { recursive: true });
-        await writeFile(filePath, file.sourceText, 'utf8');
-        materialized.push({ ...file, filePath });
-    }
-    return { sourceFiles: materialized, temporaryDirectory };
-}
-
-async function stageSourceTree(ssh, paths, queryRunner, extraFiles) {
-    const generated = await materializeGeneratedSources(paths.cacheDir, await buildQueryRunnerStagedFiles(queryRunner, extraFiles));
-    const sourceFiles = generated.sourceFiles;
+async function stageSourceTree(ssh, queryRunner, extraFiles) {
+    const sourceFiles = await buildQueryRunnerStagedFiles(queryRunner, extraFiles);
     const remoteDirectory = path.win32.join(queryRunner.guest.stagingDirectory, randomUUID());
     const remoteSourceDirectory = path.win32.join(remoteDirectory, 'source');
     const stagedFiles = [
@@ -86,8 +66,6 @@ async function stageSourceTree(ssh, paths, queryRunner, extraFiles) {
     } catch (error) {
         await removeGuestDirectory(ssh, remoteDirectory).catch(() => {});
         throw error;
-    } finally {
-        await rm(generated.temporaryDirectory, { recursive: true, force: true });
     }
 }
 
@@ -204,7 +182,7 @@ export async function runOneCQuery(argv = process.argv.slice(2)) {
             `$ErrorActionPreference = 'Stop'\n${buildInfobasePresenceCheck(oneCConfiguration, 'run 1C query')}`,
             'check 1C query infobase',
         );
-        const staged = await stageSourceTree(session.ssh, paths, oneCQueryRunner, extraFiles);
+        const staged = await stageSourceTree(session.ssh, oneCQueryRunner, extraFiles);
         let succeeded = false;
         try {
             const runner = buildRunnerArguments(oneCConfiguration, oneCQueryRunner, staged, buildQueryRunnerLaunchParameter(args, staged.remoteDirectory));
