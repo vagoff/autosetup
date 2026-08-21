@@ -37,3 +37,13 @@ export function isOneCPlatformInstalled(state, oneC) {
         && state.installationDirectoryExists
         && oneC.requiredInstalledFiles.every((file) => state.files[file] === true);
 }
+
+// Предусловие «платформа стоит ровно та, что объявлена» одинаково нужно
+// всем прикладным модулям 1С — формулируется один раз здесь.
+export async function assertOneCPlatformInstalled(ssh, oneC) {
+    const state = await readOneCPlatformState(ssh, oneC);
+    if (!isOneCPlatformInstalled(state, oneC)) {
+        throw new Error(`1C platform is not installed as configured: ${JSON.stringify(state)}`);
+    }
+    return state;
+}

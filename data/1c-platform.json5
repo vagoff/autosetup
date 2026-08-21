@@ -36,6 +36,10 @@
       expectedSha256: '5b0cbb977f2f5253b1ebe5c9d30edbda35dbd68fb70de7af5faac6423db575b5',
     },
   ],
+  // Клиент/конфигуратор 1С — единственный исполняемый файл, который
+  // запускают модули (DESIGNER/ENTERPRISE), поэтому путь объявлен здесь,
+  // а не собирается строкой в каждом из них.
+  clientExecutableRelativePath: 'bin\\1cv8.exe',
   requiredInstalledFiles: ['bin\\1cv8.exe', 'bin\\ragent.exe', 'bin\\rac.exe', 'bin\\ras.exe', 'bin\\comcntr.dll', 'bin\\wsap24.dll'],
   guest: {
     stagingDirectory: 'C:\\ProgramData\\AutoSetup\\staging\\1c-platform',

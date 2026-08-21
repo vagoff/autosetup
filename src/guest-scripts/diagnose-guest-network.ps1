@@ -3,8 +3,7 @@
 # конкретных целей из base.json5 (diagnostics.networkProbeTargets).
 #
 # Сами TCP-пробы завёрнуты в Start-Job/Wait-Job с явным верхним пределом
-# (diagnostics.networkProbeTimeoutSeconds) — тот же защитный паттерн, что
-# и в probe-openssh-capability-with-timeout.ps1: не полагаемся на то, что
+# (diagnostics.networkProbeTimeoutSeconds): не полагаемся на то, что
 # у Test-NetConnection где-то внутри есть разумный дефолтный таймаут,
 # проверяем это утверждение сами.
 . "$PSScriptRoot\_lib-guest-script-prelude.ps1"

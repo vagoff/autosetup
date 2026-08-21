@@ -180,9 +180,12 @@ export const config = {
     network: raw.network,
     windowsIso: raw.windowsIso,
     diagnostics: raw.diagnostics,
+    windowsUpdate: raw.windowsUpdate,
+    guestScriptStagingDirectory: raw.guestScriptStagingDirectory,
     oneC: {
         ...oneC,
         sourceDirectory: path.join(projectRoot, oneC.sourceDirectory),
+        clientExecutablePath: path.win32.join(oneC.installationDirectory, oneC.clientExecutableRelativePath),
     },
     oneCConfiguration: {
         ...oneCConfiguration,
@@ -196,10 +199,11 @@ export const config = {
     },
     apacheHttpd: {
         ...apacheHttpd,
-        archivePath: path.join(paths.vendorDir, 'apache', apacheHttpd.archiveFilename),
+        sourceDirectory: path.join(paths.vendorDir, apacheHttpd.vendorSubdirectory),
+        archivePath: path.join(paths.vendorDir, apacheHttpd.vendorSubdirectory, apacheHttpd.archiveFilename),
         visualCppRuntime: {
             ...apacheHttpd.visualCppRuntime,
-            path: path.join(paths.vendorDir, 'apache', apacheHttpd.visualCppRuntime.filename),
+            path: path.join(paths.vendorDir, apacheHttpd.vendorSubdirectory, apacheHttpd.visualCppRuntime.filename),
         },
         hostPort: apachePortForward.hostPort,
         port: apachePortForward.guestPort,

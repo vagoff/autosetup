@@ -2,11 +2,12 @@ import { mkdirSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import { config } from './config.js';
 import { assertArtifactFiles } from './lib/assert-artifact-files.js';
-import { connectGuestSsh } from './lib/connect-guest-ssh.js';
-import { executeGuestPowerShell, quotePowerShell } from './lib/execute-guest-powershell.js';
+import { quotePowerShell } from './lib/execute-guest-powershell.js';
 import { executeGuestPowerShellFile } from './lib/execute-guest-powershell-file.js';
 import { isOneCTechsysUpdateInstalled, readOneCTechsysUpdateState } from './lib/read-1c-techsys-update-state.js';
-import { removeGuestDirectory, stageGuestFiles } from './lib/stage-guest-files.js';
+import { withGuestSession, withGuestStaging } from './lib/with-guest-session.js';
+
+const TECHSYS_SCRIPT_FILENAME = 'install-1c-techsys-update.ps1';
 
 function buildInstallScript(update, remoteDirectory) {
     const stagedUpdatePath = path.win32.join(remoteDirectory, update.filename);
@@ -66,40 +67,36 @@ export async function installOneCTechsysUpdate() {
         expectedBytes: oneCTechsysUpdate.expectedBytes,
         expectedSha256: oneCTechsysUpdate.expectedSha256,
     }]);
-    const ssh = await connectGuestSsh();
-    let remoteDirectory;
-    try {
-        const initialState = await readOneCTechsysUpdateState(ssh, oneCTechsysUpdate);
-        if (isOneCTechsysUpdateInstalled(initialState, oneCTechsysUpdate)) {
-            console.log('1C techsys update: already installed');
-            return;
-        }
-        remoteDirectory = await stageGuestFiles(ssh, { stagingRoot: oneCTechsysUpdate.guest.stagingDirectory, files });
-        const localScriptPath = path.join(config.paths.vmCacheDir, 'install-1c-techsys-update.ps1');
-        const remoteScriptPath = path.win32.join(remoteDirectory, 'install-1c-techsys-update.ps1');
-        mkdirSync(config.paths.vmCacheDir, { recursive: true });
-        writeFileSync(localScriptPath, buildInstallScript(oneCTechsysUpdate, remoteDirectory));
-        const output = await executeGuestPowerShellFile(ssh, {
-            localPath: localScriptPath,
-            remotePath: remoteScriptPath,
-            label: 'install 1C techsys update',
+    const message = await withGuestSession(async (session) => {
+        const initialState = await readOneCTechsysUpdateState(session.ssh, oneCTechsysUpdate);
+        if (isOneCTechsysUpdateInstalled(initialState, oneCTechsysUpdate)) return '1C techsys update: already installed';
+
+        const result = await withGuestStaging(session, { stagingRoot: oneCTechsysUpdate.guest.stagingDirectory, files }, async (remoteDirectory) => {
+            // Сценарий пишется в cache/, а не уезжает -EncodedCommand:
+            // он длиннее лимита командной строки cmd.exe.
+            const localScriptPath = path.join(config.paths.vmCacheDir, TECHSYS_SCRIPT_FILENAME);
+            mkdirSync(config.paths.vmCacheDir, { recursive: true });
+            writeFileSync(localScriptPath, buildInstallScript(oneCTechsysUpdate, remoteDirectory));
+            const output = await executeGuestPowerShellFile(session.ssh, {
+                localPath: localScriptPath,
+                remotePath: path.win32.join(remoteDirectory, TECHSYS_SCRIPT_FILENAME),
+                argumentsList: [],
+                label: 'install 1C techsys update',
+            });
+            try {
+                return JSON.parse(output);
+            } catch (error) {
+                throw new Error(`install 1C techsys update: invalid JSON from guest: ${error.message}: ${output}`);
+            }
         });
-        let result;
-        try {
-            result = JSON.parse(output);
-        } catch (error) {
-            throw new Error(`install 1C techsys update: invalid JSON from guest: ${error.message}: ${output}`);
-        }
-        await removeGuestDirectory(ssh, remoteDirectory);
-        remoteDirectory = undefined;
-        const finalState = await readOneCTechsysUpdateState(ssh, oneCTechsysUpdate);
+
+        const finalState = await readOneCTechsysUpdateState(session.ssh, oneCTechsysUpdate);
         if (!isOneCTechsysUpdateInstalled(finalState, oneCTechsysUpdate)) {
             throw new Error(`1C techsys update verification failed: ${JSON.stringify(finalState)}`);
         }
-        console.log(`1C techsys update: installed (services restarted: ${result.stoppedServices.join(', ') || 'none'})`);
-    } finally {
-        ssh.dispose();
-    }
+        return `1C techsys update: installed (services restarted: ${result.stoppedServices.join(', ') || 'none'})`;
+    });
+    console.log(message);
 }
 
 if (import.meta.url === `file://${process.argv[1]}`) {

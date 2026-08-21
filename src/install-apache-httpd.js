@@ -1,12 +1,11 @@
 import path from 'node:path';
 import { config } from './config.js';
 import { assertArtifactFiles } from './lib/assert-artifact-files.js';
-import { connectGuestSsh } from './lib/connect-guest-ssh.js';
 import { executeGuestPowerShell, quotePowerShell } from './lib/execute-guest-powershell.js';
 import { isApacheHttpdInstalled, readApacheHttpdState } from './lib/read-apache-httpd-state.js';
-import { removeGuestDirectory, stageGuestFiles } from './lib/stage-guest-files.js';
 import { waitForHttp } from './lib/wait-for-http.js';
 import { restartGuestAndWait } from './lib/wait-for-guest-reboot.js';
+import { withGuestSession, withGuestStaging } from './lib/with-guest-session.js';
 
 function buildEnsureServiceScript(apacheHttpd) {
     const httpdPath = path.win32.join(apacheHttpd.installationDirectory, 'bin', 'httpd.exe');
@@ -36,7 +35,7 @@ function buildEnsureServiceScript(apacheHttpd) {
 function buildExtractScript(apacheHttpd, remoteDirectory) {
     const archivePath = path.win32.join(remoteDirectory, apacheHttpd.archiveFilename);
     const unpackDirectory = path.win32.join(remoteDirectory, 'unpacked');
-    const extractedDirectory = path.win32.join(unpackDirectory, 'Apache24');
+    const extractedDirectory = path.win32.join(unpackDirectory, apacheHttpd.archiveRootDirectoryName);
     return [
         '$ErrorActionPreference = "Stop"',
         `$installationDirectory = ${quotePowerShell(apacheHttpd.installationDirectory)}`,
@@ -45,7 +44,7 @@ function buildExtractScript(apacheHttpd, remoteDirectory) {
         `$unpackDirectory = ${quotePowerShell(unpackDirectory)}`,
         `$extractedDirectory = ${quotePowerShell(extractedDirectory)}`,
         'Expand-Archive -LiteralPath $archivePath -DestinationPath $unpackDirectory -Force',
-        'if (-not (Test-Path -LiteralPath $extractedDirectory -PathType Container)) { throw "Apache archive has no Apache24 directory" }',
+        `if (-not (Test-Path -LiteralPath $extractedDirectory -PathType Container)) { throw ${quotePowerShell(`Apache archive has no ${apacheHttpd.archiveRootDirectoryName} directory`)} }`,
         'Move-Item -LiteralPath $extractedDirectory -Destination $installationDirectory -ErrorAction Stop',
     ].join('\n');
 }
@@ -88,11 +87,10 @@ async function verifyApacheAccess() {
 
 export async function installApacheHttpd() {
     const { apacheHttpd } = config;
-    const files = await assertArtifactFiles(path.dirname(apacheHttpd.archivePath), apacheArtifactFiles(apacheHttpd));
-    let ssh = await connectGuestSsh();
-    let remoteDirectory;
-    try {
-        const initialState = await readApacheHttpdState(ssh, apacheHttpd);
+    const files = await assertArtifactFiles(apacheHttpd.sourceDirectory, apacheArtifactFiles(apacheHttpd));
+    const staging = { stagingRoot: apacheHttpd.guest.stagingDirectory, files };
+    await withGuestSession(async (session) => {
+        const initialState = await readApacheHttpdState(session.ssh, apacheHttpd);
         if (
             initialState.exists
             && initialState.version
@@ -100,39 +98,44 @@ export async function installApacheHttpd() {
         ) {
             throw new Error(`Apache target exists with another version: ${initialState.version}`);
         }
-        remoteDirectory = await stageGuestFiles(ssh, { stagingRoot: apacheHttpd.guest.stagingDirectory, files });
-        const runtimeOutput = await executeGuestPowerShell(
-            ssh,
-            buildInstallVisualCppRuntimeScript(apacheHttpd, remoteDirectory),
-            'install Apache Visual C++ Redistributable',
-        );
-        let runtimeInstallation;
-        try {
-            runtimeInstallation = JSON.parse(runtimeOutput);
-        } catch (error) {
-            throw new Error(`install Apache Visual C++ Redistributable: invalid JSON from guest: ${error.message}: ${runtimeOutput}`);
-        }
+
+        const runtimeInstallation = await withGuestStaging(session, staging, async (remoteDirectory) => {
+            const output = await executeGuestPowerShell(
+                session.ssh,
+                buildInstallVisualCppRuntimeScript(apacheHttpd, remoteDirectory),
+                'install Apache Visual C++ Redistributable',
+            );
+            let installation;
+            try {
+                installation = JSON.parse(output);
+            } catch (error) {
+                throw new Error(`install Apache Visual C++ Redistributable: invalid JSON from guest: ${error.message}: ${output}`);
+            }
+            // Распаковку делаем в этом же staging, пока перезагрузка не
+            // потребовалась: иначе те же ~30 МБ пришлось бы заливать второй раз.
+            if (!installation.rebootRequired && !initialState.exists) {
+                await executeGuestPowerShell(session.ssh, buildExtractScript(apacheHttpd, remoteDirectory), 'extract Apache HTTP Server');
+            }
+            return installation;
+        });
+
         if (runtimeInstallation.rebootRequired) {
-            await removeGuestDirectory(ssh, remoteDirectory);
-            remoteDirectory = undefined;
-            ssh = await restartGuestAndWait(ssh, apacheHttpd.guest);
-            remoteDirectory = await stageGuestFiles(ssh, { stagingRoot: apacheHttpd.guest.stagingDirectory, files });
+            session.ssh = await restartGuestAndWait(session.ssh, apacheHttpd.guest);
+            if (!initialState.exists) {
+                await withGuestStaging(session, staging, async (remoteDirectory) => {
+                    await executeGuestPowerShell(session.ssh, buildExtractScript(apacheHttpd, remoteDirectory), 'extract Apache HTTP Server');
+                });
+            }
         }
-        if (!initialState.exists) {
-            await executeGuestPowerShell(ssh, buildExtractScript(apacheHttpd, remoteDirectory), 'extract Apache HTTP Server');
-        }
-        await executeGuestPowerShell(ssh, buildEnsureServiceScript(apacheHttpd), 'ensure Apache HTTP Server service');
-        const finalState = await readApacheHttpdState(ssh, apacheHttpd);
+
+        await executeGuestPowerShell(session.ssh, buildEnsureServiceScript(apacheHttpd), 'ensure Apache HTTP Server service');
+        const finalState = await readApacheHttpdState(session.ssh, apacheHttpd);
         if (!isApacheHttpdInstalled(finalState, apacheHttpd)) {
             throw new Error(`Apache HTTP Server installation verification failed: ${JSON.stringify(finalState)}`);
         }
         await verifyApacheAccess();
-        await removeGuestDirectory(ssh, remoteDirectory);
-        remoteDirectory = undefined;
-        console.log(`Apache HTTP Server: installed (${apacheHttpd.version})`);
-    } finally {
-        ssh?.dispose();
-    }
+    });
+    console.log(`Apache HTTP Server: installed (${apacheHttpd.version})`);
 }
 
 if (import.meta.url === `file://${process.argv[1]}`) {

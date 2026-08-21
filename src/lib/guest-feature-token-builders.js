@@ -13,7 +13,6 @@ export const GUEST_FEATURE_TOKEN_BUILDERS = {
             .map((t) => `  [pscustomobject]@{ Host = '${t.host}'; Port = ${t.port}; Label = '${t.label}' }`)
             .join(',\n'),
         NETWORK_PROBE_TIMEOUT_SECONDS: openSsh.networkProbeTimeoutSeconds,
-        CAPABILITY_PROBE_TIMEOUT_SECONDS: openSsh.capabilityProbeTimeoutSeconds,
         OPENSSH_ARCHIVE_FILENAME: openSsh.archiveFilename,
         OPENSSH_INSTALLATION_DIRECTORY_NAME: openSsh.installationDirectoryName,
         OPENSSH_SERVICE_NAME: openSsh.serviceName,

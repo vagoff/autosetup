@@ -23,6 +23,15 @@ function quoteWindowsCommandLineArgument(value) {
     return `${result}"`;
 }
 
+// Предусловие "каталог базы -- действительно файловая база 1С" нужно всем
+// прикладным модулям; имя файла базы объявлено в data/1c-configuration.json5
+// один раз (см. database.fileFilename).
+export function buildInfobasePresenceCheck(oneCConfiguration, label) {
+    const { database } = oneCConfiguration;
+    const databaseFile = `${database.directory}\\${database.fileFilename}`;
+    return `if (-not (Test-Path -LiteralPath ${quotePowerShell(databaseFile)} -PathType Leaf)) { throw ${quotePowerShell(`${label}: configured infobase is missing: ${databaseFile}`)} }`;
+}
+
 export function buildDesignerArguments(oneCConfiguration, { operationArguments, logPath, authenticate }) {
     const { database } = oneCConfiguration;
     return [
@@ -69,7 +78,7 @@ export function buildWindowsArgumentLine(argumentsList) {
 // Лог Designer пишет штатный ключ /Out, а не SSH stdout/stderr.
 export function buildOneCCommandScript(oneC, { argumentsList, logPath, variablePrefix, label }) {
     return [
-        `$${variablePrefix}Executable = ${quotePowerShell(`${oneC.installationDirectory}\\bin\\1cv8.exe`)}`,
+        `$${variablePrefix}Executable = ${quotePowerShell(oneC.clientExecutablePath)}`,
         `$${variablePrefix}ArgumentLine = ${quotePowerShell(buildWindowsArgumentLine(argumentsList))}`,
         `$${variablePrefix}LogPath = ${quotePowerShell(logPath)}`,
         `$${variablePrefix}Process = Start-Process -FilePath $${variablePrefix}Executable -ArgumentList $${variablePrefix}ArgumentLine -Wait -PassThru`,

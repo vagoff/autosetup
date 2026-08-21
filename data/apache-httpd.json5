@@ -5,6 +5,14 @@
   version: '2.4.68',
   url: 'https://www.apachelounge.com/download/VS18/binaries/httpd-2.4.68-260617-Win64-VS18.zip',
   archiveFilename: 'httpd-2.4.68-260617-Win64-VS18.zip',
+  // Каталог, который лежит в корне этого ZIP (Apache Lounge всегда
+  // упаковывает сборку в Apache24/). Объявлено здесь, а не зашито в
+  // install-apache-httpd.js: смена поставщика архива не должна требовать
+  // правки кода.
+  archiveRootDirectoryName: 'Apache24',
+  // Подкаталог внутри vendor/, где живут оба закреплённых файла (архив и
+  // vc_redist) -- один источник для downloader'ов и установщика.
+  vendorSubdirectory: 'apache',
   expectedBytes: 13602524,
   expectedSha256: 'eac38a9f8d21b6ba0817cd1576a3d291cc771afd3c6a210d120bdea6f4aa4aeb',
   visualCppRuntime: {
@@ -23,6 +31,10 @@
   guest: {
     stagingDirectory: 'C:\\ProgramData\\AutoSetup\\staging\\apache-httpd',
     configurationFilename: 'autosetup-1c.conf',
+    // Маркер управляемого блока в httpd.conf: повторный запуск
+    // configure-1c-apache-web-extension.js переписывает ровно строки между
+    // "# BEGIN <маркер>" и "# END <маркер>", а не дописывает новые в конец.
+    managedBlockMarker: 'autosetup-1c-web-extension',
     httpReadyTimeoutMs: 30000,
     httpReadyPollIntervalMs: 500,
     rebootTimeoutMs: 300000,

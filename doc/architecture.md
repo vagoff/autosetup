@@ -52,3 +52,21 @@
   `install-1c-infobase.js` после `RestoreIB` создаёт отдельными модульными
   действиями public shortcuts для Enterprise и Designer; EPF shortcut остаётся
   ответственностью EPF-модуля.
+- Windows Update выключается одним флагом `data/base.json5` ->
+  `windowsUpdate.disable`, который протянут через все этапы жизни VM: Dynamic
+  Update в windowsPE, политики реестра через `reg.exe` в specialize (ещё до
+  первого входа), остановка и отключение служб гостевым скриптом
+  `disable-windows-updates.ps1` на первом входе, подтверждение —
+  `check-windows-update-disabled.js`. Один рендерер командной строки
+  (`src/lib/build-registry-policy-commands.js`) обслуживает и specialize, и
+  guest-скрипт, поэтому таблица значений политик существует ровно в одном
+  месте — в конфиге.
+- `src/execute-guest-script.js` выполняет объявленный guest-скрипт активного
+  профиля на уже работающей VM по SSH, переиспользуя тот же
+  `build-first-logon-commands.js`, что собирает USB-образ: на живой диск
+  попадает байт в байт то же содержимое, что получила бы свежая установка, и
+  второй реализации того же действия не существует.
+- Жизненный цикл SSH-сессии и staging-каталога вынесен в
+  `src/lib/with-guest-session.js` (`withGuestSession` / `withGuestStaging`):
+  staging удаляется только при успехе (при ошибке остаётся для разбора), а
+  сессия переживает перезагрузку гостя через мутируемый `session.ssh`.

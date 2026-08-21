@@ -1,21 +1,12 @@
 import { createHash } from 'node:crypto';
 import { createReadStream, existsSync, statSync } from 'node:fs';
 import path from 'node:path';
-import { pipeline } from 'node:stream/promises';
-import { Transform } from 'node:stream';
 
+// Потоком, а не readFileSync: артефакты 1С -- сотни мегабайт, целиком в
+// память их класть незачем.
 async function sha256(filePath) {
     const hash = createHash('sha256');
-    await pipeline(
-        createReadStream(filePath),
-        new Transform({
-            transform(chunk, _encoding, callback) {
-                hash.update(chunk);
-                callback(null, chunk);
-            },
-        }),
-        new Transform({ transform(_chunk, _encoding, callback) { callback(); } }),
-    );
+    for await (const chunk of createReadStream(filePath)) hash.update(chunk);
     return hash.digest('hex');
 }
 

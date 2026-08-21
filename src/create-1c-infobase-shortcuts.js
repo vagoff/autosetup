@@ -1,29 +1,23 @@
 import { randomUUID } from 'node:crypto';
 import path from 'node:path';
 import { config } from './config.js';
-import { connectGuestSsh } from './lib/connect-guest-ssh.js';
-import { buildEnterpriseArguments, buildInteractiveDesignerArguments, buildWindowsArgumentLine } from './lib/execute-1c.js';
+import { buildEnterpriseArguments, buildInfobasePresenceCheck, buildInteractiveDesignerArguments, buildWindowsArgumentLine } from './lib/execute-1c.js';
 import { executeGuestPowerShell, quotePowerShell } from './lib/execute-guest-powershell.js';
 import { executeGuestPowerShellFile } from './lib/execute-guest-powershell-file.js';
-import { isOneCPlatformInstalled, readOneCPlatformState } from './lib/read-1c-platform-state.js';
+import { assertOneCPlatformInstalled } from './lib/read-1c-platform-state.js';
 import { removeGuestDirectory } from './lib/stage-guest-files.js';
+import { withGuestSession } from './lib/with-guest-session.js';
 
-function buildInfobaseCheckScript(oneCConfiguration) {
-    return [
-        '$ErrorActionPreference = "Stop"',
-        `$databaseDirectory = ${quotePowerShell(oneCConfiguration.database.directory)}`,
-        'if (-not (Test-Path -LiteralPath (Join-Path $databaseDirectory "1Cv8.1CD") -PathType Leaf)) { throw "create 1C infobase shortcuts: configured infobase is missing" }',
-    ].join('\n');
-}
+const SHORTCUT_ARGUMENT_BUILDERS = {
+    enterprise: (oneCConfiguration) => buildEnterpriseArguments(oneCConfiguration, []),
+    designer: (oneCConfiguration) => buildInteractiveDesignerArguments(oneCConfiguration),
+};
 
 function buildShortcutArguments(oneC, oneCConfiguration, shortcut, mode) {
-    const argumentsList = mode === 'enterprise'
-        ? buildEnterpriseArguments(oneCConfiguration, [])
-        : buildInteractiveDesignerArguments(oneCConfiguration);
     return [
         shortcut.path,
-        `${oneC.installationDirectory}\\bin\\1cv8.exe`,
-        buildWindowsArgumentLine(argumentsList),
+        oneC.clientExecutablePath,
+        buildWindowsArgumentLine(SHORTCUT_ARGUMENT_BUILDERS[mode](oneCConfiguration)),
         oneCConfiguration.database.directory,
         shortcut.description,
     ];
@@ -31,43 +25,33 @@ function buildShortcutArguments(oneC, oneCConfiguration, shortcut, mode) {
 
 export async function createOneCInfobaseShortcuts() {
     const { oneC, oneCConfiguration, paths } = config;
-    let ssh = await connectGuestSsh();
-    let remoteDirectory;
-    let completed = false;
-    try {
-        const platformState = await readOneCPlatformState(ssh, oneC);
-        if (!isOneCPlatformInstalled(platformState, oneC)) {
-            throw new Error(`1C platform is not installed as configured: ${JSON.stringify(platformState)}`);
-        }
-        await executeGuestPowerShell(ssh, buildInfobaseCheckScript(oneCConfiguration), 'check 1C infobase for shortcuts');
-        remoteDirectory = path.win32.join(oneCConfiguration.guest.stagingDirectory, randomUUID());
+    await withGuestSession(async (session) => {
+        await assertOneCPlatformInstalled(session.ssh, oneC);
         await executeGuestPowerShell(
-            ssh,
+            session.ssh,
+            `$ErrorActionPreference = "Stop"\n${buildInfobasePresenceCheck(oneCConfiguration, 'create 1C infobase shortcuts')}`,
+            'check 1C infobase for shortcuts',
+        );
+
+        const remoteDirectory = path.win32.join(oneCConfiguration.guest.stagingDirectory, randomUUID());
+        await executeGuestPowerShell(
+            session.ssh,
             `$ErrorActionPreference = 'Stop'; New-Item -ItemType Directory -Path ${quotePowerShell(remoteDirectory)} -Force | Out-Null`,
             'create shortcut staging directory',
         );
         const localShortcutScript = path.join(paths.guestScriptsDir, oneCConfiguration.guest.shortcutScriptFilename);
         const remoteShortcutScript = path.win32.join(remoteDirectory, oneCConfiguration.guest.shortcutScriptFilename);
-        const shortcuts = [
-            ['enterprise', oneCConfiguration.infobaseShortcuts.enterprise],
-            ['designer', oneCConfiguration.infobaseShortcuts.designer],
-        ];
-        for (const [mode, shortcut] of shortcuts) {
-            await executeGuestPowerShellFile(ssh, {
+        for (const mode of Object.keys(SHORTCUT_ARGUMENT_BUILDERS)) {
+            await executeGuestPowerShellFile(session.ssh, {
                 localPath: localShortcutScript,
                 remotePath: remoteShortcutScript,
-                argumentsList: buildShortcutArguments(oneC, oneCConfiguration, shortcut, mode),
+                argumentsList: buildShortcutArguments(oneC, oneCConfiguration, oneCConfiguration.infobaseShortcuts[mode], mode),
                 label: `create 1C ${mode} shortcut`,
             });
         }
-        completed = true;
-        await removeGuestDirectory(ssh, remoteDirectory);
-        remoteDirectory = undefined;
-        console.log('1C infobase shortcuts: created');
-    } finally {
-        if (remoteDirectory && completed) await removeGuestDirectory(ssh, remoteDirectory).catch(() => {});
-        ssh?.dispose();
-    }
+        await removeGuestDirectory(session.ssh, remoteDirectory);
+    });
+    console.log('1C infobase shortcuts: created');
 }
 
 if (import.meta.url === `file://${process.argv[1]}`) {

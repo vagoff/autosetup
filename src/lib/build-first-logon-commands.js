@@ -2,6 +2,7 @@ import path from 'node:path';
 import { renderGuestScriptTemplate } from './render-guest-script-template.js';
 import { encodePowerShellCommand } from './encode-powershell-command.js';
 import { GUEST_FEATURE_TOKEN_BUILDERS } from './guest-feature-token-builders.js';
+import { buildRegistryPolicyArgumentLine } from './build-registry-policy-commands.js';
 
 // Windows Setup валидирует значение <CommandLine> в FirstLogonCommands и
 // отбраковывает ("Value is invalid", видно в C:\Windows\Panther\
@@ -24,6 +25,24 @@ function buildBootstrapScript(filename) {
 // вся цепочка FirstLogonCommands дошла до конца).
 const COMPLETION_MARKER_SCRIPT_FILENAME = 'log-first-logon-complete.ps1';
 
+// Тоже core-часть: выключение Windows Update не принадлежит ни одной
+// фиче (обновления способны сломать любую из них) и управляется одним
+// флагом base.json5 -> windowsUpdate.disable. Идёт первым: всё остальное
+// имеет смысл настраивать только на системе, которая не переделывает
+// себя сама у нас за спиной.
+const WINDOWS_UPDATE_SCRIPT_FILENAME = 'disable-windows-updates.ps1';
+
+function buildWindowsUpdateTokens(windowsUpdate) {
+    return {
+        WINDOWS_UPDATE_POLICY_ARGUMENT_LINES_PS_ARRAY: windowsUpdate.policyValues
+            .map((value) => `  '${buildRegistryPolicyArgumentLine(value).replaceAll("'", "''")}'`)
+            .join(',\n'),
+        WINDOWS_UPDATE_SERVICE_NAMES_PS_ARRAY: windowsUpdate.serviceNames
+            .map((name) => `'${name.replaceAll("'", "''")}'`)
+            .join(', '),
+    };
+}
+
 // Из config.guestFeatures (упорядоченный по активному профилю список
 // включённых фич, каждая — { id, config, guestScripts }) собирает:
 //  - scriptFiles: что записать на USB-образ (сами .ps1 с подставленными
@@ -33,7 +52,7 @@ const COMPLETION_MARKER_SCRIPT_FILENAME = 'log-first-logon-complete.ps1';
 // Про содержимое токенов конкретной фичи этот модуль ничего не знает —
 // это GUEST_FEATURE_TOKEN_BUILDERS (SRP): добавление новой фичи не
 // требует правки этого файла.
-export function buildFirstLogonCommands({ guestScriptsDir, diagnostics, guestFeatures, firstLogonCompletionLogLine }) {
+export function buildFirstLogonCommands({ guestScriptsDir, diagnostics, guestFeatures, firstLogonCompletionLogLine, windowsUpdate }) {
     const preludeTokens = { COM_PORT: diagnostics.comPort, COM_BAUD_RATE: diagnostics.comBaudRate };
     const preludeFilename = '_lib-guest-script-prelude.ps1';
     const preludeContent = renderGuestScriptTemplate(path.join(guestScriptsDir, preludeFilename), preludeTokens);
@@ -42,6 +61,14 @@ export function buildFirstLogonCommands({ guestScriptsDir, diagnostics, guestFea
     const firstLogonCommands = [];
 
     const renderScript = (filename, tokens) => renderGuestScriptTemplate(path.join(guestScriptsDir, filename), tokens);
+
+    if (windowsUpdate.disable) {
+        scriptFiles.push({
+            filename: WINDOWS_UPDATE_SCRIPT_FILENAME,
+            content: renderScript(WINDOWS_UPDATE_SCRIPT_FILENAME, { ...preludeTokens, ...buildWindowsUpdateTokens(windowsUpdate) }),
+        });
+        firstLogonCommands.push(encodePowerShellCommand(buildBootstrapScript(WINDOWS_UPDATE_SCRIPT_FILENAME)));
+    }
 
     const tokensByFeatureId = new Map();
     for (const feature of guestFeatures) {

@@ -46,13 +46,12 @@ try {
   $service = Get-Service -Name '{{OPENSSH_SERVICE_NAME}}' -ErrorAction Stop
   Set-Service -Name $service.Name -StartupType Automatic -ErrorAction Stop
 
-  $rule = Get-NetFirewallRule -Name '{{OPENSSH_FIREWALL_RULE_NAME}}' -ErrorAction SilentlyContinue
-  if ($rule) {
-    Set-NetFirewallRule -Name $rule.Name -Enabled True -Direction Inbound -Action Allow -Profile Any -ErrorAction Stop
-    Set-NetFirewallPortFilter -AssociatedNetFirewallRule $rule -Protocol TCP -LocalPort {{OPENSSH_PORT}} -ErrorAction Stop
-  } else {
-    New-NetFirewallRule -Name '{{OPENSSH_FIREWALL_RULE_NAME}}' -DisplayName '{{OPENSSH_FIREWALL_RULE_DISPLAY_NAME}}' -Enabled True -Direction Inbound -Action Allow -Protocol TCP -LocalPort {{OPENSSH_PORT}} -Profile Any -ErrorAction Stop | Out-Null
-  }
+  # Правило создаётся целиком нами и под нашим именем: пересоздание вместо
+  # правки гарантирует ровно объявленный набор фильтров (в частности —
+  # отсутствие program-фильтра, из-за которого чужое одноимённое правило
+  # дропало трафик к нашему sshd, см. data/features/openssh.json5).
+  Remove-NetFirewallRule -Name '{{OPENSSH_FIREWALL_RULE_NAME}}' -ErrorAction SilentlyContinue
+  New-NetFirewallRule -Name '{{OPENSSH_FIREWALL_RULE_NAME}}' -DisplayName '{{OPENSSH_FIREWALL_RULE_DISPLAY_NAME}}' -Enabled True -Direction Inbound -Action Allow -Protocol TCP -LocalPort {{OPENSSH_PORT}} -Profile Any -ErrorAction Stop | Out-Null
 
   $publicKey = (Get-Content -LiteralPath $publicKeyPath -Raw -ErrorAction Stop).Trim()
   if ($publicKey -notmatch '^ssh-rsa\s+') {

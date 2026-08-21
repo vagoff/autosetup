@@ -16,6 +16,7 @@ import { probeTcpPort } from './lib/probe-tcp-port.js';
 // (enable-rdp-access.ps1) реально отработала.
 export async function checkRdpAccess() {
     const { rdp, openSsh, network, unattend } = config;
+    if (!rdp) throw new Error('в активном профиле нет фичи rdp — проверять нечего (см. data/profiles/*.json5)');
 
     const portOpen = await probeTcpPort(network.loopbackHost, rdp.hostPort, 5000);
     if (!portOpen) {

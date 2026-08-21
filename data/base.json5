@@ -95,11 +95,54 @@
     firstLogonCompletionLogLine: 'first-logon-commands: ALL DONE',
   },
 
+  // Windows Update: единственный флаг, управляющий поведением на всех
+  // этапах жизни VM. disable: true означает
+  //  - Windows Setup не тянет Dynamic Update во время самой установки,
+  //  - policyValues применяются reg.exe уже в specialize-проходе (до
+  //    первого входа и до того, как машина вообще успеет что-то скачать),
+  //  - guest-скрипт disable-windows-updates.ps1 на первом входе гасит и
+  //    отключает службы,
+  //  - check-windows-update-disabled.js подтверждает результат.
+  // disable: false -- поведение Windows по умолчанию, ни одного из этих
+  // шагов не выполняется (не "выполняется наоборот": обратно включать
+  // то, чего мы не выключали, нечего).
+  //
+  // Мотив -- воспроизводимость, а не экономия трафика: обновления меняют
+  // состояние уже развёрнутой машины по собственной инициативе, и один
+  // такой проход уже ломал SSH (см. doc/BUGS.md). Гость при этом
+  // сознательно НЕ отрезан от интернета -- закрыта ровно та подсистема,
+  // которая меняет систему сама, без нашего участия.
+  windowsUpdate: {
+    disable: true,
+    // Документированные политики WindowsUpdate. reg.exe одинаково
+    // применяет их и из specialize, и из guest-скрипта -- см.
+    // src/lib/build-registry-policy-commands.js.
+    policyValues: [
+      // "не проверять обновления автоматически"
+      { path: 'HKLM\\SOFTWARE\\Policies\\Microsoft\\Windows\\WindowsUpdate\\AU', name: 'NoAutoUpdate', type: 'REG_DWORD', data: 1 },
+      // AUOptions=1 -- "никогда не проверять"; парный к NoAutoUpdate,
+      // без него UI показывает противоречивое состояние.
+      { path: 'HKLM\\SOFTWARE\\Policies\\Microsoft\\Windows\\WindowsUpdate\\AU', name: 'AUOptions', type: 'REG_DWORD', data: 1 },
+      // Запрет обращаться к интернет-эндпоинтам WU вообще -- в том числе
+      // тем, через которые доезжают FoD/DynamicUpdate.
+      { path: 'HKLM\\SOFTWARE\\Policies\\Microsoft\\Windows\\WindowsUpdate', name: 'DoNotConnectToWindowsUpdateInternetLocations', type: 'REG_DWORD', data: 1 },
+    ],
+    // Служба-исполнитель. Без неё оркестраторы (UsoSvc и пр.) не могут
+    // ничего установить, а её StartupType не защищён ACL, в отличие от
+    // них -- то есть это то, что реально выключается детерминированно, а
+    // не "как повезёт с правами".
+    serviceNames: ['wuauserv'],
+  },
+
   // Core-параметры guest-скриптов (src/guest-scripts/), общие для ЛЮБОГО
   // набора фич — единый источник для того, что раньше было бы "зашитыми
   // defaults" внутри .ps1 (нарушение CONFIG-SINGLE-SOURCE/FULLCONF).
   // Опциональные фичи (openssh/winrm/serial-agent/...) несут свои
   // собственные параметры в data/features/*.json5.
+  // Куда execute-guest-script.js кладёт guest-скрипт, когда его нужно
+  // выполнить не на первом входе (USB), а на уже работающей VM по SSH.
+  guestScriptStagingDirectory: 'C:\\ProgramData\\AutoSetup\\staging\\guest-scripts',
+
   diagnostics: {
     // Отдельный, только-логовый физический COM-порт (qemu.serialLogTcpPort
     // в data/vars.json5) — единственный канал, не зависящий ни от сети

@@ -1,11 +1,10 @@
 import path from 'node:path';
 import { config } from './config.js';
 import { assertArtifactFiles } from './lib/assert-artifact-files.js';
-import { connectGuestSsh } from './lib/connect-guest-ssh.js';
 import { executeGuestPowerShell, quotePowerShell } from './lib/execute-guest-powershell.js';
 import { isOneCPlatformInstalled, readOneCPlatformState } from './lib/read-1c-platform-state.js';
-import { removeGuestDirectory, stageGuestFiles } from './lib/stage-guest-files.js';
 import { restartGuestAndWait } from './lib/wait-for-guest-reboot.js';
+import { withGuestSession, withGuestStaging } from './lib/with-guest-session.js';
 
 function buildInstallScript(oneC, remoteDirectory) {
     const msi = oneC.expectedFiles.find((file) => file.filename.endsWith('.msi'));
@@ -34,46 +33,29 @@ function buildInstallScript(oneC, remoteDirectory) {
 export async function installOneCPlatform() {
     const { oneC } = config;
     const files = await assertArtifactFiles(oneC.sourceDirectory, oneC.expectedFiles);
-    let ssh = await connectGuestSsh();
-    let remoteDirectory;
-    let msiFinished = false;
-    try {
-        const initialState = await readOneCPlatformState(ssh, oneC);
-        if (isOneCPlatformInstalled(initialState, oneC)) {
-            console.log(`1C platform: already installed (${oneC.version})`);
-            return;
-        }
+    const alreadyInstalled = await withGuestSession(async (session) => {
+        const initialState = await readOneCPlatformState(session.ssh, oneC);
+        if (isOneCPlatformInstalled(initialState, oneC)) return true;
 
-        remoteDirectory = await stageGuestFiles(ssh, { stagingRoot: oneC.guest.stagingDirectory, files });
-        const output = await executeGuestPowerShell(ssh, buildInstallScript(oneC, remoteDirectory), 'install 1C platform');
-        let installation;
-        try {
-            installation = JSON.parse(output);
-        } catch (error) {
-            throw new Error(`install 1C platform: invalid JSON from guest: ${error.message}: ${output}`);
-        }
+        const installation = await withGuestStaging(session, { stagingRoot: oneC.guest.stagingDirectory, files }, async (remoteDirectory) => {
+            const output = await executeGuestPowerShell(session.ssh, buildInstallScript(oneC, remoteDirectory), 'install 1C platform');
+            try {
+                return JSON.parse(output);
+            } catch (error) {
+                throw new Error(`install 1C platform: invalid JSON from guest: ${error.message}: ${output}`);
+            }
+        });
 
-        // Только ответ PowerShell ПОСЛЕ возврата msiexec доказывает, что
-        // Windows Installer больше не читает source files. Если host-процесс
-        // оборван (SSH, Ctrl+C, внешний supervisor), staging намеренно
-        // остаётся на месте: удаление CAB/MSI посреди install приводит к
-        // ложному MSI 1603 и скрывает фактическую причину.
-        msiFinished = true;
-        await removeGuestDirectory(ssh, remoteDirectory);
-        remoteDirectory = undefined;
         if (installation.rebootRequired) {
-            ssh = await restartGuestAndWait(ssh, oneC.guest);
+            session.ssh = await restartGuestAndWait(session.ssh, oneC.guest);
         }
-
-        const finalState = await readOneCPlatformState(ssh, oneC);
+        const finalState = await readOneCPlatformState(session.ssh, oneC);
         if (!isOneCPlatformInstalled(finalState, oneC)) {
             throw new Error(`1C platform installation verification failed: ${JSON.stringify(finalState)}`);
         }
-        console.log(`1C platform: installed (${oneC.version})`);
-    } finally {
-        if (remoteDirectory && msiFinished) await removeGuestDirectory(ssh, remoteDirectory).catch(() => {});
-        ssh?.dispose();
-    }
+        return false;
+    });
+    console.log(alreadyInstalled ? `1C platform: already installed (${oneC.version})` : `1C platform: installed (${oneC.version})`);
 }
 
 if (import.meta.url === `file://${process.argv[1]}`) {

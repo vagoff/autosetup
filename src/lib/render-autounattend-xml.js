@@ -1,3 +1,5 @@
+import { buildRegistryPolicyArgumentLine } from './build-registry-policy-commands.js';
+
 function escapeXml(value) {
     return String(value)
         .replace(/&/g, '&amp;')
@@ -32,10 +34,44 @@ function renderAutoLogon(unattend) {
       </AutoLogon>`;
 }
 
-// Чистая функция: секция unattend из base.json5 → готовый XML
-// autounattend.xml. Никаких побочных эффектов, никакого чтения файлов —
+// Windows Setup сам ходит в интернет за Dynamic Update прямо во время
+// установки — то есть образ может «поехать» ещё до того, как система
+// впервые загрузится. Выключаем ровно тем же одним флагом.
+function renderDynamicUpdate(windowsUpdate) {
+    if (!windowsUpdate.disable) return '';
+    return `
+      <DynamicUpdate>
+        <Enable>false</Enable>
+        <WillShowUI>Never</WillShowUI>
+      </DynamicUpdate>`;
+}
+
+// specialize — самый ранний проход, где уже есть реестр установленной
+// системы и ещё нет ни OOBE, ни первого входа, ни FirstLogonCommands.
+// Политики применяются здесь, чтобы между «система установилась» и «мы
+// её настроили» не было окна, в котором Windows Update успевает начать
+// собственную работу.
+function renderWindowsUpdatePolicyCommands(windowsUpdate) {
+    if (!windowsUpdate.disable) return '';
+    const commands = windowsUpdate.policyValues
+        .map((value, index) => `
+      <RunSynchronousCommand wcm:action="add">
+        <Order>${index + 1}</Order>
+        <Path>reg.exe ${escapeXml(buildRegistryPolicyArgumentLine(value))}</Path>
+        <Description>disable Windows Update policy ${escapeXml(value.name)}</Description>
+      </RunSynchronousCommand>`)
+        .join('');
+    return `
+    <component name="Microsoft-Windows-Deployment" processorArchitecture="amd64" publicKeyToken="31bf3856ad364e35" language="neutral" versionScope="nonSxS" xmlns:wcm="http://schemas.microsoft.com/WMIConfig/2002/State" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+      <RunSynchronous>${commands}
+      </RunSynchronous>
+    </component>`;
+}
+
+// Чистая функция: секции unattend и windowsUpdate из base.json5 → готовый
+// XML autounattend.xml. Никаких побочных эффектов, никакого чтения файлов —
 // вся сборка образа диска (build-answer-file-image.js) отдельно.
-export function renderAutounattendXml(unattend) {
+export function renderAutounattendXml({ unattend, windowsUpdate }) {
     return `<?xml version="1.0" encoding="utf-8"?>
 <unattend xmlns="urn:schemas-microsoft-com:unattend">
   <settings pass="windowsPE">
@@ -108,14 +144,14 @@ export function renderAutounattendXml(unattend) {
       </ImageInstall>
       <UserData>
         <AcceptEula>true</AcceptEula>
-      </UserData>
+      </UserData>${renderDynamicUpdate(windowsUpdate)}
     </component>
   </settings>
   <settings pass="specialize">
     <component name="Microsoft-Windows-Shell-Setup" processorArchitecture="amd64" publicKeyToken="31bf3856ad364e35" language="neutral" versionScope="nonSxS" xmlns:wcm="http://schemas.microsoft.com/WMIConfig/2002/State" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
       <ComputerName>${escapeXml(unattend.computerName)}</ComputerName>
       <TimeZone>${escapeXml(unattend.timezone)}</TimeZone>
-    </component>
+    </component>${renderWindowsUpdatePolicyCommands(windowsUpdate)}
   </settings>
   <settings pass="oobeSystem">
     <component name="Microsoft-Windows-Shell-Setup" processorArchitecture="amd64" publicKeyToken="31bf3856ad364e35" language="neutral" versionScope="nonSxS" xmlns:wcm="http://schemas.microsoft.com/WMIConfig/2002/State" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">

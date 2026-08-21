@@ -1,22 +1,19 @@
 import path from 'node:path';
 import { config } from './config.js';
 import { assertArtifactFiles } from './lib/assert-artifact-files.js';
-import { connectGuestSsh } from './lib/connect-guest-ssh.js';
-import { buildDesignerArguments, buildOneCCommandScript } from './lib/execute-1c.js';
+import { buildDesignerArguments, buildInfobasePresenceCheck, buildOneCCommandScript } from './lib/execute-1c.js';
 import { executeGuestPowerShell, quotePowerShell } from './lib/execute-guest-powershell.js';
-import { isOneCPlatformInstalled, readOneCPlatformState } from './lib/read-1c-platform-state.js';
-import { removeGuestDirectory, stageGuestFiles } from './lib/stage-guest-files.js';
+import { assertOneCPlatformInstalled } from './lib/read-1c-platform-state.js';
+import { withGuestSession, withGuestStaging } from './lib/with-guest-session.js';
 
 function buildApplyConfigurationScript(oneC, oneCConfiguration, remoteCfPath) {
-    const { database, guest } = oneCConfiguration;
+    const { guest } = oneCConfiguration;
     const loadLogPath = path.win32.join(guest.logDirectory, guest.loadConfigurationLogFilename);
     const updateLogPath = path.win32.join(guest.logDirectory, guest.updateDatabaseConfigurationLogFilename);
     return [
         '$ErrorActionPreference = "Stop"',
-        `$databaseDirectory = ${quotePowerShell(database.directory)}`,
-        `$logDirectory = ${quotePowerShell(guest.logDirectory)}`,
-        'if (-not (Test-Path -LiteralPath (Join-Path $databaseDirectory "1Cv8.1CD") -PathType Leaf)) { throw "apply 1C configuration: configured infobase is missing" }',
-        'New-Item -ItemType Directory -Path $logDirectory -Force | Out-Null',
+        buildInfobasePresenceCheck(oneCConfiguration, 'apply 1C configuration'),
+        `New-Item -ItemType Directory -Path ${quotePowerShell(guest.logDirectory)} -Force | Out-Null`,
         buildOneCCommandScript(oneC, {
             argumentsList: buildDesignerArguments(oneCConfiguration, {
                 operationArguments: ['/LoadCfg', remoteCfPath],
@@ -43,31 +40,17 @@ function buildApplyConfigurationScript(oneC, oneCConfiguration, remoteCfPath) {
 export async function applyOneCConfiguration() {
     const { oneC, oneCConfiguration } = config;
     const [cf] = await assertArtifactFiles(oneCConfiguration.sourceDirectory, [oneCConfiguration.artifacts.cf]);
-    let ssh = await connectGuestSsh();
-    let remoteDirectory;
-    let applyFinished = false;
-    try {
-        const platformState = await readOneCPlatformState(ssh, oneC);
-        if (!isOneCPlatformInstalled(platformState, oneC)) {
-            throw new Error(`1C platform is not installed as configured: ${JSON.stringify(platformState)}`);
-        }
-        remoteDirectory = await stageGuestFiles(ssh, {
-            stagingRoot: oneCConfiguration.guest.stagingDirectory,
-            files: [cf],
+    await withGuestSession(async (session) => {
+        await assertOneCPlatformInstalled(session.ssh, oneC);
+        await withGuestStaging(session, { stagingRoot: oneCConfiguration.guest.stagingDirectory, files: [cf] }, async (remoteDirectory) => {
+            await executeGuestPowerShell(
+                session.ssh,
+                buildApplyConfigurationScript(oneC, oneCConfiguration, path.win32.join(remoteDirectory, cf.filename)),
+                'apply 1C configuration',
+            );
         });
-        await executeGuestPowerShell(
-            ssh,
-            buildApplyConfigurationScript(oneC, oneCConfiguration, path.win32.join(remoteDirectory, cf.filename)),
-            'apply 1C configuration',
-        );
-        applyFinished = true;
-        await removeGuestDirectory(ssh, remoteDirectory);
-        remoteDirectory = undefined;
-        console.log('1C configuration: applied');
-    } finally {
-        if (remoteDirectory && applyFinished) await removeGuestDirectory(ssh, remoteDirectory).catch(() => {});
-        ssh?.dispose();
-    }
+    });
+    console.log('1C configuration: applied');
 }
 
 if (import.meta.url === `file://${process.argv[1]}`) {

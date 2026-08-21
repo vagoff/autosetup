@@ -50,8 +50,12 @@ export function buildAnswerFileImage() {
         diagnostics: config.diagnostics,
         guestFeatures: config.guestFeatures,
         firstLogonCompletionLogLine: config.unattend.firstLogonCompletionLogLine,
+        windowsUpdate: config.windowsUpdate,
     });
-    const xml = renderAutounattendXml({ ...unattend, firstLogonCommands });
+    const xml = renderAutounattendXml({
+        unattend: { ...unattend, firstLogonCommands },
+        windowsUpdate: config.windowsUpdate,
+    });
 
     const writeRootFile = (filename, content) => {
         const file = fs.getRoot().makeFile(filename);
