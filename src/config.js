@@ -20,6 +20,7 @@ const vars = JSON5.parse(readFileSync(path.join(DATA_DIR, 'vars.json5'), 'utf8')
 const base = JSON5.parse(readFileSync(path.join(DATA_DIR, 'base.json5'), 'utf8'));
 const oneC = JSON5.parse(readFileSync(path.join(DATA_DIR, '1c-platform.json5'), 'utf8'));
 const oneCConfiguration = JSON5.parse(readFileSync(path.join(DATA_DIR, '1c-configuration.json5'), 'utf8'));
+const oneCQueryRunner = JSON5.parse(readFileSync(path.join(DATA_DIR, '1c-query-runner.json5'), 'utf8'));
 const oneCTechsysUpdate = JSON5.parse(readFileSync(path.join(DATA_DIR, '1c-techsys-update.json5'), 'utf8'));
 const apacheHttpd = JSON5.parse(readFileSync(path.join(DATA_DIR, 'apache-httpd.json5'), 'utf8'));
 
@@ -96,6 +97,8 @@ const paths = {
     vmCacheDir: path.join(projectRoot, 'cache', vmName),
     isoDir: path.join(projectRoot, 'cache', 'iso'),
     vendorDir: path.join(projectRoot, 'vendor'),
+    featuresDir: path.join(projectRoot, 'features'),
+    outputDir: path.join(projectRoot, 'output'),
     // .ps1-исходники FirstLogonCommands (см. src/lib/build-first-logon-commands.js).
     guestScriptsDir: path.join(projectRoot, 'src', 'guest-scripts'),
 };
@@ -186,10 +189,16 @@ export const config = {
         ...oneC,
         sourceDirectory: path.join(projectRoot, oneC.sourceDirectory),
         clientExecutablePath: path.win32.join(oneC.installationDirectory, oneC.clientExecutableRelativePath),
+        thinClientExecutablePath: path.win32.join(oneC.installationDirectory, oneC.thinClientExecutableRelativePath),
     },
     oneCConfiguration: {
         ...oneCConfiguration,
         sourceDirectory: path.join(projectRoot, oneCConfiguration.sourceDirectory),
+    },
+    oneCQueryRunner: {
+        ...oneCQueryRunner,
+        sourceDirectory: path.join(projectRoot, oneCQueryRunner.sourceDirectory),
+        templateSourceDirectory: path.join(projectRoot, oneCQueryRunner.templateSourceDirectory),
     },
     oneCTechsysUpdate: {
         ...oneCTechsysUpdate,

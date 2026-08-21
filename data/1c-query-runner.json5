@@ -1,0 +1,21 @@
+// Отдельный, воспроизводимый инструмент чтения данных из уже восстановленной
+// ИБ. Исходники EPF лежат в Git; собранный EPF существует лишь во временном
+// staging гостя и никогда не становится артефактом конфигурации.
+{
+  sourceDirectory: 'features/1c-query-runner/src',
+  // Проверенная XML-оболочка EPF из сохранённого vanessa-runner. Наша
+  // бизнес-логика всё равно живёт в sourceDirectory ниже.
+  templateSourceDirectory: 'vendor/vanessa-runner/epf/ШаблонОбработки',
+  rootXmlFilename: 'ШаблонОбработки.xml',
+  moduleRelativePath: 'ШаблонОбработки/Forms/Форма/Ext/Form/Module.bsl',
+  featureModulePath: 'QueryRunner/Forms/MainForm/Ext/Form/Module.bsl',
+  guest: {
+    stagingDirectory: 'C:\\ProgramData\\AutoSetup\\staging\\1c-query-runner',
+    logDirectory: 'C:\\ProgramData\\AutoSetup\\logs',
+    buildLogFilename: '1c-query-runner-build.log',
+    executionLogFilename: '1c-query-runner-execution.log',
+  },
+  defaultMaxRows: 1000,
+  maxMaxRows: 10000,
+  timeoutSeconds: 300,
+}

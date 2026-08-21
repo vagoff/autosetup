@@ -13,6 +13,9 @@
     fileFilename: '1Cv8.1CD',
     userName: 'Администратор',
     password: '',
+    // Язык конфигурации production-copy. Нужен пакетным запускам Enterprise:
+    // платформа BAF установлена с en_US, тогда как конфигурация и метаданные — ru.
+    languageCode: 'ru',
   },
 
   artifacts: {

@@ -1,4 +1,7 @@
 npm install -g open-websearch
 
 apk update
-apk upgrade nodejs pnpm
+
+apk add pwgen pnpm
+
+apk upgrade nodejs

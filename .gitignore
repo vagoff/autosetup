@@ -12,3 +12,6 @@
 /tmp/
 /vendor/
 /features/
+!/features/
+!/features/1c-query-runner/
+/features/1c-query-runner/build/
