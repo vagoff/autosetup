@@ -145,12 +145,30 @@
       // Запрет обращаться к интернет-эндпоинтам WU вообще -- в том числе
       // тем, через которые доезжают FoD/DynamicUpdate.
       { path: 'HKLM\\SOFTWARE\\Policies\\Microsoft\\Windows\\WindowsUpdate', name: 'DoNotConnectToWindowsUpdateInternetLocations', type: 'REG_DWORD', data: 1 },
+
+      // Start=4 (disabled) прямо в реестре служб, а не через Set-Service.
+      //
+      // Гасить один wuauserv бесполезно, и это проверено эмпирически: в
+      // чистой установке служба была выключена в 17:50:44 и уже в 17:51:50
+      // сама вернулась в demand start (System event 7040). Возвращают её
+      // UsoSvc (Update Orchestrator) и WaaSMedicSvc (Update Medic) --
+      // компоненты, чья прямая обязанность чинить "поломанный" Windows
+      // Update. Пока живы они, любое наше выключение обратимо.
+      //
+      // Почему реестром: WaaSMedicSvc защищён, Set-Service на нём даёт
+      // Access Denied даже под администратором. Почему в specialize: так
+      // службы выключены ДО своего первого старта и откатывать им нечего.
+      { path: 'HKLM\\SYSTEM\\CurrentControlSet\\Services\\wuauserv', name: 'Start', type: 'REG_DWORD', data: 4 },
+      { path: 'HKLM\\SYSTEM\\CurrentControlSet\\Services\\UsoSvc', name: 'Start', type: 'REG_DWORD', data: 4 },
+      { path: 'HKLM\\SYSTEM\\CurrentControlSet\\Services\\WaaSMedicSvc', name: 'Start', type: 'REG_DWORD', data: 4 },
     ],
     // Служба-исполнитель. Без неё оркестраторы (UsoSvc и пр.) не могут
     // ничего установить, а её StartupType не защищён ACL, в отличие от
     // них -- то есть это то, что реально выключается детерминированно, а
     // не "как повезёт с правами".
-    serviceNames: ['wuauserv'],
+    // WaaSMedicSvc сюда не входит намеренно: остановить его штатным
+    // Stop-Service нельзя, его выключает только Start=4 выше.
+    serviceNames: ['wuauserv', 'UsoSvc'],
   },
 
   // Core-параметры guest-скриптов (src/guest-scripts/), общие для ЛЮБОГО
