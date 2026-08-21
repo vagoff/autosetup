@@ -190,6 +190,7 @@ export const config = {
         sourceDirectory: path.join(projectRoot, oneC.sourceDirectory),
         clientExecutablePath: path.win32.join(oneC.installationDirectory, oneC.clientExecutableRelativePath),
         thinClientExecutablePath: path.win32.join(oneC.installationDirectory, oneC.thinClientExecutableRelativePath),
+        comConnectorPath: path.win32.join(oneC.installationDirectory, oneC.comConnectorRelativePath),
     },
     oneCConfiguration: {
         ...oneCConfiguration,

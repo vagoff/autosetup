@@ -43,6 +43,8 @@ Invoke-OneC -ArgumentLine $BuildEpfArguments -Label 'build 1C query runner EPF' 
 if (-not (Test-Path -LiteralPath $EpfPath -PathType Leaf)) { throw 'build 1C query runner EPF: output file is missing' }
 
 Remove-Item -LiteralPath $ResultPath -Force -ErrorAction SilentlyContinue
+# EPF записывает envelope в этот заранее созданный temporary file и атомарно
+# переименовывает его в $ResultPath. Polling видит только целый JSON.
 New-Item -ItemType File -Path ($ResultPath + '.tmp') -Force | Out-Null
 $process = Start-Process -FilePath $ThinClientExecutable -ArgumentList $RunEpfArguments -PassThru
 $deadline = [DateTime]::UtcNow.AddSeconds($TimeoutSeconds)

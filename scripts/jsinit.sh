@@ -7,6 +7,9 @@ cat > package.json <<'EOF'
   "license": "UNLICENSED",
   "private": true,
   "type": "module",
+  "scripts": {
+    "test": "node --test test/**/*.test.js"
+  },
   "overrides": {
     "winrm-client": {
       "fast-xml-parser": "5.10.1"

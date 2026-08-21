@@ -8,7 +8,7 @@
   templateSourceDirectory: 'vendor/vanessa-runner/epf/ШаблонОбработки',
   rootXmlFilename: 'ШаблонОбработки.xml',
   moduleRelativePath: 'ШаблонОбработки/Forms/Форма/Ext/Form/Module.bsl',
-  featureModulePath: 'QueryRunner/Forms/MainForm/Ext/Form/Module.bsl',
+  featureBusinessLogicPath: 'QueryRunner/BusinessLogic.bsl',
   guest: {
     stagingDirectory: 'C:\\ProgramData\\AutoSetup\\staging\\1c-query-runner',
     logDirectory: 'C:\\ProgramData\\AutoSetup\\logs',
@@ -17,5 +17,10 @@
   },
   defaultMaxRows: 1000,
   maxMaxRows: 10000,
-  timeoutSeconds: 300,
+  // Короткие диагностические пробы не должны удерживать VM. Полный
+  // перепись документов и произвольный запрос получают отдельные лимиты.
+  probeTimeoutSeconds: 10,
+  documentsTopTimeoutSeconds: 300,
+  queryTimeoutSeconds: 300,
+  stopTimeoutSeconds: 30,
 }

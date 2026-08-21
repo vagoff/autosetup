@@ -1,69 +1,58 @@
-import { createHash, randomUUID } from 'node:crypto';
-import { createReadStream, existsSync } from 'node:fs';
-import { mkdir, readdir, stat, writeFile } from 'node:fs/promises';
+import { randomUUID } from 'node:crypto';
+import { existsSync } from 'node:fs';
+import { mkdir, mkdtemp, rm, stat, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { config } from './config.js';
+import { buildQueryRunnerLaunchParameter, buildQueryRunnerStagedFiles, parseQueryRunnerResult } from './lib/build-1c-query-runner.js';
 import { buildEnterpriseArguments, buildInfobasePresenceCheck, buildWindowsArgumentLine } from './lib/execute-1c.js';
 import { executeGuestPowerShell, quotePowerShell } from './lib/execute-guest-powershell.js';
 import { executeGuestPowerShellFile } from './lib/execute-guest-powershell-file.js';
+import { hashFileSha256 } from './lib/hash-file-sha256.js';
 import { assertOneCPlatformInstalled } from './lib/read-1c-platform-state.js';
 import { removeGuestDirectory } from './lib/stage-guest-files.js';
 import { withGuestSession } from './lib/with-guest-session.js';
 
-async function sha256(filePath) {
-    const hash = createHash('sha256');
-    for await (const chunk of createReadStream(filePath)) hash.update(chunk);
-    return hash.digest('hex');
-}
-
-async function collectFiles(rootDirectory) {
-    const files = [];
-    async function visit(relativeDirectory) {
-        const absoluteDirectory = path.join(rootDirectory, relativeDirectory);
-        for (const entry of await readdir(absoluteDirectory, { withFileTypes: true })) {
-            const relativePath = path.join(relativeDirectory, entry.name);
-            if (entry.isDirectory()) {
-                await visit(relativePath);
-            } else if (entry.isFile()) {
-                const filePath = path.join(rootDirectory, relativePath);
-                files.push({
-                    filePath,
-                    relativePath,
-                    bytes: (await stat(filePath)).size,
-                    sha256: await sha256(filePath),
-                });
-            } else {
-                throw new Error(`1C query runner source contains an unsupported entry: ${relativePath}`);
-            }
-        }
-    }
-    await visit('');
-    return files;
+function resolveTimeoutSeconds(args, queryRunner) {
+    if (args.mode === 'documents-top') return queryRunner.documentsTopTimeoutSeconds;
+    if (args.mode === 'query') return queryRunner.queryTimeoutSeconds;
+    return queryRunner.probeTimeoutSeconds;
 }
 
 function assertLocalSources(queryRunner) {
     const rootXmlPath = path.join(queryRunner.templateSourceDirectory, queryRunner.rootXmlFilename);
     if (!existsSync(rootXmlPath)) throw new Error(`1C query runner root XML is missing: ${rootXmlPath}`);
-    const modulePath = path.join(queryRunner.sourceDirectory, queryRunner.featureModulePath);
-    if (!existsSync(modulePath)) throw new Error(`1C query runner module is missing: ${modulePath}`);
+    const businessLogicPath = path.join(queryRunner.sourceDirectory, queryRunner.featureBusinessLogicPath);
+    if (!existsSync(businessLogicPath)) throw new Error(`1C query runner business logic is missing: ${businessLogicPath}`);
     return rootXmlPath;
 }
 
-async function stageSourceTree(ssh, queryRunner, extraFiles) {
-    const sourceFiles = (await collectFiles(queryRunner.templateSourceDirectory))
-        .filter((file) => file.relativePath !== queryRunner.moduleRelativePath);
-    const featureModulePath = path.join(queryRunner.sourceDirectory, queryRunner.featureModulePath);
-    const featureModule = {
-        filePath: featureModulePath,
-        relativePath: queryRunner.moduleRelativePath,
-        bytes: (await stat(featureModulePath)).size,
-        sha256: await sha256(featureModulePath),
-    };
+async function materializeGeneratedSources(cacheDirectory, sourceFiles) {
+    await mkdir(cacheDirectory, { recursive: true });
+    const temporaryDirectory = await mkdtemp(path.join(cacheDirectory, '1c-query-runner-'));
+    const materialized = [];
+    for (const file of sourceFiles) {
+        if (file.sourceText === undefined) {
+            materialized.push(file);
+            continue;
+        }
+        const filePath = path.join(temporaryDirectory, file.relativePath);
+        await mkdir(path.dirname(filePath), { recursive: true });
+        await writeFile(filePath, file.sourceText, 'utf8');
+        materialized.push({ ...file, filePath });
+    }
+    return { sourceFiles: materialized, temporaryDirectory };
+}
+
+async function stageSourceTree(ssh, paths, queryRunner, extraFiles) {
+    const generated = await materializeGeneratedSources(paths.cacheDir, await buildQueryRunnerStagedFiles(queryRunner, extraFiles));
+    const sourceFiles = generated.sourceFiles;
     const remoteDirectory = path.win32.join(queryRunner.guest.stagingDirectory, randomUUID());
     const remoteSourceDirectory = path.win32.join(remoteDirectory, 'source');
     const stagedFiles = [
-        ...[...sourceFiles, featureModule].map((file) => ({ ...file, remotePath: path.win32.join(remoteSourceDirectory, file.relativePath) })),
-        ...extraFiles.map((file) => ({ ...file, relativePath: file.filename, remotePath: path.win32.join(remoteDirectory, file.filename) })),
+        ...sourceFiles.map((file) => ({ ...file, remotePath: path.win32.join(
+            file.relativePath === 'query.txt' ? remoteDirectory : remoteSourceDirectory,
+            file.relativePath,
+        ) })),
     ];
 
     await executeGuestPowerShell(
@@ -97,6 +86,8 @@ async function stageSourceTree(ssh, queryRunner, extraFiles) {
     } catch (error) {
         await removeGuestDirectory(ssh, remoteDirectory).catch(() => {});
         throw error;
+    } finally {
+        await rm(generated.temporaryDirectory, { recursive: true, force: true });
     }
 }
 
@@ -166,6 +157,15 @@ function parseArguments(argv, queryRunner) {
             if (result.mode) throw new Error('choose exactly one of --query or --documents-top');
             result.mode = 'documents-top';
             result.top = parsePositiveInteger(next(), '--documents-top', queryRunner.maxMaxRows);
+        } else if (argument === '--infobase-probe') {
+            if (result.mode) throw new Error('choose exactly one of --query, --documents-top, or --infobase-probe');
+            result.mode = 'infobase-probe';
+        } else if (argument === '--table-probe') {
+            if (result.mode) throw new Error('choose exactly one query mode');
+            result.mode = 'table-probe';
+        } else if (argument === '--select-one') {
+            if (result.mode) throw new Error('choose exactly one query mode');
+            result.mode = 'select-one';
         } else if (argument === '--max-rows') {
             result.maxRows = parsePositiveInteger(next(), '--max-rows', queryRunner.maxMaxRows);
         } else if (argument === '--output') {
@@ -175,7 +175,7 @@ function parseArguments(argv, queryRunner) {
             throw new Error(`unknown argument: ${argument}`);
         }
     }
-    if (!result.mode) throw new Error('usage: node src/run-1c-query.js --query <file> [--max-rows N] [--output file.json] | --documents-top <N> [--output file.json]');
+    if (!result.mode) throw new Error('usage: node src/run-1c-query.js --query <file> [--max-rows N] [--output file.json] | --select-one [--output file.json] | --infobase-probe [--output file.json] | --table-probe [--output file.json] | --documents-top <N> [--output file.json]');
     if (result.mode === 'query' && !existsSync(result.queryPath)) throw new Error(`query file is missing: ${result.queryPath}`);
     return result;
 }
@@ -186,14 +186,8 @@ async function buildExtraFiles(args) {
         filePath: args.queryPath,
         filename: 'query.txt',
         bytes: (await stat(args.queryPath)).size,
-        sha256: await sha256(args.queryPath),
+        sha256: await hashFileSha256(args.queryPath),
     }];
-}
-
-function buildLaunchParameter(args, remoteDirectory) {
-    const resultPath = path.win32.join(remoteDirectory, 'result.json');
-    if (args.mode === 'documents-top') return `Mode=documents-top;ResultFile=${resultPath};Top=${args.top}`;
-    return `Mode=query;QueryFile=${path.win32.join(remoteDirectory, 'query.txt')};ResultFile=${resultPath};MaxRows=${args.maxRows}`;
 }
 
 export async function runOneCQuery(argv = process.argv.slice(2)) {
@@ -210,10 +204,10 @@ export async function runOneCQuery(argv = process.argv.slice(2)) {
             `$ErrorActionPreference = 'Stop'\n${buildInfobasePresenceCheck(oneCConfiguration, 'run 1C query')}`,
             'check 1C query infobase',
         );
-        const staged = await stageSourceTree(session.ssh, oneCQueryRunner, extraFiles);
+        const staged = await stageSourceTree(session.ssh, paths, oneCQueryRunner, extraFiles);
         let succeeded = false;
         try {
-            const runner = buildRunnerArguments(oneCConfiguration, oneCQueryRunner, staged, buildLaunchParameter(args, staged.remoteDirectory));
+            const runner = buildRunnerArguments(oneCConfiguration, oneCQueryRunner, staged, buildQueryRunnerLaunchParameter(args, staged.remoteDirectory));
             const output = await executeGuestPowerShellFile(session.ssh, {
                 localPath: path.join(paths.guestScriptsDir, 'run-1c-query.ps1'),
                 remotePath: path.win32.join(staged.remoteDirectory, 'run-1c-query.ps1'),
@@ -225,17 +219,16 @@ export async function runOneCQuery(argv = process.argv.slice(2)) {
                     runner.resultPath,
                     runner.buildLogPath,
                     runner.executionLogPath,
-                    oneCQueryRunner.timeoutSeconds,
+                    resolveTimeoutSeconds(args, oneCQueryRunner),
                     runner.buildEpfArguments,
                     runner.runEpfArguments,
                 ],
                 label: 'run 1C query runner',
             });
             const resultText = Buffer.from(output.trim(), 'base64').toString('utf8');
-            const result = JSON.parse(resultText);
+            const result = parseQueryRunnerResult(resultText);
             await mkdir(paths.outputDir, { recursive: true });
-            await writeFile(outputPath, resultText, 'utf8');
-            if (result.ok !== true) throw new Error(`1C query runner failed: ${result.error || resultText}`);
+            await writeFile(outputPath, `${JSON.stringify(result, null, 2)}\n`, 'utf8');
             succeeded = true;
             console.log(JSON.stringify(result, null, 2));
         } finally {

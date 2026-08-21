@@ -43,6 +43,7 @@
   // Тонкий клиент используется для unattended /Execute EPF: 1cv8.exe —
   // GUI-приложение, которое может не завершаться одновременно с обработкой.
   thinClientExecutableRelativePath: 'bin\\1cv8c.exe',
+  comConnectorRelativePath: 'bin\\comcntr.dll',
   requiredInstalledFiles: ['bin\\1cv8.exe', 'bin\\1cv8c.exe', 'bin\\ragent.exe', 'bin\\rac.exe', 'bin\\ras.exe', 'bin\\comcntr.dll', 'bin\\wsap24.dll'],
   guest: {
     stagingDirectory: 'C:\\ProgramData\\AutoSetup\\staging\\1c-platform',

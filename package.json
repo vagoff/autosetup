@@ -2,6 +2,10 @@
   "license": "UNLICENSED",
   "private": true,
   "type": "module",
+  "scripts": {
+    "test": "node --test test/*.test.js test/live/*.test.js",
+    "test:live": "AUTOSETUP_LIVE_TESTS=1 node --test test/live/*.test.js"
+  },
   "overrides": {
     "winrm-client": {
       "fast-xml-parser": "5.10.1"
