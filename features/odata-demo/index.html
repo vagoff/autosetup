@@ -1,0 +1,52 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>1C OData demo</title>
+<style>body{font:16px system-ui;max-width:900px;margin:2rem auto}button,textarea,select{font:inherit}article{border:1px solid #ccc;margin:1rem 0;padding:1rem}textarea{width:100%;min-height:4rem}label{display:block;margin-top:.5rem}</style>
+<h1>1C OData demo</h1>
+<p>Изменения выполняются в копии production-базы через стандартный OData.</p>
+<main>Loading…</main>
+<script type="module">
+const main = document.querySelector('main');
+function organizationSelect(organizations, currentKey) {
+  const select = document.createElement('select');
+  for (const { Ref_Key, Description } of organizations) {
+    const option = new Option(Description, Ref_Key, false, Ref_Key === currentKey);
+    select.append(option);
+  }
+  return select;
+}
+function documentCard(name, row, organizations) {
+  const article = document.createElement('article');
+  article.innerHTML = '<b>' + row.Number + '</b> · ' + row.Date + '<br>';
+  const org = organizationSelect(organizations, row.Организация_Key);
+  const text = document.createElement('textarea');
+  text.value = row.Комментарий;
+  const button = document.createElement('button');
+  button.textContent = 'Save';
+  button.onclick = async () => {
+    button.disabled = true;
+    const response = await fetch('/api/documents/' + encodeURIComponent(name) + '/' + row.Ref_Key, {
+      method: 'PATCH',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ Комментарий: text.value, Организация_Key: org.value }),
+    });
+    button.disabled = false;
+    if (!response.ok) alert((await response.json()).error);
+  };
+  const orgLabel = document.createElement('label');
+  orgLabel.textContent = 'Организация:';
+  orgLabel.append(org);
+  article.append(orgLabel, text, button);
+  return article;
+}
+try {
+  const [groups, organizations] = await Promise.all([
+    fetch('/api/documents').then((r) => r.json()),
+    fetch('/api/organizations').then((r) => r.json()),
+  ]);
+  main.replaceChildren(...groups.flatMap(({ name, rows }) => {
+    const title = document.createElement('h2'); title.textContent = name;
+    return [title, ...rows.map((row) => documentCard(name, row, organizations))];
+  }));
+} catch (error) { main.textContent = error.message; }
+</script>
