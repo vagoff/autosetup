@@ -7,43 +7,28 @@ import JSON5 from 'json5';
 import { buildQueryRunnerLaunchParameter, buildQueryRunnerStagedFiles, parseQueryRunnerResult } from '../src/lib/build-1c-query-runner.js';
 import { buildReadOneCQueryRunnerScript, buildStopOneCQueryRunnerScript } from '../src/lib/build-stop-1c-query-runner-script.js';
 
-test('query runner replaces only the Vanessa template BusinessLogic region', async () => {
+test('query runner stages the EPF source tree verbatim and appends extra files under their filename', async () => {
     const root = await mkdtemp(path.join(os.tmpdir(), 'autosetup-query-runner-'));
-    const templateDirectory = path.join(root, 'template');
-    const moduleRelativePath = path.join('Template', 'Module.bsl');
-    await mkdir(path.join(templateDirectory, 'Template'), { recursive: true });
-    await writeFile(path.join(templateDirectory, 'Template.xml'), '<template/>');
-    await writeFile(path.join(templateDirectory, moduleRelativePath), [
-        'before',
-        '&НаСервереБезКонтекста',
-        'Процедура ЗаписатьФайлРезультата(Знач ПутьФайла, Знач Результат)',
-        'КонецПроцедуры',
-        'Если ПараметрыЗапуска.Свойство("ФайлРезультата") Тогда',
-        '\t\t\tПутьФайлаРезультата = ПараметрыЗапуска.ФайлРезультата;',
-        '\t\tКонецЕсли;',
-        'ЗавершитьРаботуСистемыЗапрошено = ПараметрыЗапуска.Свойство("ЗавершитьРаботуСистемы");',
-        '#Область БизнесЛогика',
-        'template operation',
-        '#КонецОбласти',
-        'after',
-    ].join('\n'));
-    const featureDirectory = path.join(root, 'feature');
-    await mkdir(path.join(featureDirectory, 'Feature'), { recursive: true });
-    await writeFile(path.join(featureDirectory, 'Feature', 'BusinessLogic.bsl'), 'feature operation');
+    await mkdir(path.join(root, 'ШаблонОбработки'), { recursive: true });
+    await writeFile(path.join(root, 'ШаблонОбработки.xml'), '<template/>');
+    await writeFile(path.join(root, 'ШаблонОбработки', 'Module.bsl'), 'business logic');
+    const queryPath = path.join(root, '..', 'unrelated.query');
+    await writeFile(queryPath, 'stored outside the EPF source tree, on purpose');
 
-    const files = await buildQueryRunnerStagedFiles({
-        templateSourceDirectory: templateDirectory,
-        sourceDirectory: featureDirectory,
-        moduleRelativePath,
-        featureBusinessLogicPath: path.join('Feature', 'BusinessLogic.bsl'),
-    }, []);
+    const files = await buildQueryRunnerStagedFiles({ sourceDirectory: root }, [
+        { filePath: queryPath, filename: 'query.txt', bytes: 6, sha256: 'deadbeef' },
+    ]);
 
-    assert.deepEqual(files.map((file) => file.relativePath).sort(), ['Template.xml', moduleRelativePath].sort());
-    const source = files.find((file) => file.relativePath === moduleRelativePath).sourceText;
-    assert.match(source, /#Область БизнесЛогика\n\nfeature operation\n\n#КонецОбласти/u);
-    assert.doesNotMatch(source, /template operation/u);
-    assert.ok(source.startsWith('before\n'));
-    assert.match(source, /\nafter$/u);
+    assert.deepEqual(files.map((file) => file.relativePath).sort(), [
+        'ШаблонОбработки.xml',
+        path.join('ШаблонОбработки', 'Module.bsl'),
+        'query.txt',
+    ].sort());
+    const extra = files.find((file) => file.relativePath === 'query.txt');
+    assert.equal(extra.bytes, 6);
+    assert.equal(extra.sha256, 'deadbeef');
+    const staged = files.find((file) => file.relativePath === path.join('ШаблонОбработки', 'Module.bsl'));
+    assert.equal(staged.filePath, path.join(root, 'ШаблонОбработки', 'Module.bsl'));
 });
 
 test('documents-top launches the documents census rather than the temporary baseline', () => {
@@ -80,21 +65,36 @@ test('query runner uses the configured thin client for unattended EPF execution'
     assert.doesNotMatch(source, /oneCQueryRunner\.enterpriseExecutablePath/u);
 });
 
-test('query runner gives probes a 10-second limit without shortening the document census', async () => {
+test('query runner gives the document census and arbitrary queries more room than a bare probe', async () => {
     const configPath = new URL('../data/1c-query-runner.json5', import.meta.url);
     const queryRunner = JSON5.parse(await readFile(configPath, 'utf8'));
-    assert.equal(queryRunner.probeTimeoutSeconds, 10);
-    assert.ok(queryRunner.documentsTopTimeoutSeconds > queryRunner.probeTimeoutSeconds);
-    assert.ok(queryRunner.queryTimeoutSeconds > queryRunner.probeTimeoutSeconds);
+    // probeTimeoutSeconds измерен живым запуском: холодный тонкий клиент на
+    // production-копии ИБ стоит ~40с ещё до выполнения запроса -- не 10с.
+    assert.ok(queryRunner.probeTimeoutSeconds >= 60);
+    assert.ok(queryRunner.documentsTopTimeoutSeconds >= queryRunner.probeTimeoutSeconds);
+    assert.ok(queryRunner.queryTimeoutSeconds >= queryRunner.probeTimeoutSeconds);
 });
 
-test('query runner business logic returns data through the template result envelope', async () => {
-    const modulePath = new URL('../features/1c-query-runner/src/QueryRunner/BusinessLogic.bsl', import.meta.url);
+test('epf business logic dispatches every runner mode and returns data through the message envelope', async () => {
+    const modulePath = new URL('../features/1c-query-runner/src/epf/ШаблонОбработки/Forms/Форма/Ext/Form/Module.bsl', import.meta.url);
     const source = await readFile(modulePath, 'utf8');
     assert.match(source, /Функция ВыполнитьОперацию/u);
-    assert.match(source, /Результат\.Сообщения\.Добавить/u);
-    assert.doesNotMatch(source, /ЗаписьТекста|ПереместитьФайл/u);
-    assert.doesNotMatch(source, /Наконец/u);
+    assert.match(source, /Результат\.Сообщения\.Добавить\(СериализоватьJSON\(Данные\)\)/u);
+    for (const mode of ['query', 'documents-top', 'infobase-probe', 'table-probe', 'select-one']) {
+        assert.match(source, new RegExp(`Режим = "${mode}"`, 'u'));
+    }
+});
+
+test('epf business logic publishes the result file atomically using ASCII launch parameters', async () => {
+    const modulePath = new URL('../features/1c-query-runner/src/epf/ШаблонОбработки/Forms/Форма/Ext/Form/Module.bsl', import.meta.url);
+    const source = await readFile(modulePath, 'utf8');
+    assert.match(source, /ВременныйФайл = ПутьФайла \+ "\.tmp"/u);
+    assert.match(source, /ПереместитьФайл\(ВременныйФайл, ПутьФайла\)/u);
+    assert.match(source, /ПараметрыЗапуска\.Свойство\("ResultFile"\)/u);
+    assert.match(source, /ПараметрыЗапуска\.Свойство\("Exit"\)/u);
+    // Управляющий канал не должен зависеть от активной ANSI code page гостя
+    // (см. шапку файла) -- параметры запуска не кириллические.
+    assert.doesNotMatch(source, /Свойство\("ФайлРезультата"\)|Свойство\("ЗавершитьРаботуСистемы"\)/u);
 });
 
 test('query runner decodes the Vanessa result envelope', () => {
@@ -115,42 +115,8 @@ test('query-runner stop script is limited to its configured staging directory', 
     assert.match(buildReadOneCQueryRunnerScript('C:\\ProgramData\\AutoSetup\\staging\\1c-query-runner'), /processIds/u);
 });
 
-test('query runner publishes the result atomically', async () => {
-    const root = await mkdtemp(path.join(os.tmpdir(), 'autosetup-query-runner-atomic-'));
-    const templateDirectory = path.join(root, 'template');
-    const moduleRelativePath = path.join('Template', 'Module.bsl');
-    await mkdir(path.join(templateDirectory, 'Template'), { recursive: true });
-    await writeFile(path.join(templateDirectory, 'Template.xml'), '<template/>');
-    await writeFile(path.join(templateDirectory, moduleRelativePath), [
-        '&НаСервереБезКонтекста',
-        'Процедура ЗаписатьФайлРезультата(Знач ПутьФайла, Знач Результат)',
-        'КонецПроцедуры',
-        'Если ПараметрыЗапуска.Свойство("ФайлРезультата") Тогда',
-        '\t\t\tПутьФайлаРезультата = ПараметрыЗапуска.ФайлРезультата;',
-        '\t\tКонецЕсли;',
-        'ЗавершитьРаботуСистемыЗапрошено = ПараметрыЗапуска.Свойство("ЗавершитьРаботуСистемы");',
-        '#Область БизнесЛогика',
-        'template operation',
-        '#КонецОбласти',
-    ].join('\n'));
-    const featureDirectory = path.join(root, 'feature');
-    await mkdir(featureDirectory, { recursive: true });
-    await writeFile(path.join(featureDirectory, 'BusinessLogic.bsl'), 'feature operation');
-    const files = await buildQueryRunnerStagedFiles({
-        templateSourceDirectory: templateDirectory,
-        sourceDirectory: featureDirectory,
-        moduleRelativePath,
-        featureBusinessLogicPath: 'BusinessLogic.bsl',
-    }, []);
-    const source = files.find((file) => file.relativePath === moduleRelativePath).sourceText;
-    assert.match(source, /ВременныйФайл = ПутьФайла \+ "\.tmp"/u);
-    assert.match(source, /ПереместитьФайл\(ВременныйФайл, ПутьФайла\)/u);
-    assert.match(source, /ПараметрыЗапуска\.Свойство\("ResultFile"\)/u);
-    assert.match(source, /ПараметрыЗапуска\.Свойство\("Exit"\)/u);
-});
-
 test('guest runner precreates only the atomic temporary result file', async () => {
-    const scriptPath = new URL('../src/guest-scripts/run-1c-query.ps1', import.meta.url);
+    const scriptPath = new URL('../src/guest-scripts/run-1c-epf.ps1', import.meta.url);
     const source = await readFile(scriptPath, 'utf8');
     assert.match(source, /New-Item -ItemType File -Path \(\$ResultPath \+ '\.tmp'\) -Force/u);
 });

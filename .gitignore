@@ -1,3 +1,4 @@
+/.env
 /_vendor/
 /archive/
 /backup/
@@ -7,7 +8,7 @@
 /doc/tasks/
 /garbage/
 /memo/
-/node_modules/
+node_modules/
 /output/
 /tmp/
 /vendor/
@@ -15,3 +16,4 @@
 !/features/
 !/features/1c-query-runner/
 /features/1c-query-runner/build/
+/node_modules/

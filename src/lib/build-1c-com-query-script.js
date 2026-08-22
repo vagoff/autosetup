@@ -44,6 +44,16 @@ export function parseComResult(output) {
 // Доступ по имени свойства ($selection.Значение) тоже ненадёжен, потому что
 // имена колонок в этой конфигурации кириллические. Get(i) проверен живым
 // запуском и работает без оговорок.
+//
+// Имена колонок читаются через foreach, а НЕ через Колонки.Count()/Get(i).
+// КоллекцияКолонокРезультатаЗапроса — устроена иначе, чем строки выборки:
+// метод .Count() падает с "does not contain a method named 'Count'", а
+// InvokeMember("Количество", ..., GetProperty/InvokeMethod, ...) — с
+// DISP_E_UNKNOWNNAME на обоих связываниях. Это НЕ значит, что коллекция
+// вообще не доступна из COM: она реализует стандартный перечислитель
+// IEnumVARIANT, и foreach по ней читает элементы штатно (проверено живым
+// запуском). Индексированный доступ к этой конкретной коллекции недоступен —
+// только перечисление.
 export function buildComQueryScript(oneCConfiguration, { queryPath, maxRows }) {
     return [
         ...buildComConnectionScript(oneCConfiguration),
@@ -51,15 +61,15 @@ export function buildComQueryScript(oneCConfiguration, { queryPath, maxRows }) {
         '$query = $connection.NewObject("Query", $queryText)',
         '$result = $query.Execute()',
         '$columnCollection = Get1C $result "Колонки"',
-        '$columnCount = $columnCollection.Count()',
-        '$columns = @(for ($i = 0; $i -lt $columnCount; $i++) { [string](Get1C $columnCollection.Get($i) "Имя") })',
-        '$selection = $result.Select()',
+        '$columns = @()',
+        'foreach ($column in $columnCollection) { $columns += [string](Get1C $column "Имя") }',
+        '$selection = $result.Выбрать()',
         '$rows = New-Object Collections.ArrayList',
         '$truncated = $false',
         'while ($selection.Next()) {',
         `  if ($rows.Count -ge ${maxRows}) { $truncated = $true; break }`,
         '  $row = [ordered]@{}',
-        '  for ($i = 0; $i -lt $columnCount; $i++) {',
+        '  for ($i = 0; $i -lt $columns.Count; $i++) {',
         '    $value = $selection.Get($i)',
         '    $row[$columns[$i]] = if ($null -eq $value) { "" } elseif ($value -is [string] -or $value -is [bool] -or $value -is [datetime] -or $value -is [valuetype]) { $value } else { [string]$value }',
         '  }',
