@@ -1,6 +1,6 @@
 import { config } from './config.js';
-import { buildComConnectionScript } from './lib/build-1c-com-query-script.js';
-import { executeGuestPowerShell } from './lib/execute-guest-powershell.js';
+import { buildComConnectionScript, buildComResultEpilogue, parseComResult } from './lib/build-1c-com-query-script.js';
+import { executeGuestPowerShell, quotePowerShell } from './lib/execute-guest-powershell.js';
 import { withGuestSession } from './lib/with-guest-session.js';
 
 // Одно проверяемое действие: пометить восстановленную ИБ как КОПИЮ, заблокировав
@@ -14,14 +14,15 @@ import { withGuestSession } from './lib/with-guest-session.js';
 // Идемпотентно: если блокировка уже стоит, повторный вызов ничего не меняет.
 function buildScript(oneCConfiguration) {
     const { externalResourcesLock } = oneCConfiguration;
-    const module = `$connection.${externalResourcesLock.moduleName}`;
+    const module = '$bspModule';
     return [
         ...buildComConnectionScript(oneCConfiguration),
+        `$bspModule = Get1C $connection ${quotePowerShell(externalResourcesLock.moduleName)}`,
         `$before = [bool]${module}.${externalResourcesLock.stateMethodName}()`,
         `if (-not $before) { ${module}.${externalResourcesLock.lockMethodName}() | Out-Null }`,
         `$after = [bool]${module}.${externalResourcesLock.stateMethodName}()`,
         'if (-not $after) { throw "1C external resources are still unlocked after locking the infobase copy" }',
-        '[ordered]@{ ok = $true; alreadyLocked = $before; locked = $after } | ConvertTo-Json -Compress',
+        ...buildComResultEpilogue('[ordered]@{ ok = $true; alreadyLocked = $before; locked = $after }'),
     ].join('\n');
 }
 
@@ -32,7 +33,7 @@ export async function lockOneCInfobaseExternalResources() {
         buildScript(oneCConfiguration),
         'lock 1C infobase external resources',
     ));
-    const result = JSON.parse(output);
+    const result = parseComResult(output);
     if (result.ok !== true) throw new Error(`invalid 1C external resources lock result: ${output}`);
     console.log(JSON.stringify(result, null, 2));
 }

@@ -86,6 +86,8 @@
   // меняются (см. externalResourcesLock выше).
   subsystemVersions: {
     registerName: 'ВерсииПодсистем',
+    subsystemFieldName: 'ПодсистемаИмя',
+    versionFieldName: 'Версия',
     standardSubsystemsName: 'СтандартныеПодсистемы',
   },
 

@@ -1,5 +1,5 @@
 import { config } from './config.js';
-import { buildComConnectionScript } from './lib/build-1c-com-query-script.js';
+import { buildComConnectionScript, buildComResultEpilogue, parseComResult } from './lib/build-1c-com-query-script.js';
 import { executeGuestPowerShell, quotePowerShell } from './lib/execute-guest-powershell.js';
 import { withGuestSession } from './lib/with-guest-session.js';
 
@@ -17,47 +17,47 @@ import { withGuestSession } from './lib/with-guest-session.js';
 // через -EncodedCommand в UTF-16LE, минуя ANSI code page гостя.
 function buildScript(oneCConfiguration) {
     const { subsystemVersions, externalResourcesLock } = oneCConfiguration;
-    const queryText = `ВЫБРАТЬ * ИЗ РегистрСведений.${subsystemVersions.registerName}`;
+    // Запрос с ЯВНЫМИ полями и одной колонкой -- намеренно.
+    //
+    // Интроспекция колонок результата через COM здесь невозможна: объекты,
+    // полученные рефлексией, приходят сырыми System.__ComObject, у которых
+    // коллекция колонок не отвечает ни на Count(), ни на Количество().
+    // Городить рефлексию на каждый член графа объектов 1С -- версионно
+    // зависимый хак; вместо этого спрашиваем ровно одно значение и читаем
+    // его позиционным Get(0), который проверен живым запуском.
+    const queryText = [
+        `ВЫБРАТЬ ${subsystemVersions.versionFieldName} КАК Version`,
+        `ИЗ РегистрСведений.${subsystemVersions.registerName}`,
+        `ГДЕ ${subsystemVersions.subsystemFieldName} = "${subsystemVersions.standardSubsystemsName}"`,
+    ].join(' ');
     return [
         ...buildComConnectionScript(oneCConfiguration),
-        '$metadata = $connection.Метаданные',
-        '$versions = New-Object Collections.ArrayList',
+        '$metadata = Get1C $connection "Метаданные"',
         `$query = $connection.NewObject("Query", ${quotePowerShell(queryText)})`,
-        '$result = $query.Execute()',
-        '$columns = @($result.Columns | ForEach-Object { $_.Name })',
-        '$selection = $result.Select()',
-        'while ($selection.Next()) {',
-        '  $row = [ordered]@{}',
-        '  foreach ($column in $columns) { $row[$column] = [string]$selection[$column] }',
-        '  [void]$versions.Add($row)',
-        '}',
-        // Проба объявленного метода БСП: существует ли он вообще под этим именем.
-        '$lockApi = [ordered]@{ module = ' + quotePowerShell(externalResourcesLock.moduleName) + '; method = ' + quotePowerShell(externalResourcesLock.stateMethodName) + '; available = $false; locked = $null; error = "" }',
+        // Только по одному вызову на выражение: результат Execute() приходит
+        // сырым COM-объектом, и цепочка .Execute().Select() падает с
+        // NullReferenceException. Промежуточная переменная это чинит.
+        '$queryResult = $query.Execute()',
+        '$selection = $queryResult.Select()',
+        '$bspVersion = ""',
+        'if ($selection.Next()) { $bspVersion = [string]$selection.Get(0) }',
+        `$bspModule = Get1C $connection ${quotePowerShell(externalResourcesLock.moduleName)}`,
+        `$lockApi = [ordered]@{ module = ${quotePowerShell(externalResourcesLock.moduleName)}; method = ${quotePowerShell(externalResourcesLock.stateMethodName)}; available = $false; locked = $null; error = "" }`,
         'try {',
-        `  $lockApi.locked = [bool]$connection.${externalResourcesLock.moduleName}.${externalResourcesLock.stateMethodName}()`,
+        `  $lockApi.locked = [bool]$bspModule.${externalResourcesLock.stateMethodName}()`,
         '  $lockApi.available = $true',
         '} catch { $lockApi.error = $_.Exception.Message }',
-        '[ordered]@{',
-        '  configurationName = [string]$metadata.Имя',
-        '  configurationSynonym = [string]$metadata.Синоним',
-        '  configurationVersion = [string]$metadata.Версия',
-        '  configurationVendor = [string]$metadata.Поставщик',
-        '  subsystemVersions = $versions',
-        '  externalResourcesLockApi = $lockApi',
-        '} | ConvertTo-Json -Depth 6 -Compress',
+        ...buildComResultEpilogue([
+            '[ordered]@{',
+            'configurationName = [string](Get1C $metadata "Имя");',
+            'configurationSynonym = [string](Get1C $metadata "Синоним");',
+            'configurationVersion = [string](Get1C $metadata "Версия");',
+            'configurationVendor = [string](Get1C $metadata "Поставщик");',
+            'standardSubsystemsVersion = $bspVersion;',
+            'externalResourcesLockApi = $lockApi',
+            '}',
+        ].join(' ')),
     ].join('\n');
-}
-
-// Имя колонки версии/подсистемы не угадываем: берём ту пару колонок регистра,
-// в которой значение совпадает с искомым именем подсистемы.
-function findStandardSubsystemsVersion(rows, standardSubsystemsName) {
-    for (const row of rows) {
-        const entries = Object.entries(row);
-        if (!entries.some(([, value]) => value === standardSubsystemsName)) continue;
-        const version = entries.find(([, value]) => /^\d+(\.\d+)+$/u.test(value));
-        if (version) return version[1];
-    }
-    return null;
 }
 
 export async function readOneCSubsystemVersions() {
@@ -67,13 +67,10 @@ export async function readOneCSubsystemVersions() {
         buildScript(oneCConfiguration),
         'read 1C subsystem versions',
     ));
-    const report = JSON.parse(output);
-    const rows = Array.isArray(report.subsystemVersions) ? report.subsystemVersions : [report.subsystemVersions].filter(Boolean);
-    const bspVersion = findStandardSubsystemsVersion(rows, oneCConfiguration.subsystemVersions.standardSubsystemsName);
+    const report = parseComResult(output);
+    console.log(JSON.stringify(report, null, 2));
 
-    console.log(JSON.stringify({ ...report, subsystemVersions: rows, standardSubsystemsVersion: bspVersion }, null, 2));
-
-    if (!bspVersion) {
+    if (!report.standardSubsystemsVersion) {
         throw new Error(`subsystem "${oneCConfiguration.subsystemVersions.standardSubsystemsName}" was not found in register ${oneCConfiguration.subsystemVersions.registerName}`);
     }
     if (report.externalResourcesLockApi.available !== true) {

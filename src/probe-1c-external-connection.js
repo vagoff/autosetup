@@ -1,7 +1,7 @@
 import { randomUUID } from 'node:crypto';
 import path from 'node:path';
 import { config } from './config.js';
-import { buildComQueryScript } from './lib/build-1c-com-query-script.js';
+import { buildComQueryScript, parseComResult } from './lib/build-1c-com-query-script.js';
 import { executeGuestPowerShell, quotePowerShell } from './lib/execute-guest-powershell.js';
 import { assertOneCPlatformInstalled } from './lib/read-1c-platform-state.js';
 import { removeGuestDirectory } from './lib/stage-guest-files.js';
@@ -30,7 +30,7 @@ export async function probeOneCExternalConnection() {
         await removeGuestDirectory(ssh, remoteDirectory);
         return result;
     });
-    const parsed = JSON.parse(output);
+    const parsed = parseComResult(output);
     if (parsed.ok !== true || parsed.rows.length !== 1) {
         throw new Error(`1C external connection probe returned no row: ${output}`);
     }

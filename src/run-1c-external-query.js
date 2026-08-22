@@ -3,7 +3,7 @@ import { existsSync } from 'node:fs';
 import { mkdir, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { config } from './config.js';
-import { buildComQueryScript } from './lib/build-1c-com-query-script.js';
+import { buildComQueryScript, parseComResult } from './lib/build-1c-com-query-script.js';
 import { buildInfobasePresenceCheck } from './lib/execute-1c.js';
 import { executeGuestPowerShell, quotePowerShell } from './lib/execute-guest-powershell.js';
 import { removeGuestDirectory } from './lib/stage-guest-files.js';
@@ -80,7 +80,7 @@ export async function runOneCExternalQuery(argv = process.argv.slice(2)) {
                 buildComQueryScript(oneCConfiguration, { queryPath: remoteQueryPath, maxRows: args.maxRows }),
                 'run 1C external query',
             );
-            const parsed = JSON.parse(output);
+            const parsed = parseComResult(output);
             if (parsed.ok !== true) throw new Error(`invalid 1C external query result: ${output}`);
             await removeGuestDirectory(ssh, remoteDirectory);
             return parsed;
