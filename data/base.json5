@@ -158,7 +158,6 @@
       // Почему реестром: WaaSMedicSvc защищён, Set-Service на нём даёт
       // Access Denied даже под администратором. Почему в specialize: так
       // службы выключены ДО своего первого старта и откатывать им нечего.
-      { path: 'HKLM\\SYSTEM\\CurrentControlSet\\Services\\wuauserv', name: 'Start', type: 'REG_DWORD', data: 4 },
       { path: 'HKLM\\SYSTEM\\CurrentControlSet\\Services\\UsoSvc', name: 'Start', type: 'REG_DWORD', data: 4 },
       { path: 'HKLM\\SYSTEM\\CurrentControlSet\\Services\\WaaSMedicSvc', name: 'Start', type: 'REG_DWORD', data: 4 },
     ],
@@ -168,7 +167,23 @@
     // не "как повезёт с правами".
     // WaaSMedicSvc сюда не входит намеренно: остановить его штатным
     // Stop-Service нельзя, его выключает только Start=4 выше.
-    serviceNames: ['wuauserv', 'UsoSvc'],
+    // wuauserv СОЗНАТЕЛЬНО отсутствует и здесь, и в policyValues выше.
+    //
+    // Удержать его выключенным невозможно: задачи планировщика в
+    // \Microsoft\Windows\UpdateOrchestrator\ возвращают его в demand start
+    // через 4-5 минут после каждой загрузки, а сами эти задачи принадлежат
+    // TrustedInstaller и не отключаются даже администратором (подробности и
+    // измерения -- doc/BUGS.md).
+    //
+    // И это не страшно. Инвариант проекта -- "Windows не меняет себя сама",
+    // а не "у службы обязан быть Start=4". Демандовая служба, которую некому
+    // попросить: оба оркестратора обновлений (UsoSvc, WaaSMedicSvc) выключены
+    // и держатся, обращение к серверам обновлений запрещено политиками
+    // NoAutoUpdate и DoNotConnectToWindowsUpdateInternetLocations.
+    //
+    // Объявлять недостижимое состояние -- значит иметь вечно красный чекер,
+    // на который перестают смотреть. Объявляем ровно то, что держим.
+    serviceNames: ['UsoSvc'],
     // Задачи планировщика, ВОСКРЕШАЮЩИЕ выключенные службы.
     //
     // Установлено с точностью до секунды: задача

@@ -26,21 +26,27 @@ function buildScript(oneCConfiguration) {
     // зависимый хак; вместо этого спрашиваем ровно одно значение и читаем
     // его позиционным Get(0), который проверен живым запуском.
     const queryText = [
-        `ВЫБРАТЬ ${subsystemVersions.versionFieldName} КАК Version`,
+        `ВЫБРАТЬ ${subsystemVersions.subsystemFieldName} КАК Name, ${subsystemVersions.versionFieldName} КАК Version`,
         `ИЗ РегистрСведений.${subsystemVersions.registerName}`,
-        `ГДЕ ${subsystemVersions.subsystemFieldName} = "${subsystemVersions.standardSubsystemsName}"`,
+        `УПОРЯДОЧИТЬ ПО ${subsystemVersions.subsystemFieldName}`,
     ].join(' ');
     return [
         ...buildComConnectionScript(oneCConfiguration),
         '$metadata = Get1C $connection "Метаданные"',
-        `$query = $connection.NewObject("Query", ${quotePowerShell(queryText)})`,
+        `$queryText = ${quotePowerShell(queryText)}`,
+        '$query = $connection.NewObject("Query", $queryText)',
         // Только по одному вызову на выражение: результат Execute() приходит
         // сырым COM-объектом, и цепочка .Execute().Select() падает с
         // NullReferenceException. Промежуточная переменная это чинит.
-        '$queryResult = $query.Execute()',
+        // Несуществующее поле запроса 1С отдаёт через COM как голый
+        // NullReferenceException, без имени поля. Ловим и говорим по-человечески.
+        'try { $queryResult = $query.Execute() } catch { throw "subsystem versions query failed; check subsystemFieldName/versionFieldName/registerName in data/1c-configuration.json5. Query was: " + $queryText }',
         '$selection = $queryResult.Select()',
-        '$bspVersion = ""',
-        'if ($selection.Next()) { $bspVersion = [string]$selection.Get(0) }',
+        '$versions = New-Object Collections.ArrayList',
+        // Значения читаются позиционно Get(0)/Get(1): интроспекция колонок
+        // через COM невозможна (см. build-1c-com-query-script.js), поэтому
+        // порядок полей задаёт сам запрос выше.
+        'while ($selection.Next()) { [void]$versions.Add([ordered]@{ name = [string]$selection.Get(0); version = [string]$selection.Get(1) }) }',
         `$bspModule = Get1C $connection ${quotePowerShell(externalResourcesLock.moduleName)}`,
         `$lockApi = [ordered]@{ module = ${quotePowerShell(externalResourcesLock.moduleName)}; method = ${quotePowerShell(externalResourcesLock.stateMethodName)}; available = $false; locked = $null; error = "" }`,
         'try {',
@@ -53,7 +59,7 @@ function buildScript(oneCConfiguration) {
             'configurationSynonym = [string](Get1C $metadata "Синоним");',
             'configurationVersion = [string](Get1C $metadata "Версия");',
             'configurationVendor = [string](Get1C $metadata "Поставщик");',
-            'standardSubsystemsVersion = $bspVersion;',
+            'subsystemVersions = $versions;',
             'externalResourcesLockApi = $lockApi',
             '}',
         ].join(' ')),
@@ -70,7 +76,8 @@ export async function readOneCSubsystemVersions() {
     const report = parseComResult(output);
     console.log(JSON.stringify(report, null, 2));
 
-    if (!report.standardSubsystemsVersion) {
+    const bsp = (report.subsystemVersions ?? []).find((row) => row.name === oneCConfiguration.subsystemVersions.standardSubsystemsName);
+    if (!bsp) {
         throw new Error(`subsystem "${oneCConfiguration.subsystemVersions.standardSubsystemsName}" was not found in register ${oneCConfiguration.subsystemVersions.registerName}`);
     }
     if (report.externalResourcesLockApi.available !== true) {

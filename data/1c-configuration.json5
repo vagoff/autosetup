@@ -86,7 +86,11 @@
   // меняются (см. externalResourcesLock выше).
   subsystemVersions: {
     registerName: 'ВерсииПодсистем',
-    subsystemFieldName: 'ПодсистемаИмя',
+    // Имя поля подобрано живым запросом, а не взято из документации:
+    // в этой конфигурации это ИмяПодсистемы. Ошибиться легко и дорого --
+    // несуществующее поле 1С отдаёт через COM как NullReferenceException
+    // без единого намёка на настоящую причину.
+    subsystemFieldName: 'ИмяПодсистемы',
     versionFieldName: 'Версия',
     standardSubsystemsName: 'СтандартныеПодсистемы',
   },
