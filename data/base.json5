@@ -169,6 +169,26 @@
     // WaaSMedicSvc сюда не входит намеренно: остановить его штатным
     // Stop-Service нельзя, его выключает только Start=4 выше.
     serviceNames: ['wuauserv', 'UsoSvc'],
+    // Задачи планировщика, ВОСКРЕШАЮЩИЕ выключенные службы.
+    //
+    // Установлено с точностью до секунды: задача
+    // \Microsoft\Windows\UpdateOrchestrator\Schedule Scan отработала в
+    // 07:35:04, и в 07:35:05 wuauserv вернулась из disabled в demand start
+    // (System event 7040). Второй откат, в 18:11:10, дала соседняя задача
+    // Start Oobe Expedite Work из той же папки.
+    //
+    // Задачи работают ДАЖЕ когда UsoSvc и WaaSMedicSvc выключены: они сами
+    // включают и запускают службу. Поэтому гасить одни службы принципиально
+    // недостаточно -- нужны и планировщик, и службы, и политики.
+    //
+    // Указываются папки целиком: перечислять задачи поимённо бессмысленно,
+    // их состав меняется между сборками Windows.
+    scheduledTaskPaths: [
+      '\\Microsoft\\Windows\\UpdateOrchestrator\\',
+      '\\Microsoft\\Windows\\InstallService\\',
+      '\\Microsoft\\Windows\\WindowsUpdate\\',
+      '\\Microsoft\\Windows\\WaaSMedic\\',
+    ],
   },
 
   // Core-параметры guest-скриптов (src/guest-scripts/), общие для ЛЮБОГО

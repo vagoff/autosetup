@@ -40,6 +40,9 @@ function buildWindowsUpdateTokens(windowsUpdate) {
         WINDOWS_UPDATE_SERVICE_NAMES_PS_ARRAY: windowsUpdate.serviceNames
             .map((name) => `'${name.replaceAll("'", "''")}'`)
             .join(', '),
+        WINDOWS_UPDATE_SCHEDULED_TASK_PATHS_PS_ARRAY: windowsUpdate.scheduledTaskPaths
+            .map((taskPath) => `'${taskPath.replaceAll("'", "''")}'`)
+            .join(', '),
     };
 }
 

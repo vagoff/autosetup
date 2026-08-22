@@ -17,6 +17,7 @@ $policyArgumentLines = @(
 {{WINDOWS_UPDATE_POLICY_ARGUMENT_LINES_PS_ARRAY}}
 )
 $serviceNames = @({{WINDOWS_UPDATE_SERVICE_NAMES_PS_ARRAY}})
+$scheduledTaskPaths = @({{WINDOWS_UPDATE_SCHEDULED_TASK_PATHS_PS_ARRAY}})
 
 Write-ComLog 'disable-windows-updates: start'
 
@@ -37,7 +38,25 @@ try {
     Set-Service -Name $serviceName -StartupType Disabled -ErrorAction Stop
   }
 
-  Write-ComLog 'disable-windows-updates: OK'
+  # Задачи планировщика гасим ПЕРЕД службами: иначе задача успевает поднять
+  # службу обратно между нашими двумя шагами. Часть задач принадлежит
+  # TrustedInstaller и не поддаётся даже администратору -- такие считаем и
+  # сообщаем, но не валим весь скрипт: службы и политики от этого не страдают.
+  $disabledTasks = 0
+  $refusedTasks = 0
+  foreach ($taskPath in $scheduledTaskPaths) {
+    foreach ($task in @(Get-ScheduledTask -TaskPath $taskPath -ErrorAction SilentlyContinue)) {
+      if ($task.State -eq 'Disabled') { continue }
+      try {
+        Disable-ScheduledTask -TaskPath $task.TaskPath -TaskName $task.TaskName -ErrorAction Stop | Out-Null
+        $disabledTasks++
+      } catch {
+        $refusedTasks++
+      }
+    }
+  }
+
+  Write-ComLog "disable-windows-updates: OK tasks-disabled=$disabledTasks tasks-refused=$refusedTasks"
 } catch {
   Write-ComLog "disable-windows-updates: FAILED - $($_.Exception.Message)"
   throw
