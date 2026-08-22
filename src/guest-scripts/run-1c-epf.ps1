@@ -8,7 +8,14 @@ param(
   [Parameter(Mandatory = $true)][string]$ExecutionLogPath,
   [Parameter(Mandatory = $true)][int]$TimeoutSeconds,
   [Parameter(Mandatory = $true)][string]$BuildEpfArguments,
-  [Parameter(Mandatory = $true)][string]$RunEpfArguments
+  [Parameter(Mandatory = $true)][string]$RunEpfArguments,
+  # Подстрока staging-пути этого раннера ('\staging\1c-query-runner\',
+  # '\staging\1c-odata\', ...) -- отличает "чужой" зависший процесс 1С от
+  # своего. Общий скрипт для любого "собрать EPF Конфигуратором и выполнить
+  # его тонким клиентом" сценария; раннеры отличаются только этим и текстом
+  # меток в логах/ошибках.
+  [Parameter(Mandatory = $true)][string]$StagingMatch,
+  [Parameter(Mandatory = $true)][string]$LabelPrefix
 )
 
 $ErrorActionPreference = 'Stop'
@@ -29,7 +36,7 @@ function Invoke-OneC {
 # исключительно процессы, в чьей командной строке есть staging этого runner'а;
 # пользовательские сеансы 1С и иные EPF не затрагиваются.
 $staleProcesses = @(Get-CimInstance Win32_Process | Where-Object {
-  ($_.Name -eq '1cv8.exe' -or $_.Name -eq '1cv8c.exe') -and $_.CommandLine -and $_.CommandLine.IndexOf('\staging\1c-query-runner\', [StringComparison]::OrdinalIgnoreCase) -ge 0
+  ($_.Name -eq '1cv8.exe' -or $_.Name -eq '1cv8c.exe') -and $_.CommandLine -and $_.CommandLine.IndexOf($StagingMatch, [StringComparison]::OrdinalIgnoreCase) -ge 0
 })
 foreach ($staleProcess in $staleProcesses) {
   Stop-Process -Id $staleProcess.ProcessId -Force -ErrorAction Stop
@@ -38,9 +45,9 @@ foreach ($staleProcess in $staleProcesses) {
 New-Item -ItemType Directory -Path $CompilerInfobase -Force | Out-Null
 New-Item -ItemType Directory -Path (Split-Path -Parent $BuildLogPath) -Force | Out-Null
 New-Item -ItemType Directory -Path (Split-Path -Parent $ExecutionLogPath) -Force | Out-Null
-Invoke-OneC -ArgumentLine ('CREATEINFOBASE File="' + $CompilerInfobase + '" /Out "' + $BuildLogPath + '"') -Label 'create 1C query runner compiler infobase' -LogPath $BuildLogPath
-Invoke-OneC -ArgumentLine $BuildEpfArguments -Label 'build 1C query runner EPF' -LogPath $BuildLogPath
-if (-not (Test-Path -LiteralPath $EpfPath -PathType Leaf)) { throw 'build 1C query runner EPF: output file is missing' }
+Invoke-OneC -ArgumentLine ('CREATEINFOBASE File="' + $CompilerInfobase + '" /Out "' + $BuildLogPath + '"') -Label "create $LabelPrefix compiler infobase" -LogPath $BuildLogPath
+Invoke-OneC -ArgumentLine $BuildEpfArguments -Label "build $LabelPrefix EPF" -LogPath $BuildLogPath
+if (-not (Test-Path -LiteralPath $EpfPath -PathType Leaf)) { throw "build $LabelPrefix EPF: output file is missing" }
 
 Remove-Item -LiteralPath $ResultPath -Force -ErrorAction SilentlyContinue
 # EPF записывает envelope в этот заранее созданный temporary file и атомарно
@@ -54,7 +61,7 @@ while ([DateTime]::UtcNow -lt $deadline) {
 }
 if (-not (Test-Path -LiteralPath $ResultPath -PathType Leaf) -or (Get-Item -LiteralPath $ResultPath).Length -eq 0) {
   if (-not $process.HasExited) { Stop-Process -Id $process.Id -Force -ErrorAction SilentlyContinue }
-  throw "run 1C query runner EPF: result file was not written within $TimeoutSeconds seconds; see $ExecutionLogPath"
+  throw "run $LabelPrefix EPF: result file was not written within $TimeoutSeconds seconds; see $ExecutionLogPath"
 }
 
 [Convert]::ToBase64String([IO.File]::ReadAllBytes($ResultPath))

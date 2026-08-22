@@ -1,6 +1,7 @@
 import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import path from 'node:path';
 import JSON5 from 'json5';
+import { loadDotenv } from './lib/load-dotenv.js';
 
 // Единственный источник правды — человекоредактируемые файлы с
 // комментариями в data/:
@@ -16,6 +17,7 @@ import JSON5 from 'json5';
 // config-объект прежней плоской формы — никаких собственных констант
 // тут быть не должно.
 const DATA_DIR = '/data/wd/aibox/autosetup/data';
+loadDotenv(path.join(DATA_DIR, '..', '.env'));
 const vars = JSON5.parse(readFileSync(path.join(DATA_DIR, 'vars.json5'), 'utf8'));
 const base = JSON5.parse(readFileSync(path.join(DATA_DIR, 'base.json5'), 'utf8'));
 const oneC = JSON5.parse(readFileSync(path.join(DATA_DIR, '1c-platform.json5'), 'utf8'));
@@ -206,6 +208,10 @@ export const config = {
     oneCOData: {
         ...oneCOData,
         passwordStatePath: path.join(paths.vmDbDir, oneCOData.user.passwordStateFilename),
+        publisher: {
+            ...oneCOData.publisher,
+            sourceDirectory: path.join(projectRoot, oneCOData.publisher.sourceDirectory),
+        },
     },
     oneCQueryRunner: {
         ...oneCQueryRunner,

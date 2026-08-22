@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<MetaDataObject xmlns="http://v8.1c.ru/8.3/MDClasses" xmlns:app="http://v8.1c.ru/8.2/managed-application/core" xmlns:cfg="http://v8.1c.ru/8.1/data/enterprise/current-config" xmlns:v8="http://v8.1c.ru/8.1/data/core" xmlns:xr="http://v8.1c.ru/8.3/xcf/readable" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="2.4">
+  <ExternalDataProcessor uuid="d8c9b4d5-06e0-449a-9700-0b603ef81e56">
+    <InternalInfo><xr:ContainedObject><xr:ClassId>c3831ec8-d8d5-4f93-8a22-f9bfae07327f</xr:ClassId><xr:ObjectId>7447dcd6-95e5-4b99-9765-46d9c4d529bd</xr:ObjectId></xr:ContainedObject><xr:GeneratedType name="ExternalDataProcessorObject.ПубликаторOData" category="Object"><xr:TypeId>ca7f4f6c-bb4c-4387-bd5d-d147411d36c0</xr:TypeId><xr:ValueId>5a0e6bf0-a37d-452b-8a25-6991eb10e4c4</xr:ValueId></xr:GeneratedType></InternalInfo>
+    <Properties><Name>ПубликаторOData</Name><Synonym><v8:item><v8:lang>ru</v8:lang><v8:content>Публикатор OData</v8:content></v8:item></Synonym><Comment/><DefaultForm>ExternalDataProcessor.ПубликаторOData.Form.Форма</DefaultForm><AuxiliaryForm/></Properties>
+    <ChildObjects><Form>Форма</Form></ChildObjects>
+  </ExternalDataProcessor>
+</MetaDataObject>

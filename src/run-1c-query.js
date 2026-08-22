@@ -187,8 +187,8 @@ export async function runOneCQuery(argv = process.argv.slice(2)) {
         try {
             const runner = buildRunnerArguments(oneCConfiguration, oneCQueryRunner, staged, buildQueryRunnerLaunchParameter(args, staged.remoteDirectory));
             const output = await executeGuestPowerShellFile(session.ssh, {
-                localPath: path.join(paths.guestScriptsDir, 'run-1c-query.ps1'),
-                remotePath: path.win32.join(staged.remoteDirectory, 'run-1c-query.ps1'),
+                localPath: path.join(paths.guestScriptsDir, 'run-1c-epf.ps1'),
+                remotePath: path.win32.join(staged.remoteDirectory, 'run-1c-epf.ps1'),
                 argumentsList: [
                     oneC.clientExecutablePath,
                     oneC.thinClientExecutablePath,
@@ -200,6 +200,8 @@ export async function runOneCQuery(argv = process.argv.slice(2)) {
                     resolveTimeoutSeconds(args, oneCQueryRunner),
                     runner.buildEpfArguments,
                     runner.runEpfArguments,
+                    '\\staging\\1c-query-runner\\',
+                    '1C query runner',
                 ],
                 label: 'run 1C query runner',
             });
