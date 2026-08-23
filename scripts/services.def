@@ -34,17 +34,17 @@
     name = "qemu-win11-1c"
     command = "node /data/wd/aibox/autosetup/src/run-vm-cli.js --profile win11-1c"
     // [!] add class = nodejs_foreground_server so no "node" need to be mentioned in "command"
-    profile = qemu_win11_1c
+    profile = qemu_win11_1c // [!] separate class, subclass and instance
     // no minimum: rung 2 proves the VM is up, and anything that fails before qemu even
     // exists (missing disk, bad profile) is caught by the child's own exit
-    min_uptime_sec = 0
+    min_uptime_sec = 0.4
     stop_timeout_sec = 180
 }
 
 {service:
     name = "qemu-win11-1c-rdp"
-    command = "node /data/wd/aibox/autosetup/src/run-vm-cli.js --profile win11-1c-rdp"
-    profile = qemu_win11_1c_rdp
-    min_uptime_sec = 0
+    command = "/usr/bin/node /data/wd/aibox/autosetup/src/run-vm-cli.js --profile win11-1c-rdp"
+    profile = qemu_win11_1c_rdp // [!] separate class, subclass and instance
+    min_uptime_sec = 0.4
     stop_timeout_sec = 180
 }

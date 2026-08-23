@@ -8,7 +8,8 @@ cat > package.json <<'EOF'
   "private": true,
   "type": "module",
   "scripts": {
-    "test": "node --test test/**/*.test.js"
+    "test": "node --test test/*.test.js test/live/*.test.js",
+    "test:live": "AUTOSETUP_LIVE_TESTS=1 node --test test/live/*.test.js"
   },
   "overrides": {
     "winrm-client": {
@@ -18,7 +19,7 @@ cat > package.json <<'EOF'
 }
 EOF
 
-npm add json5 libmount node-ssh fast-xml-parser
+npm add json5 libmount node-ssh fast-xml-parser winrm-client
 # winrm-client
 # basic-ftp 
 npm install-scripts approve ssh2
