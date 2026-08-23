@@ -233,6 +233,15 @@
       defaultWriterLimit: 10,
       maxWriterLimit: 100,
     },
+    guestShutdownHistory: {
+      // Сколько последних завершений Windows показывать без --limit.
+      defaultShutdownLimit: 20,
+      maxShutdownLimit: 100,
+      // Верхняя граница числа подходящих записей System Event Log, которые
+      // reader забирает у гостя. При достижении границы результат честно
+      // помечается queryLimitReached, а старейший эпизод — неполным.
+      maxEventRecords: 1000,
+    },
     // Отдельный, только-логовый физический COM-порт (qemu.serialLogTcpPort
     // в data/vars.json5) — единственный канал, не зависящий ни от сети
     // гостя, ни от какой-либо опциональной фичи (у serial-agent свой
