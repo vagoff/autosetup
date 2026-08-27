@@ -215,6 +215,110 @@ function odatatest_update_entity($entity_set, $ref, $data, $data_version)
     return array('ok' => false, 'conflict' => false, 'message' => $message !== '' ? $message : ('HTTP ' . $code));
 }
 
+/**
+ * Табличные части документа.
+ *
+ * Читается ОДИНОЧНОЙ сущностью: на коллекцию с $filter по ссылке 1С отвечает
+ * "Операція не дозволена у реченні ГДЕ", как только в $select попадает
+ * табличная часть. Зеркальное ограничение к $expand (тот, наоборот, работает
+ * только на коллекции) -- поэтому карточка делает два запроса, а не один.
+ */
+function odatatest_fetch_tables($entity_set, $ref, $table_names)
+{
+    if (!preg_match('/^[0-9a-f]{8}(-[0-9a-f]{4}){3}-[0-9a-f]{12}$/i', $ref)) {
+        throw new Exception('odatatest: malformed reference ' . $ref);
+    }
+    $uri = $entity_set . "(guid'" . $ref . "')?" . '$select=' . implode(',', $table_names);
+    $response = odatatest_client()->request('GET', $uri);
+    if (!is_object($response) || !$response->isOK()) {
+        $message = is_object($response) ? (string) $response->getOdataErrorMessage() : 'no response';
+        throw new Exception('odatatest: cannot read tables of ' . $ref . ': ' . $message);
+    }
+    $entity = $response->value();
+    $tables = array();
+    foreach ($table_names as $name) {
+        $tables[$name] = isset($entity->{$name}) ? $entity->{$name} : array();
+    }
+    return $tables;
+}
+
+/**
+ * Представления ссылок для набора GUID: один запрос на справочник вместо
+ * запроса на строку таблицы (N+1). Возвращает массив guid => наименование.
+ */
+function odatatest_resolve_references($entity_set, $keys)
+{
+    $unique = array();
+    foreach ($keys as $key) {
+        $key = (string) $key;
+        if ($key !== '' && $key !== '00000000-0000-0000-0000-000000000000') {
+            $unique[$key] = true;
+        }
+    }
+    if (!$unique) {
+        return array();
+    }
+    $conditions = array();
+    foreach (array_keys($unique) as $key) {
+        $conditions[] = "Ref_Key eq guid'" . $key . "'";
+    }
+    $result = odatatest_fetch_list(array(
+        'entity_set' => $entity_set,
+        'select' => 'Ref_Key,Description',
+        'filters' => array('(' . implode(' or ', $conditions) . ')'),
+        'sort_property' => '',
+        'sort_order' => '',
+        'limit' => 0,
+        'offset' => 0,
+        'count_total' => false,
+    ));
+    $map = array();
+    foreach ($result['rows'] as $row) {
+        $map[$row->Ref_Key] = $row->Description;
+    }
+    return $map;
+}
+
+/**
+ * Запись табличной части.
+ *
+ * Стандартный OData не умеет менять строку по отдельности: табличная часть
+ * передаётся ЦЕЛИКОМ (replace collection). Отсюда два обязательных условия:
+ *
+ *  1) строки перечитываются со ВСЕМИ реквизитами и правки накладываются
+ *     поверх -- иначе те 30+ полей строки, которых нет на форме
+ *     (упаковка, вид цены, ставка НДС...), будут стёрты;
+ *  2) обязателен маркер типа коллекции @odata.type, иначе 1С не понимает,
+ *     что за строки ей прислали.
+ *
+ * Гарантий атомарности тут нет: If-Match платформой игнорируется
+ * (см. doc/deferred-todo.md), поэтому параллельная правка тех же строк
+ * в 1С всё ещё может быть потеряна.
+ */
+function odatatest_table_payload($namespace, $entity_set, $table_name, $rows)
+{
+    $row_type = $entity_set . '_' . $table_name . '_RowType';
+    return array(
+        $table_name . '@odata.type' => 'Collection(' . $namespace . '.' . $row_type . ')',
+        $table_name => $rows,
+    );
+}
+
+/**
+ * Накладывает правки формы на полностью прочитанную строку.
+ * $edits: имя реквизита => значение. Остальные реквизиты сохраняются как есть.
+ */
+function odatatest_merge_line($line, $edits)
+{
+    $row = (array) $line;
+    // Служебные поля, которые 1С отдаёт при чтении, но не принимает при записи.
+    unset($row['Ref_Key']);
+    foreach ($edits as $name => $value) {
+        $row[$name] = $value;
+    }
+    return $row;
+}
+
 /** Пустая ссылка в 1С -- нулевой GUID, а не пустая строка. */
 function odatatest_guid_or_empty($value)
 {

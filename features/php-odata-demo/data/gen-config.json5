@@ -85,6 +85,14 @@
       title: 'Заказ поставщику',
       columns: ['Number', 'Date', 'Организация_Key', 'Контрагент_Key', 'СуммаДокумента', 'Комментарий', 'Posted', 'DeletionMark'],
       cardFields: ['Number', 'Date', 'Организация_Key', 'Контрагент_Key', 'Склад_Key', 'СуммаДокумента', 'Комментарий', 'Posted', 'DeletionMark'],
+      // Табличные части карточки. Колонки задаются явно: у Товаров их 30+,
+      // и показывать всё подряд бессмысленно.
+      tables: {
+        Товары: {
+          title: 'Товары',
+          columns: ['Номенклатура_Key', 'Количество', 'Цена', 'Сумма'],
+        },
+      },
       defaultSort: 'date',
     },
     {
@@ -93,6 +101,12 @@
       title: 'Выпуск продукции',
       columns: ['Number', 'Date', 'Организация_Key', 'Комментарий', 'Posted', 'DeletionMark'],
       cardFields: ['Number', 'Date', 'Организация_Key', 'Комментарий', 'Posted', 'DeletionMark'],
+      tables: {
+        Товары: {
+          title: 'Продукция',
+          columns: ['Номенклатура_Key', 'Количество'],
+        },
+      },
       defaultSort: 'date',
     },
     {

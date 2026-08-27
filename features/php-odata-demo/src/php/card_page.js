@@ -71,7 +71,155 @@ function gen_field_post(field) {
     }
 }
 
-function gen_card_page({document, entity_set, fields, select_fields, expand, read_only}) {
+
+// Табличные части в стиле строк документа Dolibarr (noborder + liste_titre).
+// Ссылочные колонки показываются наименованиями: GUID'ы строк разрешаются
+// одним запросом на справочник, а не запросом на строку.
+function gen_tables_block(tables) {
+    if (tables.length === 0) {
+        return '';
+    }
+    const blocks = tables.map((table) => {
+        const heads = table.columns.map((column) => `
+        print '<td class="liste_titre${column.kind === 'number' ? ' right' : ''}">' . ${php_string(column.label)} . '</td>';`).join('');
+        const inputs = table.columns.map((column) => {
+            const input_name = `line_${table.slug}_${column.slug}[]`;
+            if (column.kind === 'reference') {
+                // Ссылку в строке правим выбором из справочника по наименованию:
+                // ajax-подсказка та же, что и в шапке.
+                return `
+            print '<td>';
+            print '<input type="hidden" name="${input_name}" id="line_${table.slug}_${column.slug}_'.$index.'" value="'.dol_escape_htmltag($line->{${php_string(column.name)}}).'">';
+            print '<input type="text" class="flat minwidth200" id="line_${table.slug}_${column.slug}_'.$index.'_label" value="'.dol_escape_htmltag(isset($references[${php_string(column.ref_target)}][$line->{${php_string(column.name)}}]) ? $references[${php_string(column.ref_target)}][$line->{${php_string(column.name)}}] : '').'" disabled>';
+            print '</td>';`;
+            }
+            if (column.kind === 'number') {
+                return `
+            print '<td class="right"><input type="text" class="flat maxwidth75 right" name="${input_name}" value="'.dol_escape_htmltag($line->{${php_string(column.name)}}).'"></td>';`;
+            }
+            return `
+            print '<td><input type="text" class="flat" name="${input_name}" value="'.dol_escape_htmltag($line->{${php_string(column.name)}}).'"></td>';`;
+        }).join('');
+
+        const cells = table.columns.map((column) => {
+            if (column.kind === 'reference') {
+                return `
+            print '<td>' . dol_escape_htmltag(isset($references[${php_string(column.ref_target)}][$line->{${php_string(column.name)}}]) ? $references[${php_string(column.ref_target)}][$line->{${php_string(column.name)}}] : '') . '</td>';`;
+            }
+            if (column.kind === 'number') {
+                return `
+            print '<td class="right">' . price($line->{${php_string(column.name)}}) . '</td>';`;
+            }
+            if (column.kind === 'date') {
+                return `
+            print '<td>' . dol_print_date(odatatest_parse_date($line->{${php_string(column.name)}}), 'day', 'tzuser') . '</td>';`;
+            }
+            return `
+            print '<td>' . dol_escape_htmltag($line->{${php_string(column.name)}}) . '</td>';`;
+        }).join('');
+        return `
+    print '<br>';
+    print load_fiche_titre(${php_string(table.title)}, '', '');
+    print '<div class="div-table-responsive-no-min">';
+    print '<table class="noborder centpercent">';
+    print '<tr class="liste_titre">';
+    print '<td class="liste_titre" width="30">#</td>';${heads}
+    print '<td class="liste_titre center" width="40">' . ($edit_mode ? $langs->trans('Delete') : '') . '</td>';
+    print '</tr>';
+    $lines = isset($tables[${php_string(table.name)}]) ? $tables[${php_string(table.name)}] : array();
+    if (!$lines) {
+        print '<tr class="oddeven"><td colspan="' . ${table.columns.length + 2} . '"><span class="opacitymedium">' . $langs->trans('NoRecordFound') . '</span></td></tr>';
+    }
+    $index = 0;
+    foreach ($lines as $line) {
+        print '<tr class="oddeven">';
+        print '<td>' . dol_escape_htmltag($line->LineNumber) . '</td>';
+        if ($edit_mode) {
+            // LineNumber уезжает скрытым полем: он адресует строку при
+            // сборке новой коллекции. Между запросами он нестабилен,
+            // поэтому используется только внутри одного сохранения.
+            print '<input type="hidden" name="line_${table.slug}_number[]" value="' . dol_escape_htmltag($line->LineNumber) . '">';
+        }
+        if ($edit_mode) {${inputs}
+        } else {${cells}
+        }
+        if ($edit_mode) {
+            print '<td class="center"><input type="checkbox" name="line_${table.slug}_delete[]" value="' . (int) $index . '"></td>';
+        } else {
+            print '<td></td>';
+        }
+        print '</tr>';
+        $index++;
+    }
+    print '</table>';
+    print '</div>';`;
+    }).join('\n');
+
+    // Разрешение ссылок: собираем GUID'ы по всем таблицам и спрашиваем
+    // каждый справочник один раз.
+    const reference_columns = tables.flatMap((table) => table.columns
+        .filter((column) => column.kind === 'reference')
+        .map((column) => ({table: table.name, name: column.name, ref_target: column.ref_target})));
+    const resolve = reference_columns.map((column) => `
+$keys = array();
+foreach (isset($tables[${php_string(column.table)}]) ? $tables[${php_string(column.table)}] : array() as $line) {
+    $keys[] = $line->{${php_string(column.name)}};
+}
+$references[${php_string(column.ref_target)}] = odatatest_resolve_references(${php_string(column.ref_target)}, $keys)
+    + (isset($references[${php_string(column.ref_target)}]) ? $references[${php_string(column.ref_target)}] : array());`).join('');
+
+    return `
+$tables = odatatest_fetch_tables($entity_set, $ref, array(${tables.map((table) => php_string(table.name)).join(', ')}));
+$references = array();${resolve}
+${blocks}
+`;
+}
+
+
+// Сборка табличных частей для записи. Строки перечитываются целиком и правки
+// накладываются поверх: OData заменяет коллекцию целиком, поэтому всё, что
+// не отправлено, будет потеряно.
+function gen_tables_save(tables, namespace) {
+    if (tables.length === 0) {
+        return '';
+    }
+    return tables.map((table) => {
+        const edits = table.columns.map((column) => {
+            const post = column.kind === 'number'
+                ? `(float) price2num($posted_${column.slug}[$index])`
+                : (column.kind === 'reference'
+                    ? `odatatest_guid_or_empty($posted_${column.slug}[$index])`
+                    : `$posted_${column.slug}[$index]`);
+            return `
+                ${php_string(column.name)} => isset($posted_${column.slug}[$index]) ? ${post} : $line->{${php_string(column.name)}},`;
+        }).join('');
+        const posted = table.columns.map((column) => `
+        $posted_${column.slug} = GETPOST('line_${table.slug}_${column.slug}', 'array');`).join('');
+
+        return `
+    // --- табличная часть ${table.name}
+    $current = odatatest_fetch_tables($entity_set, $ref, array(${php_string(table.name)}));
+    $deleted = GETPOST('line_${table.slug}_delete', 'array');${posted}
+    $rows = array();
+    $index = 0;
+    $line_number = 0;
+    foreach ($current[${php_string(table.name)}] as $line) {
+        if (in_array((string) $index, $deleted, true)) {
+            $index++;
+            continue;
+        }
+        $line_number++;
+        $edits = array(
+            'LineNumber' => $line_number,${edits}
+        );
+        $rows[] = odatatest_merge_line($line, $edits);
+        $index++;
+    }
+    $payload = $payload + odatatest_table_payload(${php_string(namespace)}, $entity_set, ${php_string(table.name)}, $rows);`;
+    }).join('\n');
+}
+
+function gen_card_page({document, entity_set, fields, select_fields, expand, read_only, tables, namespace}) {
     const editable = fields.filter((field) => field.editable);
     const rows = fields.map((field) => `
     print '<tr><td class="titlefield">' . ${php_string(field.label)} . '</td><td>';
@@ -129,6 +277,7 @@ if ($action === 'update' && $can_write) {
         // см. doc/deferred-todo.md.
         $payload['Number'] = GETPOST('document_number', 'alphanohtml');
 ${editable.map((field) => '        ' + gen_field_post(field)).join('\n')}
+${gen_tables_save(tables, namespace)}
         $result = odatatest_update_entity($entity_set, $ref, $payload, GETPOST('data_version', 'alphanohtml'));
         if ($result['ok']) {
             setEventMessages('Документ записан в 1С', null, 'mesgs');
@@ -168,6 +317,8 @@ if ($edit_mode) {
 print '<table class="border centpercent tableforfield">';
 ${rows}
 print '</table>';
+
+${gen_tables_block(tables)}
 
 if ($edit_mode) {
     print '<div class="center">';

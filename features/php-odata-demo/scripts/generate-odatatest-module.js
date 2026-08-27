@@ -17,7 +17,7 @@ const DOL_SYSTEM_DATA = require(pth.join(DOBAERP, 'idiomlibutils/dol_system_data
 const {all_classes} = require('../src/odatatest_app_data');
 const {ODataTableRowSource} = require('../src/idiomlib/dol_row_source_odata');
 const {build_document_list_fields} = require('../src/pages/doc_list_fields');
-const {build_document_card_fields} = require('../src/pages/doc_card_fields');
+const {build_document_card_fields, build_document_table_columns} = require('../src/pages/doc_card_fields');
 const {gen_card_page} = require('../src/php/card_page');
 const {generate_module_class} = require('../src/idiomlib/dol_module');
 const {gen_env_secrets_include, gen_client_include, gen_module_css, gen_module_js, gen_admin_setup_page, gen_page_access_include, gen_lookup_ajax} = require('../src/php/runtime_lib');
@@ -45,7 +45,7 @@ async function main() {
         if (!entity) throw new Error(`${document.name}: no metadata, re-run read-1c-odata-metadata.js`);
         const {fields, field_map, expand} = build_document_list_fields(entity, document);
         await generate_list_page({config, document, entity, fields, field_map, expand, output_dir});
-        await generate_card_page({document, entity, output_dir});
+        await generate_card_page({document, entity, dbinfo, output_dir});
     }
     const connection = await load_odata_connection();
     config.catalogEntitySets = connection.catalog_entity_sets;
@@ -133,7 +133,7 @@ if (require.main === module) {
 // второй уровень под статическим пунктом "Документы", чтобы рядом можно было
 // добавлять другие статические пункты первого уровня.
 // Карточка документа: просмотр и редактирование шапки.
-async function generate_card_page({document, entity, output_dir}) {
+async function generate_card_page({document, entity, dbinfo, output_dir}) {
     const {fields, expand} = build_document_card_fields(entity, document);
     const select = ['Ref_Key', 'DataVersion', ...fields.map((field) => field.name), ...expand.map((name) => `${name}/Description`)];
     const text = gen_card_page({
@@ -143,6 +143,8 @@ async function generate_card_page({document, entity, output_dir}) {
         select_fields: [...new Set(select)],
         expand,
         read_only: Boolean(document.readOnly),
+        tables: build_document_table_columns(dbinfo, entity, document),
+        namespace: dbinfo.namespace,
     });
     await afs.writeFile(pth.join(output_dir, `${document.slug}-card.php`), text);
 }
