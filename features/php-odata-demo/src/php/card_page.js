@@ -101,6 +101,20 @@ function gen_tables_block(tables) {
             print '<td><input type="text" class="flat" name="${input_name}" value="'.dol_escape_htmltag($line->{${php_string(column.name)}}).'"></td>';`;
         }).join('');
 
+        const new_inputs = table.columns.map((column) => {
+            const input_name = `line_${table.slug}_new_${column.slug}`;
+            if (column.kind === 'reference') {
+                return `
+        print '<td>';
+        print '<input type="hidden" name="${input_name}" id="${input_name}" value="">';
+        print '<input type="text" class="flat minwidth200" name="${input_name}_label" id="${input_name}_label" value="" placeholder="' . ${php_string('добавить: ' + column.label)} . '">';
+        print ajax_autocompleter('', '${input_name}', DOL_URL_ROOT.'/custom/odatatest/ajax/lookup.php?entity_set='.urlencode(${php_string(column.ref_target)}), '', 2, 0);
+        print '</td>';`;
+            }
+            return `
+        print '<td${column.kind === 'number' ? ' class="right"' : ''}><input type="text" class="flat maxwidth75${column.kind === 'number' ? ' right' : ''}" name="${input_name}" value=""></td>';`;
+        }).join('');
+
         const cells = table.columns.map((column) => {
             if (column.kind === 'reference') {
                 return `
@@ -151,6 +165,15 @@ function gen_tables_block(tables) {
         print '</tr>';
         $index++;
     }
+    if ($edit_mode) {
+        // Пустая строка для добавления. 1С принимает новую строку с одними
+        // только реквизитами формы -- остальные заполняются значениями по
+        // умолчанию (проверено: Упаковка_Key приходит нулевым GUID).
+        print '<tr class="oddeven">';
+        print '<td><span class="opacitymedium">+</span></td>';${new_inputs}
+        print '<td></td>';
+        print '</tr>';
+    }
     print '</table>';
     print '</div>';`;
     }).join('\n');
@@ -193,6 +216,18 @@ function gen_tables_save(tables, namespace) {
             return `
                 ${php_string(column.name)} => isset($posted_${column.slug}[$index]) ? ${post} : $line->{${php_string(column.name)}},`;
         }).join('');
+        const new_values = table.columns.map((column) => {
+            const post = `GETPOST('line_${table.slug}_new_${column.slug}', 'alphanohtml')`;
+            const value = column.kind === 'number'
+                ? `(float) price2num(${post})`
+                : (column.kind === 'reference' ? `odatatest_guid_or_empty(${post})` : post);
+            return `${php_string(column.name)} => ${value}`;
+        }).join(', ');
+
+        const new_raw = table.columns
+            .map((column) => `GETPOST('line_${table.slug}_new_${column.slug}', 'alphanohtml')`)
+            .join(', ');
+
         const posted = table.columns.map((column) => `
         $posted_${column.slug} = GETPOST('line_${table.slug}_${column.slug}', 'array');`).join('');
 
@@ -215,6 +250,23 @@ function gen_tables_save(tables, namespace) {
         $rows[] = odatatest_merge_line($line, $edits);
         $index++;
     }
+    // Новая строка добавляется, только если в ней что-то заполнено:
+    // пустая форма не должна плодить мусорные строки.
+    $new_values = array(${new_values});
+    // Решение "добавлять ли строку" принимается по СЫРЫМ значениям формы:
+    // после преобразования пустое число становится 0.0, и пустая строка
+    // формы выглядела бы заполненной.
+    $new_raw = array(${new_raw});
+    $has_new = false;
+    foreach ($new_raw as $new_value) {
+        if (trim((string) $new_value) !== '') {
+            $has_new = true;
+        }
+    }
+    if ($has_new) {
+        $rows[] = array('LineNumber' => $line_number + 1) + $new_values;
+    }
+
     $payload = $payload + odatatest_table_payload(${php_string(namespace)}, $entity_set, ${php_string(table.name)}, $rows);`;
     }).join('\n');
 }
