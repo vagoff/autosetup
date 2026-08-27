@@ -1,0 +1,21 @@
+// Единый конфиг генератора модуля Dolibarr `odatatest`.
+// Тут и только тут: где чужие исходники, куда генерим, какие документы
+// показываем и как они выглядят. В коде генератора констант нет.
+{
+  // Исходное дерево dobaerp: оттуда берутся переиспользуемые idiomlib-модули
+  // и туда же наши правки должны вливаться обратно (см. doc/merge-back.md).
+  dobaerp: {
+    root: '/data/wd/aibox/dobaerp',
+    // Полная перегенерация WMS -- эталон для проверки, что расшивка
+    // idiomlib от SQL не изменила ни байта в существующем выходе.
+    generatorScript: 'src/wms/wms_app_gen.js',
+    docrootSubdirectory: 'output/docroot',
+    // Файлы, которые мы держим у себя расшитыми и подменяем в песочнице.
+    // Ключ -- путь внутри dobaerp, значение -- путь внутри нашего проекта.
+    overlay: {
+      'src/idiomlib/dol_table_layout.js': 'src/idiomlib/dol_table_layout.js',
+    },
+    // Сравниваем не только docroot: генератор пишет ещё и в src/wms/*_auto.js.
+    comparedDirectories: ['output/docroot', 'src/wms'],
+  },
+}
