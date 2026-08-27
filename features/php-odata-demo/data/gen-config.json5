@@ -20,6 +20,14 @@
         from: 'src/idiomlib/dol_table_layout.js',
         upstream: 'upstream/dol_table_layout.js.orig',
       },
+      'src/idiomlib/dol_templates.js': {
+        from: 'src/idiomlib/dol_templates.js',
+        upstream: 'upstream/dol_templates.js.orig',
+      },
+      'src/idiomlib/dol_module.js': {
+        from: 'src/idiomlib/dol_module.js',
+        upstream: 'upstream/dol_module.js.orig',
+      },
       'src/idiomlib/dol_row_source_sql.js': {
         from: 'src/idiomlib/dol_row_source_sql.js',
         upstream: null,
@@ -28,4 +36,79 @@
     // Сравниваем не только docroot: генератор пишет ещё и в src/wms/*_auto.js.
     comparedDirectories: ['output/docroot', 'src/wms'],
   },
+
+  // Куда генерим модуль Dolibarr и как он называется.
+  module: {
+    name: 'ODataTest',
+    docrootSubdirectory: 'custom/odatatest',
+    number: 510090,
+    position: 100,
+    version: '1.0',
+    // Короткая аббревиатура для верхнего меню (рядом с WMS и прочими),
+    // полное название -- для списка модулей в админке.
+    menuTitle: 'OData',
+    description: '1С OData: документы',
+    rightsModule: 'odatatest',
+    // Права модуля: без них restrictedArea() отказывает, а страницы модуля
+    // возвращают "Доступ заборонено". WMS обходит это проверкой чужого
+    // модуля ('mrp'), но демо про права так делать не должно.
+    rights: [
+      {code: 'read', label: 'Просмотр документов 1С'},
+      {code: 'write', label: 'Изменение документов 1С'},
+      {code: 'delete', label: 'Удаление документов 1С'},
+    ],
+    // Секреты намеренно ЗА пределами docroot: веб-сервер стенда отдаёт
+    // dot-файлы наружу (проверено: custom/*/.env.secrets скачивается по HTTP),
+    // поэтому защита не должна зависеть от конфигурации сервера.
+    secretsPath: 'output/secrets/odatatest.env',
+    languages: ['ru_RU', 'en_US'],
+  },
+
+  // Подключение к 1С. Значения секретов сюда НЕ попадают: генератор берёт их
+  // из data/1c-odata.json5 и состояния автосетапа и кладёт в .env.secrets.
+  odata: {
+    requestTimeoutSeconds: 30,
+    // Честный тотал через /$count. На текущей копии ИБ это 0.03-0.15 с
+    // (замер в doc/deferred-todo.md), поэтому включён.
+    countTotal: true,
+    listPageSize: 25,
+  },
+
+  // Документы демо. Пятый (ПоступлениеТоваровУслуг) намеренно отсутствует:
+  // 1С отдаёт по нему HTTP 500 на любой запрос, см. doc/deferred-todo.md.
+  // Слаг задан явно: он попадает в имя файла, в ключ колонки и в URL,
+  // и меняться от перестановки документов не должен.
+  documents: [
+    {
+      name: 'ЗаказПоставщику',
+      slug: 'zakaz-postavschiku',
+      title: 'Заказ поставщику',
+      columns: ['Number', 'Date', 'Организация_Key', 'Контрагент_Key', 'СуммаДокумента', 'Комментарий', 'Posted', 'DeletionMark'],
+      defaultSort: 'date',
+    },
+    {
+      name: 'ВыпускПродукции',
+      slug: 'vypusk-produktsii',
+      title: 'Выпуск продукции',
+      columns: ['Number', 'Date', 'Организация_Key', 'Комментарий', 'Posted', 'DeletionMark'],
+      defaultSort: 'date',
+    },
+    {
+      name: 'МаршрутныйЛистПроизводства',
+      slug: 'marshrutnyy-list-proizvodstva',
+      title: 'Маршрутный лист производства',
+      columns: ['Number', 'Date', 'Организация_Key', 'Комментарий', 'Posted', 'DeletionMark'],
+      defaultSort: 'date',
+    },
+    {
+      name: 'ДоступностьРабочихЦентров',
+      slug: 'dostupnost-rabochih-tsentrov',
+      title: 'Доступность рабочих центров',
+      // Право только read (data/1c-odata.json5#rights) -- полигон
+      // для режима просмотра без прав на изменение.
+      readOnly: true,
+      columns: ['Number', 'Date', 'Posted', 'DeletionMark'],
+      defaultSort: 'date',
+    },
+  ],
 }

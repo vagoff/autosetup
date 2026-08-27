@@ -3,13 +3,12 @@ import { executeGuestPowerShell } from './lib/execute-guest-powershell.js';
 import { withGuestSession } from './lib/with-guest-session.js';
 
 const EVENT_KINDS = new Map([
-    ['Microsoft-Windows-Kernel-General:12', 'boot'],
-    ['Microsoft-Windows-Kernel-General:13', 'shutdown-started'],
-    ['Microsoft-Windows-Kernel-Power:41', 'unexpected-restart'],
-    ['USER32:1074', 'shutdown-requested'],
-    ['EventLog:6005', 'event-log-started'],
-    ['EventLog:6006', 'shutdown-completed'],
-    ['EventLog:6008', 'unexpected-shutdown-reported'],
+    ['microsoft-windows-kernel-general:12', 'boot'],
+    ['microsoft-windows-kernel-general:13', 'shutdown-started'],
+    ['microsoft-windows-kernel-power:41', 'unexpected-restart'],
+    ['user32:1074', 'shutdown-requested'],
+    ['eventlog:6006', 'event-log-stopped'],
+    ['eventlog:6008', 'unexpected-shutdown-reported'],
 ]);
 
 function parsePositiveInteger(value, option, maximum) {
@@ -60,8 +59,8 @@ function elapsedSeconds(start, end) {
     return Number.isFinite(seconds) && seconds >= 0 ? Math.round(seconds * 1000) / 1000 : null;
 }
 
-function classifyShutdown({ request, shutdownStarted, shutdownCompleted, unexpectedEvidence }) {
-    if (shutdownCompleted) return request ? 'shutdown-request-recorded-clean' : 'clean-without-shutdown-request';
+function classifyShutdown({ request, shutdownStarted, eventLogStopped, unexpectedEvidence }) {
+    if (eventLogStopped) return request ? 'shutdown-request-recorded-clean' : 'clean-without-shutdown-request';
     if (unexpectedEvidence.length > 0) {
         if (request) return 'shutdown-request-recorded-unclean';
         if (shutdownStarted) return 'shutdown-started-unclean';
@@ -74,7 +73,7 @@ function normalizeEvents(rawEvents) {
     return rawEvents.map((event) => {
         const provider = String(event.provider);
         const id = Number(event.id);
-        const kind = EVENT_KINDS.get(`${provider}:${id}`);
+        const kind = EVENT_KINDS.get(`${provider.toLowerCase()}:${id}`);
         if (!kind) throw new Error(`unexpected shutdown-history event: ${provider}/${id}`);
         return {
             recordId: String(event.recordId),
@@ -107,23 +106,23 @@ export function buildGuestShutdownHistory(rawEvents, { limit, queryLimitReached 
         const afterBoot = events.slice(bootIndex + 1, nextBootIndex);
         const request = findLast(beforeBoot, 'shutdown-requested');
         const shutdownStarted = findLast(beforeBoot, 'shutdown-started');
-        const shutdownCompleted = findLast(beforeBoot, 'shutdown-completed');
+        const eventLogStopped = findLast(beforeBoot, 'event-log-stopped');
         const unexpectedEvidence = afterBoot.filter((event) => (
             event.kind === 'unexpected-restart' || event.kind === 'unexpected-shutdown-reported'
         ));
         const start = request ?? shutdownStarted;
 
         shutdowns.push({
-            status: classifyShutdown({ request, shutdownStarted, shutdownCompleted, unexpectedEvidence }),
+            status: classifyShutdown({ request, shutdownStarted, eventLogStopped, unexpectedEvidence }),
             historyComplete: !(queryLimitReached && bootNumber === 1),
             shutdownRequestedAt: request?.timeCreated ?? null,
             shutdownStartedAt: shutdownStarted?.timeCreated ?? null,
-            shutdownCompletedAt: shutdownCompleted?.timeCreated ?? null,
-            shutdownDurationSeconds: elapsedSeconds(start, shutdownCompleted),
+            eventLogStoppedAt: eventLogStopped?.timeCreated ?? null,
+            requestToEventLogStopSeconds: elapsedSeconds(start, eventLogStopped),
             nextBootAt: events[bootIndex].timeCreated,
             request: serializeEvent(request),
             shutdownStart: serializeEvent(shutdownStarted),
-            shutdownCompletion: serializeEvent(shutdownCompleted),
+            eventLogStop: serializeEvent(eventLogStopped),
             unexpectedRestartEvidence: unexpectedEvidence.map(serializeEvent),
         });
     }
@@ -140,12 +139,12 @@ export function buildGuestShutdownHistoryScript(maxEventRecords) {
     return [
         '$ErrorActionPreference = "Stop"',
         `$maxEventRecords = ${maxEventRecords}`,
-        '$eventIds = @(12, 13, 41, 1074, 6005, 6006, 6008)',
+        '$eventIds = @(12, 13, 41, 1074, 6006, 6008)',
         '$allowed = @{',
         '  "Microsoft-Windows-Kernel-General" = @(12, 13)',
         '  "Microsoft-Windows-Kernel-Power" = @(41)',
         '  "USER32" = @(1074)',
-        '  "EventLog" = @(6005, 6006, 6008)',
+        '  "EventLog" = @(6006, 6008)',
         '}',
         '$rawEvents = @(Get-WinEvent -FilterHashtable @{ LogName = "System"; Id = $eventIds } -MaxEvents $maxEventRecords -ErrorAction Stop)',
         '$events = @()',
@@ -154,7 +153,7 @@ export function buildGuestShutdownHistoryScript(maxEventRecords) {
         '  [xml]$xml = $event.ToXml()',
         '  $data = @()',
         '  foreach ($node in @($xml.Event.EventData.Data)) {',
-        '    if ($null -ne $node) { $data += [ordered]@{ name = [string]$node.Name; value = [string]$node.InnerText }',
+        '    if ($null -ne $node) { $data += [ordered]@{ name = [string]$node.Name; value = [string]$node.InnerText } }',
         '  }',
         '  $events += [ordered]@{',
         '    recordId = [string]$event.RecordId',

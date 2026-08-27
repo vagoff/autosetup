@@ -6,10 +6,17 @@ module.exports = (Super) => (class extends Super {
     // Выборка строк вынесена в подставляемый источник (SQL по умолчанию).
     // Меняется источник -- меняется только он, раскладка таблицы ниже общая.
     get_table_row_source() {
-        if (typeof this._table_row_source === 'undefined') {
-            this._table_row_source = new SqlTableRowSource(this);
+        if (typeof this._table_row_source !== 'undefined') {
+            return this._table_row_source;
         }
-        return this._table_row_source;
+        // Источник можно задать прямо в декларации страницы: значение --
+        // фабрика (gen) => источник. Так страница на 1С OData не тащит за
+        // собой ни строчки SQL, а страницы на БД ничего не замечают.
+        const row_source_factory = this.env.ii && this.env.ii.val('row_source');
+        if (row_source_factory) {
+            return row_source_factory(this);
+        }
+        return new SqlTableRowSource(this);
     }
     set_table_row_source(row_source) {
         this._table_row_source = row_source;

@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "ef2026a333a7058c7c875aefd0ca03c8",
+    "content-hash": "2f243bf4e57d5016b4d95c34d28b1c13",
     "packages": [
         {
             "name": "dakword/odata1c-client",
@@ -737,9 +737,7 @@
     "stability-flags": {},
     "prefer-stable": false,
     "prefer-lowest": false,
-    "platform": {
-        "php": ">=8.0"
-    },
+    "platform": {},
     "platform-dev": {},
-    "plugin-api-version": "2.6.0"
+    "plugin-api-version": "2.9.0"
 }
