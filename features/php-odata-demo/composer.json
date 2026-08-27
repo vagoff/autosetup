@@ -1,0 +1,13 @@
+{
+    "name": "autosetup/php-odata-demo",
+    "description": "Dolibarr module generated over the 1C standard OData interface",
+    "type": "project",
+    "license": "proprietary",
+    "require": {
+        "php": ">=8.0",
+        "dakword/odata1c-client": "0.1.1"
+    },
+    "config": {
+        "sort-packages": true
+    }
+}
