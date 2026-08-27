@@ -84,6 +84,7 @@
       slug: 'zakaz-postavschiku',
       title: 'Заказ поставщику',
       columns: ['Number', 'Date', 'Организация_Key', 'Контрагент_Key', 'СуммаДокумента', 'Комментарий', 'Posted', 'DeletionMark'],
+      cardFields: ['Number', 'Date', 'Организация_Key', 'Контрагент_Key', 'Склад_Key', 'СуммаДокумента', 'Комментарий', 'Posted', 'DeletionMark'],
       defaultSort: 'date',
     },
     {
@@ -91,6 +92,7 @@
       slug: 'vypusk-produktsii',
       title: 'Выпуск продукции',
       columns: ['Number', 'Date', 'Организация_Key', 'Комментарий', 'Posted', 'DeletionMark'],
+      cardFields: ['Number', 'Date', 'Организация_Key', 'Комментарий', 'Posted', 'DeletionMark'],
       defaultSort: 'date',
     },
     {
@@ -98,6 +100,7 @@
       slug: 'marshrutnyy-list-proizvodstva',
       title: 'Маршрутный лист производства',
       columns: ['Number', 'Date', 'Организация_Key', 'Комментарий', 'Posted', 'DeletionMark'],
+      cardFields: ['Number', 'Date', 'Организация_Key', 'Комментарий', 'Posted', 'DeletionMark'],
       defaultSort: 'date',
     },
     {
@@ -108,6 +111,7 @@
       // для режима просмотра без прав на изменение.
       readOnly: true,
       columns: ['Number', 'Date', 'Posted', 'DeletionMark'],
+      cardFields: ['Number', 'Date', 'Posted', 'DeletionMark'],
       defaultSort: 'date',
     },
   ],

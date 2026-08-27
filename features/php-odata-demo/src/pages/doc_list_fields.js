@@ -29,6 +29,8 @@ function field_label(name, entity) {
 }
 
 function build_document_list_fields(entity, document) {
+    // Первая колонка списка ведёт в карточку -- иначе до неё не добраться.
+    const card_url = `${document.slug}-card.php`;
     const by_name = new Map(entity.fields.map((field) => [field.name, field]));
     const fields = {};
     const field_map = {};
@@ -95,11 +97,14 @@ function build_document_list_fields(entity, document) {
             };
             continue;
         }
+        const is_first = position === 0;
         fields[slug] = {
             ...common,
             td_class: 'tdoverflowmax200',
             td_title: `dol_escape_htmltag(${php_property(name)})`,
-            td_block: `dol_escape_htmltag(${php_property(name)})`,
+            td_block: is_first
+                ? `'<a href="'.DOL_URL_ROOT.'/custom/odatatest/${card_url}?ref='.urlencode($obj->Ref_Key).'">'.dol_escape_htmltag(${php_property(name)}).'</a>'`
+                : `dol_escape_htmltag(${php_property(name)})`,
             ti_class: 'liste_titre left',
             ti_expr: `'<input class="flat maxwidth100" type="text" name="${search_param}" value="'.dol_escape_htmltag($${search_param}).'">'`,
             search: {param: search_param, odata_property: name, odata_type: 'string'},

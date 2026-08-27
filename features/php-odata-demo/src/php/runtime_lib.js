@@ -138,6 +138,92 @@ function odatatest_filter_date($property, $value, $operator)
     return $property . ' ' . $operator . " datetime'" . odatatest_format_date($value) . "'";
 }
 
+
+/**
+ * Один документ по ссылке. $expand нужен там же, где и в списке: 1С отдаёт
+ * связанный объект только если его поле указано и в $select.
+ */
+function odatatest_fetch_entity($entity_set, $ref, $select, $expand = array())
+{
+    // Читаем документ как КОЛЛЕКЦИЮ из одной строки, а не как одиночную
+    // сущность. Причина -- ограничение платформы: на запрос вида
+    // Document_X(guid'...') 1С отвечает "Опція $expand не підтримується
+    // у разі запиту одиночних сутностей", а без $expand не получить
+    // представления ссылочных реквизитов. Через $filter всё работает
+    // и укладывается в один запрос вместо запроса на каждую ссылку.
+    if (!preg_match('/^[0-9a-f]{8}(-[0-9a-f]{4}){3}-[0-9a-f]{12}$/i', $ref)) {
+        throw new Exception('odatatest: malformed reference ' . $ref);
+    }
+    $result = odatatest_fetch_list(array(
+        'entity_set' => $entity_set,
+        'select' => $select,
+        'expand' => $expand,
+        'filters' => array("Ref_Key eq guid'" . $ref . "'"),
+        'sort_property' => '',
+        'sort_order' => '',
+        'limit' => 1,
+        'offset' => 0,
+        'count_total' => false,
+    ));
+    if (empty($result['rows'])) {
+        throw new Exception('odatatest: document ' . $ref . ' not found in ' . $entity_set);
+    }
+    return $result['rows'][0];
+}
+
+/**
+ * Запись документа с проверкой версии.
+ *
+ * ВАЖНО про блокировку. Заголовок If-Match эта 1С ИГНОРИРУЕТ: проверено
+ * напрямую -- PATCH с заведомо неверным If-Match вернул HTTP 200 и applied
+ * запись (DataVersion сменился). То есть documented-поведение
+ * "412 Precondition Failed" тут не работает, и полагаться на него нельзя.
+ *
+ * Поэтому версия сверяется приложением: перед записью документ перечитывается
+ * и его DataVersion сравнивается с тем, который ушёл в форму. Это НЕ атомарно
+ * (между проверкой и PATCH остаётся окно в доли секунды), но ловит реальный
+ * сценарий -- пока пользователь заполнял форму, документ изменили в 1С.
+ * If-Match продолжаем слать: он безвреден и заработает, если платформа
+ * начнёт его учитывать.
+ *
+ * Возвращает array('ok' => bool, 'conflict' => bool, 'message' => string).
+ */
+function odatatest_update_entity($entity_set, $ref, $data, $data_version)
+{
+    $current = odatatest_fetch_entity($entity_set, $ref, 'Ref_Key,DataVersion');
+    if ($data_version !== '' && isset($current->DataVersion) && $current->DataVersion !== $data_version) {
+        return array('ok' => false, 'conflict' => true, 'message' => 'DataVersion mismatch');
+    }
+
+    $uri = $entity_set . "(guid'" . $ref . "')";
+    try {
+        $response = odatatest_client()->request('PATCH', $uri, $data, array('If-Match' => $data_version));
+    } catch (Exception $error) {
+        return array('ok' => false, 'conflict' => false, 'message' => $error->getMessage());
+    }
+    if (!is_object($response)) {
+        return array('ok' => false, 'conflict' => false, 'message' => 'unexpected OData response');
+    }
+    if ($response->isOK()) {
+        return array('ok' => true, 'conflict' => false, 'message' => '');
+    }
+    $code = $response->getResponseCode();
+    if ($code === 412) {
+        return array('ok' => false, 'conflict' => true, 'message' => 'DataVersion mismatch');
+    }
+    $message = (string) $response->getOdataErrorMessage();
+    return array('ok' => false, 'conflict' => false, 'message' => $message !== '' ? $message : ('HTTP ' . $code));
+}
+
+/** Пустая ссылка в 1С -- нулевой GUID, а не пустая строка. */
+function odatatest_guid_or_empty($value)
+{
+    $value = trim((string) $value);
+    return preg_match('/^[0-9a-f]{8}(-[0-9a-f]{4}){3}-[0-9a-f]{12}$/i', $value)
+        ? $value
+        : '00000000-0000-0000-0000-000000000000';
+}
+
 /**
  * Представление ссылочного реквизита. 1С отдаёт в поле <Имя>_Key только GUID,
  * поэтому связанный объект подтягивается через $expand одним запросом
@@ -324,3 +410,69 @@ $result = restrictedArea($user, '${rights_module}', '', '', '', '', '', 0);
 }
 
 module.exports.gen_page_access_include = gen_page_access_include;
+
+// Ajax-подсказка для ссылочных реквизитов. Формат ответа -- тот, что ждёт
+// ajax_autocompleter() из core/lib/ajax.lib.php: [{key, value, label}].
+// Справочник приходит параметром, но проверяется по белому списку: иначе
+// страница превратилась бы в произвольный прокси к 1С.
+function gen_lookup_ajax({allowed_entity_sets}) {
+    return `<?php
+
+$res = 0;
+foreach (array('../../../main.inc.php', '../../../../main.inc.php') as $candidate) {
+    if (file_exists(__DIR__ . '/' . $candidate)) {
+        $res = @include __DIR__ . '/' . $candidate;
+        break;
+    }
+}
+if (!$res) {
+    die('Include of main fails');
+}
+require_once __DIR__ . '/../odatatest.inc.php';
+
+if (!$user->hasRight('odatatest', 'read')) {
+    httponly_accessforbidden('Not allowed', 403);
+}
+
+$allowed = array(${allowed_entity_sets.map((name) => `'${name}'`).join(', ')});
+$entity_set = GETPOST('entity_set', 'alphanohtml');
+if (!in_array($entity_set, $allowed, true)) {
+    httponly_accessforbidden('Unknown entity set', 403);
+}
+
+$search = GETPOST('search_' . GETPOST('htmlname', 'aZ09'), 'alphanohtml');
+if ($search === '') {
+    $search = GETPOST('search', 'alphanohtml');
+}
+
+$filters = array();
+if ($search !== '') {
+    $filters[] = odatatest_filter_substring('Description', $search);
+}
+
+$result = odatatest_fetch_list(array(
+    'entity_set' => $entity_set,
+    'select' => 'Ref_Key,Description',
+    'filters' => $filters,
+    'sort_property' => 'Description',
+    'sort_order' => 'asc',
+    'limit' => 20,
+    'offset' => 0,
+    'count_total' => false,
+));
+
+$rows = array();
+foreach ($result['rows'] as $row) {
+    $rows[] = array(
+        'key' => $row->Ref_Key,
+        'value' => $row->Description,
+        'label' => $row->Description,
+    );
+}
+
+header('Content-Type: application/json; charset=UTF-8');
+print json_encode($rows);
+`;
+}
+
+module.exports.gen_lookup_ajax = gen_lookup_ajax;

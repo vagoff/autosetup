@@ -17,8 +17,10 @@ const DOL_SYSTEM_DATA = require(pth.join(DOBAERP, 'idiomlibutils/dol_system_data
 const {all_classes} = require('../src/odatatest_app_data');
 const {ODataTableRowSource} = require('../src/idiomlib/dol_row_source_odata');
 const {build_document_list_fields} = require('../src/pages/doc_list_fields');
+const {build_document_card_fields} = require('../src/pages/doc_card_fields');
+const {gen_card_page} = require('../src/php/card_page');
 const {generate_module_class} = require('../src/idiomlib/dol_module');
-const {gen_env_secrets_include, gen_client_include, gen_module_css, gen_module_js, gen_admin_setup_page, gen_page_access_include} = require('../src/php/runtime_lib');
+const {gen_env_secrets_include, gen_client_include, gen_module_css, gen_module_js, gen_admin_setup_page, gen_page_access_include, gen_lookup_ajax} = require('../src/php/runtime_lib');
 const {ensure_lines} = require('/data/wd/aibox/dev-env/libs/utils/src/ensure_lines');
 const {textUpdateFile} = require(pth.join(DOBAERP, 'textlib/text_update'));
 
@@ -43,8 +45,10 @@ async function main() {
         if (!entity) throw new Error(`${document.name}: no metadata, re-run read-1c-odata-metadata.js`);
         const {fields, field_map, expand} = build_document_list_fields(entity, document);
         await generate_list_page({config, document, entity, fields, field_map, expand, output_dir});
+        await generate_card_page({document, entity, output_dir});
     }
     const connection = await load_odata_connection();
+    config.catalogEntitySets = connection.catalog_entity_sets;
     await generate_runtime_includes({config, connection, output_dir});
     await generate_secrets({config, connection});
     await generate_module_descriptor({config});
@@ -128,6 +132,21 @@ if (require.main === module) {
 // Дескриптор модуля Dolibarr: верхнее меню и левое меню, где документы --
 // второй уровень под статическим пунктом "Документы", чтобы рядом можно было
 // добавлять другие статические пункты первого уровня.
+// Карточка документа: просмотр и редактирование шапки.
+async function generate_card_page({document, entity, output_dir}) {
+    const {fields, expand} = build_document_card_fields(entity, document);
+    const select = ['Ref_Key', 'DataVersion', ...fields.map((field) => field.name), ...expand.map((name) => `${name}/Description`)];
+    const text = gen_card_page({
+        document,
+        entity_set: entity.entity_set,
+        fields,
+        select_fields: [...new Set(select)],
+        expand,
+        read_only: Boolean(document.readOnly),
+    });
+    await afs.writeFile(pth.join(output_dir, `${document.slug}-card.php`), text);
+}
+
 async function generate_module_descriptor({config}) {
     const submenu = {};
     for (const document of config.documents) {
@@ -171,6 +190,7 @@ async function load_odata_connection() {
         login: odata.user.name,
         password,
         server_timezone: odata.serverTimezone,
+        catalog_entity_sets: Object.keys(odata.catalogRights).map((name) => 'Catalog_' + name),
     };
 }
 
@@ -189,6 +209,12 @@ async function generate_runtime_includes({config, connection, output_dir}) {
         await afs.mkdir(pth.join(output_dir, subdir), {recursive: true});
         await afs.writeFile(pth.join(output_dir, subdir, name), text);
     }
+    await afs.mkdir(pth.join(output_dir, 'ajax'), {recursive: true});
+    await afs.writeFile(pth.join(output_dir, 'ajax/lookup.php'), gen_lookup_ajax({
+        // Белый список ровно из catalogRights автосетапа: подсказка не должна
+        // уметь читать произвольный тип 1С.
+        allowed_entity_sets: config.catalogEntitySets,
+    }));
     await afs.writeFile(pth.join(output_dir, 'odatatest.inc.php'), gen_client_include({
         vendor_autoload_path: pth.join(project_dir, 'vendor/autoload.php'),
         server_timezone: connection.server_timezone,
