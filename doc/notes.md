@@ -143,3 +143,22 @@ durable COM1-лога и после появления конфигурируе�
 ---
 
 doc/1c-demo-requirements.md ссылается на несуществующее сейчас разделение прав по операциям (create/update/delete) для OData в самом протоколе — платформа этого не даёт, я это явно задокументировал как ограничение, а не спрятал.
+
+## История завершений Windows
+
+```text
+AUTOSETUP_PROFILE=data/profiles/win11-1c.json5 node src/read-guest-shutdown-history.js
+AUTOSETUP_PROFILE=data/profiles/win11-1c.json5 node src/read-guest-shutdown-history.js --limit 50
+```
+
+`read-guest-shutdown-history.js` только читает `System` Event Log гостя. Он
+сопоставляет `USER32/1074`, `Kernel-General/13`, `EventLog/6006`,
+`Kernel-General/12`, `Kernel-Power/41` и `EventLog/6008` между загрузками.
+`shutdown-request-recorded-clean` означает, что Windows зарегистрировала
+запрос и дошла до `6006` (остановка службы Event Log, доказательство чистого
+пути, но не точная последняя инструкция выключения ОС);
+`shutdown-request-recorded-unclean` — что запрос был, но следующая загрузка
+зафиксировала нештатный конец. Сам Windows-журнал не
+может доказать, что запрос пришёл именно от QMP ACPI, и не различает отключение
+питания от падения гостя: это намеренно остаётся в названиях статусов и raw
+evidence, а не скрывается под ложной точностью.
