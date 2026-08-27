@@ -37,7 +37,13 @@ async function main() {
     // dobaerp. Наши пути все абсолютные, так что смена каталога безопасна.
     process.chdir(config.dobaerp.root);
     const dbinfo = await read_json5(pth.join(project_dir, 'data/dbinfo.json'));
-    const output_dir = pth.join(config.dobaerp.root, config.dobaerp.docrootSubdirectory, config.module.docrootSubdirectory) + pth.sep;
+    // Корень вывода переопределяется переменной окружения -- это нужно
+    // регрессионному тесту, чтобы генерировать во временный каталог и не
+    // трогать рабочий сайт.
+    const output_root = process.env.ODATATEST_OUTPUT_ROOT
+        ? pth.resolve(process.env.ODATATEST_OUTPUT_ROOT)
+        : pth.join(config.dobaerp.root, config.dobaerp.docrootSubdirectory);
+    const output_dir = pth.join(output_root, config.module.docrootSubdirectory) + pth.sep;
     await afs.mkdir(output_dir, {recursive: true});
 
     for (const document of config.documents) {
@@ -49,9 +55,9 @@ async function main() {
     }
     const connection = await load_odata_connection();
     config.catalogEntitySets = connection.catalog_entity_sets;
-    await generate_runtime_includes({config, connection, output_dir});
-    await generate_secrets({config, connection});
-    await generate_module_descriptor({config});
+    await generate_runtime_includes({config, connection, output_dir, output_root});
+    await generate_secrets({config, connection, output_root});
+    await generate_module_descriptor({config, output_root});
     console.log(`${output_dir}: ${config.documents.length} list pages, runtime, secrets, module descriptor`);
 }
 
@@ -152,13 +158,12 @@ async function generate_card_page({document, entity, dbinfo, output_dir}) {
     await afs.writeFile(pth.join(output_dir, `${document.slug}-card.php`), text);
 }
 
-async function generate_module_descriptor({config}) {
+async function generate_module_descriptor({config, output_root}) {
     const submenu = {};
     for (const document of config.documents) {
         submenu[document.slug] = {title: document.title, url: `${document.slug}-list.php`};
     }
-    const site_dir = pth.join(config.dobaerp.root, config.dobaerp.docrootSubdirectory);
-    await generate_module_class(site_dir, {
+    await generate_module_class(output_root, {
         module_name: config.module.name,
         module_dir: config.module.docrootSubdirectory,
         numero: config.module.number,
@@ -199,9 +204,11 @@ async function load_odata_connection() {
     };
 }
 
-async function generate_runtime_includes({config, connection, output_dir}) {
+async function generate_runtime_includes({config, connection, output_dir, output_root}) {
     await afs.writeFile(pth.join(output_dir, 'env_secrets.inc.php'), gen_env_secrets_include({
-        secrets_path: pth.join(config.dobaerp.root, config.module.secretsPath),
+        secrets_path: process.env.ODATATEST_OUTPUT_ROOT
+            ? pth.join(output_root, 'secrets', pth.basename(config.module.secretsPath))
+            : pth.join(config.dobaerp.root, config.module.secretsPath),
     }));
     await afs.writeFile(pth.join(output_dir, 'page_access.inc.php'), gen_page_access_include({
         rights_module: config.module.rightsModule,
@@ -230,8 +237,12 @@ async function generate_runtime_includes({config, connection, output_dir}) {
 // .env.secrets не наш файл целиком: рядом могут лежать чужие секреты.
 // ensure_lines заводит размеченный регион (и сам файл, если его нет),
 // textUpdateFile переписывает ТОЛЬКО этот регион актуальными значениями.
-async function generate_secrets({config, connection}) {
-    const path = pth.join(config.dobaerp.root, config.module.secretsPath);
+async function generate_secrets({config, connection, output_root}) {
+    // Секреты кладём рядом с выводом, но ВНЕ docroot. В тестовом прогоне это
+    // временный каталог, в рабочем -- output/secrets модуля dobaerp.
+    const path = process.env.ODATATEST_OUTPUT_ROOT
+        ? pth.join(output_root, 'secrets', pth.basename(config.module.secretsPath))
+        : pth.join(config.dobaerp.root, config.module.secretsPath);
     await afs.mkdir(pth.dirname(path), {recursive: true});
     const signature = 'odatatest';
     const options = {comment_pfx: '# '};
