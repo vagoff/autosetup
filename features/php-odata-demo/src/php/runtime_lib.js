@@ -319,6 +319,60 @@ function odatatest_merge_line($line, $edits)
     return $row;
 }
 
+/**
+ * Создание документа. Возвращает array('ok', 'ref', 'message').
+ * Номер не передаём: при создании его назначает сама 1С.
+ */
+function odatatest_create_entity($entity_set, $data)
+{
+    try {
+        $response = odatatest_client()->request('POST', $entity_set, $data);
+    } catch (Exception $error) {
+        return array('ok' => false, 'ref' => '', 'message' => $error->getMessage());
+    }
+    if (!is_object($response) || !$response->isOK()) {
+        $message = is_object($response) ? (string) $response->getOdataErrorMessage() : 'no response';
+        return array('ok' => false, 'ref' => '', 'message' => $message);
+    }
+    $entity = $response->value();
+    return array('ok' => true, 'ref' => isset($entity->Ref_Key) ? $entity->Ref_Key : '', 'message' => '');
+}
+
+/**
+ * Пометка удаления (и снятие). В 1С это не отдельная операция, а запись
+ * реквизита DeletionMark -- то есть обычный PATCH со всеми его последствиями,
+ * включая перегенерацию номера. Поэтому номер читается и передаётся обратно.
+ */
+function odatatest_set_deletion_mark($entity_set, $ref, $flag)
+{
+    $current = odatatest_fetch_entity($entity_set, $ref, 'Ref_Key,Number,DataVersion');
+    return odatatest_update_entity($entity_set, $ref, array(
+        'Number' => $current->Number,
+        'DeletionMark' => (bool) $flag,
+    ), isset($current->DataVersion) ? $current->DataVersion : '');
+}
+
+/**
+ * Физическое удаление. В 1С это необратимо и, в отличие от пометки, может
+ * упереться в контроль ссылочной целостности.
+ */
+function odatatest_delete_entity($entity_set, $ref)
+{
+    if (!preg_match('/^[0-9a-f]{8}(-[0-9a-f]{4}){3}-[0-9a-f]{12}$/i', $ref)) {
+        return array('ok' => false, 'message' => 'malformed reference');
+    }
+    try {
+        $response = odatatest_client()->request('DELETE', $entity_set . "(guid'" . $ref . "')");
+    } catch (Exception $error) {
+        return array('ok' => false, 'message' => $error->getMessage());
+    }
+    if (is_object($response) && $response->isOK()) {
+        return array('ok' => true, 'message' => '');
+    }
+    $message = is_object($response) ? (string) $response->getOdataErrorMessage() : 'no response';
+    return array('ok' => false, 'message' => $message !== '' ? $message : 'delete failed');
+}
+
 /** Пустая ссылка в 1С -- нулевой GUID, а не пустая строка. */
 function odatatest_guid_or_empty($value)
 {

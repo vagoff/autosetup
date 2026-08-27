@@ -312,7 +312,9 @@ $list_url = DOL_URL_ROOT . '/custom/odatatest/${document.slug}-list.php';
 // в data/1c-odata.json5: у документа только на чтение форма остаётся смотровой.
 $can_write = ${read_only ? 'false' : "\$user->hasRight('odatatest', 'write')"};
 
-if ($ref === '') {
+$create_mode = (($action === 'create' || $action === 'add') && $can_write);
+
+if ($ref === '' && !$create_mode) {
     header('Location: ' . $list_url);
     exit;
 }
@@ -344,8 +346,51 @@ ${gen_tables_save(tables, namespace)}
     $action = '';
 }
 
-$object = odatatest_fetch_entity($entity_set, $ref, $select, $expand);
-$edit_mode = ($action === 'edit' && $can_write);
+if ($action === 'add' && $can_write) {
+    if (!GETPOST('cancel', 'alpha')) {
+        $payload = array();
+${editable.map((field) => '        ' + gen_field_post(field)).join('\n')}
+        $result = odatatest_create_entity($entity_set, $payload);
+        if ($result['ok']) {
+            setEventMessages('Документ создан в 1С', null, 'mesgs');
+            header('Location: ' . $_SERVER['PHP_SELF'] . '?ref=' . urlencode($result['ref']));
+            exit;
+        }
+        setEventMessages($result['message'], null, 'errors');
+        $action = 'create';
+    } else {
+        header('Location: ' . $list_url);
+        exit;
+    }
+}
+
+if ($action === 'markdelete' && $can_write) {
+    $result = odatatest_set_deletion_mark($entity_set, $ref, true);
+    setEventMessages($result['ok'] ? 'Пометка удаления установлена' : $result['message'], null, $result['ok'] ? 'mesgs' : 'errors');
+    $action = '';
+}
+
+if ($action === 'unmarkdelete' && $can_write) {
+    $result = odatatest_set_deletion_mark($entity_set, $ref, false);
+    setEventMessages($result['ok'] ? 'Пометка удаления снята' : $result['message'], null, $result['ok'] ? 'mesgs' : 'errors');
+    $action = '';
+}
+
+if ($action === 'confirm_delete' && $user->hasRight('odatatest', 'delete') && $can_write) {
+    // Физическое удаление -- отдельная команда, не то же самое, что пометка.
+    $result = odatatest_delete_entity($entity_set, $ref);
+    if ($result['ok']) {
+        setEventMessages('Документ удалён физически', null, 'mesgs');
+        header('Location: ' . $list_url);
+        exit;
+    }
+    setEventMessages($result['message'], null, 'errors');
+    $action = '';
+}
+
+// В режиме создания читать нечего: форма заполняется значениями по умолчанию.
+$object = $create_mode ? new stdClass() : odatatest_fetch_entity($entity_set, $ref, $select, $expand);
+$edit_mode = (($action === 'edit') && $can_write) || $create_mode;
 
 llxHeader('', ${php_string(document.title)});
 
@@ -356,21 +401,38 @@ print dol_get_fiche_head($head, 'card', ${php_string(document.title)}, -1, 'gene
 $linkback = '<a href="' . $list_url . '">' . $langs->trans('BackToList') . '</a>';
 print '<div class="underbanner clearboth"></div>';
 
+if ($action === 'delete') {
+    // Физическое удаление необратимо -- спрашиваем штатным диалогом Dolibarr.
+    print $form->formconfirm(
+        $_SERVER['PHP_SELF'] . '?ref=' . urlencode($ref),
+        'Физическое удаление документа',
+        'Документ будет удалён из 1С безвозвратно. Обычно вместо этого ставят пометку удаления. Продолжить?',
+        'confirm_delete',
+        '',
+        0,
+        1
+    );
+}
+
 if ($edit_mode) {
-    print '<form method="POST" action="' . $_SERVER['PHP_SELF'] . '?ref=' . urlencode($ref) . '">';
+    print '<form method="POST" action="' . $_SERVER['PHP_SELF'] . ($create_mode ? '' : ('?ref=' . urlencode($ref))) . '">';
     print '<input type="hidden" name="token" value="' . newToken() . '">';
-    print '<input type="hidden" name="action" value="update">';
+    print '<input type="hidden" name="action" value="' . ($create_mode ? 'add' : 'update') . '">';
     // DataVersion уезжает в форму и возвращается в If-Match: только так
     // можно заметить чужую запись между чтением и сохранением.
-    print '<input type="hidden" name="data_version" value="' . dol_escape_htmltag($object->DataVersion) . '">';
-    print '<input type="hidden" name="document_number" value="' . dol_escape_htmltag($object->Number) . '">';
+    if (!$create_mode) {
+        print '<input type="hidden" name="data_version" value="' . dol_escape_htmltag($object->DataVersion) . '">';
+        print '<input type="hidden" name="document_number" value="' . dol_escape_htmltag($object->Number) . '">';
+    }
 }
 
 print '<table class="border centpercent tableforfield">';
 ${rows}
 print '</table>';
 
+if (!$create_mode) {
 ${gen_tables_block(tables)}
+}
 
 if ($edit_mode) {
     print '<div class="center">';
@@ -382,10 +444,18 @@ if ($edit_mode) {
 
 print dol_get_fiche_end();
 
-if (!$edit_mode) {
+if (!$edit_mode && !$create_mode) {
     print '<div class="tabsAction">';
     if ($can_write) {
         print dolGetButtonAction('', $langs->trans('Modify'), 'default', $_SERVER['PHP_SELF'] . '?ref=' . urlencode($ref) . '&action=edit', '', true);
+        if (empty($object->DeletionMark)) {
+            print dolGetButtonAction('', 'Пометить на удаление', 'delete', $_SERVER['PHP_SELF'] . '?ref=' . urlencode($ref) . '&action=markdelete&token=' . newToken(), '', true);
+        } else {
+            print dolGetButtonAction('', 'Снять пометку удаления', 'default', $_SERVER['PHP_SELF'] . '?ref=' . urlencode($ref) . '&action=unmarkdelete&token=' . newToken(), '', true);
+        }
+        if ($user->hasRight('odatatest', 'delete')) {
+            print dolGetButtonAction('', 'Удалить физически', 'delete', $_SERVER['PHP_SELF'] . '?ref=' . urlencode($ref) . '&action=delete', '', true);
+        }
     } else {
         print dolGetButtonAction('Только чтение: у типа документа нет права на изменение', $langs->trans('Modify'), 'default', '#', '', false);
     }

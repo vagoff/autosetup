@@ -92,6 +92,9 @@ async function generate_list_page({config, document, entity, fields, field_map, 
                     table_init: `${field_map_var} = ${php_array(field_map)};`,
                     // Идентификатор строки таблицы Dolibarr -- ссылка документа.
                     tr_id_init: `$row_id = $obj->Ref_Key;`,
+                    set_new_card_button: document.readOnly
+                        ? ''
+                        : `$newcardbutton .= dolGetButtonTitle($langs->trans('New'), '', 'fa fa-plus-circle', DOL_URL_ROOT.'/custom/odatatest/${document.slug}-card.php?action=create', '', $user->hasRight('odatatest', 'write') ? 1 : 0);`,
                 },
             },
         ],
