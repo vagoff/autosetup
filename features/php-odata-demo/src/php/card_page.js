@@ -123,6 +123,11 @@ $expand = array(${expand.map((name) => php_string(name)).join(', ')});
 if ($action === 'update' && $can_write) {
     if (!GETPOST('cancel', 'alpha')) {
         $payload = array();
+        // Номер передаётся всегда, хотя он не редактируется. Иначе 1С при
+        // записи перегенерирует его и документ теряет префикс
+        // (ТП00-000001 -> 0000-000001) -- проверено на живой ИБ,
+        // см. doc/deferred-todo.md.
+        $payload['Number'] = GETPOST('document_number', 'alphanohtml');
 ${editable.map((field) => '        ' + gen_field_post(field)).join('\n')}
         $result = odatatest_update_entity($entity_set, $ref, $payload, GETPOST('data_version', 'alphanohtml'));
         if ($result['ok']) {
@@ -157,6 +162,7 @@ if ($edit_mode) {
     // DataVersion уезжает в форму и возвращается в If-Match: только так
     // можно заметить чужую запись между чтением и сохранением.
     print '<input type="hidden" name="data_version" value="' . dol_escape_htmltag($object->DataVersion) . '">';
+    print '<input type="hidden" name="document_number" value="' . dol_escape_htmltag($object->Number) . '">';
 }
 
 print '<table class="border centpercent tableforfield">';
