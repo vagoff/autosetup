@@ -73,8 +73,8 @@ async function make_sandbox(config, overlay_enabled) {
     await afs.cp(pth.join(config.root, config.docrootSubdirectory, 'custom/wms'), pth.join(docroot, 'custom/wms'), {recursive: true});
 
     if (overlay_enabled) {
-        for (const [upstream_path, our_path] of Object.entries(config.overlay)) {
-            await afs.copyFile(pth.join(project_dir, our_path), pth.join(sandbox, upstream_path));
+        for (const [upstream_path, entry] of Object.entries(config.overlay)) {
+            await afs.copyFile(pth.join(project_dir, entry.from), pth.join(sandbox, upstream_path));
         }
     }
     return sandbox;

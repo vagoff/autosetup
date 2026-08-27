@@ -11,9 +11,11 @@ import JSON5 from 'json5';
 const projectDirectory = path.resolve(import.meta.dirname, '../features/php-odata-demo');
 const config = JSON5.parse(await readFile(path.join(projectDirectory, 'data/gen-config.json5'), 'utf8')).dobaerp;
 
-for (const upstreamPath of Object.keys(config.overlay)) {
+for (const [upstreamPath, entry] of Object.entries(config.overlay)) {
+    // Файлы, которых в dobaerp ещё нет, сторожить не от чего.
+    if (entry.upstream === null) continue;
     test(`pristine copy of ${upstreamPath} matches dobaerp`, async () => {
-        const pristine = path.join(projectDirectory, 'upstream', path.basename(upstreamPath) + '.orig');
+        const pristine = path.join(projectDirectory, entry.upstream);
         const actual = await readFile(path.join(config.root, upstreamPath), 'utf8');
         assert.equal(
             await readFile(pristine, 'utf8'),

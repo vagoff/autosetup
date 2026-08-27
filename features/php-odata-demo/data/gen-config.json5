@@ -10,10 +10,20 @@
     // idiomlib от SQL не изменила ни байта в существующем выходе.
     generatorScript: 'src/wms/wms_app_gen.js',
     docrootSubdirectory: 'output/docroot',
-    // Файлы, которые мы держим у себя расшитыми и подменяем в песочнице.
-    // Ключ -- путь внутри dobaerp, значение -- путь внутри нашего проекта.
+    // Файлы, которые мы держим у себя и подменяем в песочнице.
+    // Ключ -- путь внутри dobaerp. `from` -- наш файл, `upstream` -- pristine-копия
+    // оригинала (null, если файл новый и в dobaerp его пока нет).
+    // Разница важна: у заимствованных файлов сторожим дрейф апстрима,
+    // новые при мерже просто добавляются.
     overlay: {
-      'src/idiomlib/dol_table_layout.js': 'src/idiomlib/dol_table_layout.js',
+      'src/idiomlib/dol_table_layout.js': {
+        from: 'src/idiomlib/dol_table_layout.js',
+        upstream: 'upstream/dol_table_layout.js.orig',
+      },
+      'src/idiomlib/dol_row_source_sql.js': {
+        from: 'src/idiomlib/dol_row_source_sql.js',
+        upstream: null,
+      },
     },
     // Сравниваем не только docroot: генератор пишет ещё и в src/wms/*_auto.js.
     comparedDirectories: ['output/docroot', 'src/wms'],
