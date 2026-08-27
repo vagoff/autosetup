@@ -598,10 +598,13 @@ if (!in_array($entity_set, $allowed, true)) {
     httponly_accessforbidden('Unknown entity set', 403);
 }
 
-$search = GETPOST('search_' . GETPOST('htmlname', 'aZ09'), 'alphanohtml');
-if ($search === '') {
-    $search = GETPOST('search', 'alphanohtml');
-}
+// ajax_autocompleter() (core/lib/ajax.lib.php) шлёт термин GET-параметром,
+// который называется как сам $htmlname виджета (см. идиому в
+// core/class/html.form.class.php#select_company() и societe/ajax/company.php),
+// а НЕ 'search_<htmlname>' -- имя без префикса приходит от самой jQuery UI
+// autocomplete, префикс 'search_' носит только видимый текстовый инпут.
+$htmlname = GETPOST('htmlname', 'aZ09');
+$search = ($htmlname !== '') ? GETPOST($htmlname, 'alphanohtml') : '';
 
 $filters = array();
 if ($search !== '') {

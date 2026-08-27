@@ -23,12 +23,15 @@ function gen_field_input(field) {
         case 'number':
             return `print '<input type="text" class="flat maxwidth100 right" name="${name}" value="'.dol_escape_htmltag($value).'">';`;
         case 'reference':
-            // Идиома Dolibarr для больших справочников: инпут + ajax-подсказка.
+            // Идиома Dolibarr для больших справочников (см. Form::select_company()):
+            // видимый текстовый инпут "search_<htmlname>" + ajax_autocompleter(),
+            // который сам печатает единственный hidden-инпут "<htmlname>" со
+            // значением ключа. Свой hidden рядом печатать нельзя -- получится
+            // дубликат id/name, и виджет не находит поле по селектору.
             // Списком тут обойтись нельзя -- в Номенклатуре сотни тысяч позиций.
             return [
-                `print '<input type="hidden" name="${name}" id="${name}" value="'.dol_escape_htmltag($value).'">';`,
-                `print '<input type="text" class="flat minwidth300" name="${name}_label" id="${name}_label" value="'.dol_escape_htmltag(odatatest_presentation($object->{${php_string(field.navigation)}})).'">';`,
-                `print ajax_autocompleter($value, '${name}', DOL_URL_ROOT.'/custom/odatatest/ajax/lookup.php?entity_set='.urlencode(${php_string(field.ref_target)}), '', 2, 0);`,
+                `print '<input type="text" class="flat minwidth300" name="search_${name}" id="search_${name}" value="'.dol_escape_htmltag(odatatest_presentation($object->{${php_string(field.navigation)}})).'">';`,
+                `print ajax_autocompleter($value, '${name}', DOL_URL_ROOT.'/custom/odatatest/ajax/lookup.php', 'entity_set='.urlencode(${php_string(field.ref_target)}).'&htmlname=${name}', 2, 0);`,
             ].join('\n            ');
         default:
             return `print '<input type="text" class="flat minwidth300" name="${name}" value="'.dol_escape_htmltag($value).'">';`;
@@ -86,11 +89,18 @@ function gen_tables_block(tables) {
             const input_name = `line_${table.slug}_${column.slug}[]`;
             if (column.kind === 'reference') {
                 // Ссылку в строке правим выбором из справочника по наименованию:
-                // ajax-подсказка та же, что и в шапке.
+                // ajax-подсказка та же, что и в шапке. htmlname обязан быть
+                // уникальным на строку и не может быть PHP-массивом ('[]') --
+                // ajax_autocompleter() печатает hidden с id === name, а
+                // квадратные скобки ломают jQuery id-селектор. Поэтому имя
+                // строится через $index, а не через общее имя колонки;
+                // на сохранении (gen_tables_save) значение читается по тому
+                // же $index, а не GETPOST(..., 'array').
+                const htmlname = `'line_${table.slug}_${column.slug}_' . $index`;
                 return `
             print '<td>';
-            print '<input type="hidden" name="${input_name}" id="line_${table.slug}_${column.slug}_'.$index.'" value="'.dol_escape_htmltag($line->{${php_string(column.name)}}).'">';
-            print '<input type="text" class="flat minwidth200" id="line_${table.slug}_${column.slug}_'.$index.'_label" value="'.dol_escape_htmltag(isset($references[${php_string(column.ref_target)}][$line->{${php_string(column.name)}}]) ? $references[${php_string(column.ref_target)}][$line->{${php_string(column.name)}}] : '').'" disabled>';
+            print '<input type="text" class="flat minwidth200" name="search_' . ${htmlname} . '" id="search_' . ${htmlname} . '" value="'.dol_escape_htmltag(isset($references[${php_string(column.ref_target)}][$line->{${php_string(column.name)}}]) ? $references[${php_string(column.ref_target)}][$line->{${php_string(column.name)}}] : '').'">';
+            print ajax_autocompleter($line->{${php_string(column.name)}}, ${htmlname}, DOL_URL_ROOT.'/custom/odatatest/ajax/lookup.php', 'entity_set='.urlencode(${php_string(column.ref_target)}).'&htmlname='.(${htmlname}), 2, 0);
             print '</td>';`;
             }
             if (column.kind === 'number') {
@@ -106,9 +116,8 @@ function gen_tables_block(tables) {
             if (column.kind === 'reference') {
                 return `
         print '<td>';
-        print '<input type="hidden" name="${input_name}" id="${input_name}" value="">';
-        print '<input type="text" class="flat minwidth200" name="${input_name}_label" id="${input_name}_label" value="" placeholder="' . ${php_string('добавить: ' + column.label)} . '">';
-        print ajax_autocompleter('', '${input_name}', DOL_URL_ROOT.'/custom/odatatest/ajax/lookup.php?entity_set='.urlencode(${php_string(column.ref_target)}), '', 2, 0);
+        print '<input type="text" class="flat minwidth200" name="search_${input_name}" id="search_${input_name}" value="" placeholder="' . ${php_string('добавить: ' + column.label)} . '">';
+        print ajax_autocompleter('', '${input_name}', DOL_URL_ROOT.'/custom/odatatest/ajax/lookup.php', 'entity_set='.urlencode(${php_string(column.ref_target)}).'&htmlname=${input_name}', 2, 0);
         print '</td>';`;
             }
             return `
@@ -208,11 +217,19 @@ function gen_tables_save(tables, namespace) {
     }
     return tables.map((table) => {
         const edits = table.columns.map((column) => {
+            if (column.kind === 'reference') {
+                // Ссылочная колонка не идёт через $posted_<slug>[$index]: её
+                // htmlname на форме -- не PHP-массив (см. gen_tables_block),
+                // а уникальное на строку имя вида 'line_<table>_<col>_<index>'.
+                // Значение поэтому читается поштучно, тем же $index, которым
+                // и так уже перебираются строки.
+                const field_name = `'line_${table.slug}_${column.slug}_' . $index`;
+                return `
+                ${php_string(column.name)} => GETPOSTISSET(${field_name}) ? odatatest_guid_or_empty(GETPOST(${field_name}, 'alphanohtml')) : $line->{${php_string(column.name)}},`;
+            }
             const post = column.kind === 'number'
                 ? `(float) price2num($posted_${column.slug}[$index])`
-                : (column.kind === 'reference'
-                    ? `odatatest_guid_or_empty($posted_${column.slug}[$index])`
-                    : `$posted_${column.slug}[$index]`);
+                : `$posted_${column.slug}[$index]`;
             return `
                 ${php_string(column.name)} => isset($posted_${column.slug}[$index]) ? ${post} : $line->{${php_string(column.name)}},`;
         }).join('');
@@ -228,7 +245,11 @@ function gen_tables_save(tables, namespace) {
             .map((column) => `GETPOST('line_${table.slug}_new_${column.slug}', 'alphanohtml')`)
             .join(', ');
 
-        const posted = table.columns.map((column) => `
+        // Ссылочные колонки читаются поштучно внутри цикла (см. edits выше),
+        // общий массив для них не собирается.
+        const posted = table.columns
+            .filter((column) => column.kind !== 'reference')
+            .map((column) => `
         $posted_${column.slug} = GETPOST('line_${table.slug}_${column.slug}', 'array');`).join('');
 
         return `
