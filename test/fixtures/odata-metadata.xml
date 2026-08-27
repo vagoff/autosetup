@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<edmx:Edmx xmlns:edmx="http://schemas.microsoft.com/ado/2007/06/edmx" Version="1.0">
+	<edmx:DataServices xmlns:m="http://schemas.microsoft.com/ado/2007/08/dataservices/metadata" m:DataServiceVersion="3.0">
+		<Schema xmlns="http://schemas.microsoft.com/ado/2009/11/edm" Namespace="StandardODATA">
+			<EntityType Name="Catalog_Организации" OpenType="true">
+				<Key><PropertyRef Name="Ref_Key"/></Key>
+				<Property Name="Ref_Key" Type="Edm.Guid" Nullable="false"/>
+				<Property Name="Description" Type="Edm.String" Nullable="true"/>
+			</EntityType>
+			<EntityType Name="Document_ЗаказПоставщику" OpenType="true">
+				<Key><PropertyRef Name="Ref_Key"/></Key>
+				<Property Name="Ref_Key" Type="Edm.Guid" Nullable="false"/>
+				<Property Name="Number" Type="Edm.String" Nullable="true"/>
+				<Property Name="Организация_Key" Type="Edm.Guid" Nullable="true"/>
+				<Property Name="Товары" Type="Collection(StandardODATA.Document_ЗаказПоставщику_Товары_RowType)" Nullable="true"/>
+				<NavigationProperty Name="Организация" Relationship="StandardODATA.Document_ЗаказПоставщику_Организация" FromRole="Begin" ToRole="End"/>
+			</EntityType>
+			<EntityType Name="Document_ЗаказПоставщику_Товары" OpenType="true">
+				<Key><PropertyRef Name="Ref_Key"/><PropertyRef Name="LineNumber"/></Key>
+				<Property Name="Ref_Key" Type="Edm.Guid" Nullable="false"/>
+				<Property Name="LineNumber" Type="Edm.String" Nullable="false"/>
+				<Property Name="Количество" Type="Edm.Double" Nullable="true"/>
+			</EntityType>
+			<EnumType Name="AllowedLength" UnderlyingType="Edm.Int32">
+				<Member Name="Fixed"/><Member Name="Variable"/>
+			</EnumType>
+			<EnumType Name="AllowedLength" UnderlyingType="Edm.Int32">
+				<Member Name="Fixed"/><Member Name="Variable"/>
+			</EnumType>
+			<Association Name="Document_ЗаказПоставщику_Организация">
+				<End Role="Begin" Type="StandardODATA.Document_ЗаказПоставщику" Multiplicity="*"/>
+				<End Role="End" Type="StandardODATA.Catalog_Организации" Multiplicity="0..1"/>
+			</Association>
+		</Schema>
+	</edmx:DataServices>
+</edmx:Edmx>

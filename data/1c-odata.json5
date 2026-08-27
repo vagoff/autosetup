@@ -64,6 +64,11 @@
     runnerScriptFilename: 'run-1c-epf.ps1',
     timeoutSeconds: 180,
   },
+  // Дамп $metadata для генератора модуля Dolibarr (features/php-odata-demo).
+  // Состав дампа не задаётся отдельно: это ровно rights + catalogRights выше.
+  metadata: {
+    dumpPath: 'features/php-odata-demo/data/dbinfo.json',
+  },
   demo: {
     host: '127.0.0.1',
     port: 8090,

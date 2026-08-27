@@ -1,0 +1,5546 @@
+{
+    "namespace": "StandardODATA",
+    "entities": {
+        "Catalog_Контрагенты": {
+            "kind": "catalog",
+            "name": "Контрагенты",
+            "entity_set": "Catalog_Контрагенты",
+            "key": [
+                "Ref_Key"
+            ],
+            "fields": [
+                {
+                    "name": "Ref_Key",
+                    "type": "Edm.Guid",
+                    "nullable": false
+                },
+                {
+                    "name": "Predefined",
+                    "type": "Edm.Boolean",
+                    "nullable": true
+                },
+                {
+                    "name": "PredefinedDataName",
+                    "type": "Edm.String",
+                    "nullable": true
+                },
+                {
+                    "name": "DataVersion",
+                    "type": "Edm.String",
+                    "nullable": true
+                },
+                {
+                    "name": "Description",
+                    "type": "Edm.String",
+                    "nullable": true
+                },
+                {
+                    "name": "DeletionMark",
+                    "type": "Edm.Boolean",
+                    "nullable": true
+                },
+                {
+                    "name": "ОбособленноеПодразделение",
+                    "type": "Edm.Boolean",
+                    "nullable": true
+                },
+                {
+                    "name": "ЮридическоеФизическоеЛицо",
+                    "type": "Edm.String",
+                    "nullable": true
+                },
+                {
+                    "name": "СтранаРегистрации_Key",
+                    "type": "Edm.Guid",
+                    "nullable": true
+                },
+                {
+                    "name": "ГоловнойКонтрагент_Key",
+                    "type": "Edm.Guid",
+                    "nullable": true,
+                    "ref_target": "Catalog_Контрагенты"
+                },
+                {
+                    "name": "ДополнительнаяИнформация",
+                    "type": "Edm.String",
+                    "nullable": true
+                },
+                {
+                    "name": "НаименованиеПолное",
+                    "type": "Edm.String",
+                    "nullable": true
+                },
+                {
+                    "name": "Партнер_Key",
+                    "type": "Edm.Guid",
+                    "nullable": true,
+                    "ref_target": "Catalog_Партнеры"
+                },
+                {
+                    "name": "ЮрФизЛицо",
+                    "type": "Edm.String",
+                    "nullable": true
+                },
+                {
+                    "name": "РегистрационныйНомер",
+                    "type": "Edm.String",
+                    "nullable": true
+                },
+                {
+                    "name": "ПлательщикНДС",
+                    "type": "Edm.Boolean",
+                    "nullable": true
+                },
+                {
+                    "name": "КодПоЕДРПОУ",
+                    "type": "Edm.String",
+                    "nullable": true
+                },
+                {
+                    "name": "НомерСвидетельстваПлательщикаНДС",
+                    "type": "Edm.String",
+                    "nullable": true
+                },
+                {
+                    "name": "ИННПлательщикаНДС",
+                    "type": "Edm.String",
+                    "nullable": true
+                },
+                {
+                    "name": "ДополнятьНаименованиеАдресДаннымиГоловногоКонтрагентаВНН",
+                    "type": "Edm.Boolean",
+                    "nullable": true
+                },
+                {
+                    "name": "КодФилиала",
+                    "type": "Edm.String",
+                    "nullable": true
+                },
+                {
+                    "name": "ИспользоватьЭДО1СЗвит",
+                    "type": "Edm.Boolean",
+                    "nullable": true
+                }
+            ],
+            "tables": {
+                "ДополнительныеРеквизиты": {
+                    "row_type": "Catalog_Контрагенты_ДополнительныеРеквизиты"
+                },
+                "КонтактнаяИнформация": {
+                    "row_type": "Catalog_Контрагенты_КонтактнаяИнформация"
+                }
+            }
+        },
+        "Catalog_Контрагенты_ДополнительныеРеквизиты": {
+            "kind": "table",
+            "name": "Catalog_Контрагенты_ДополнительныеРеквизиты",
+            "entity_set": "Catalog_Контрагенты_ДополнительныеРеквизиты",
+            "key": [
+                "Ref_Key",
+                "LineNumber"
+            ],
+            "fields": [
+                {
+                    "name": "Ref_Key",
+                    "type": "Edm.Guid",
+                    "nullable": false
+                },
+                {
+                    "name": "LineNumber",
+                    "type": "Edm.Int64",
+                    "nullable": false
+                },
+                {
+                    "name": "Свойство_Key",
+                    "type": "Edm.Guid",
+                    "nullable": true
+                },
+                {
+                    "name": "Значение",
+                    "type": "Edm.String",
+                    "nullable": true
+                },
+                {
+                    "name": "ТекстоваяСтрока",
+                    "type": "Edm.String",
+                    "nullable": true
+                },
+                {
+                    "name": "Значение_Type",
+                    "type": "Edm.String",
+                    "nullable": true
+                }
+            ],
+            "tables": {}
+        },
+        "Catalog_Контрагенты_КонтактнаяИнформация": {
+            "kind": "table",
+            "name": "Catalog_Контрагенты_КонтактнаяИнформация",
+            "entity_set": "Catalog_Контрагенты_КонтактнаяИнформация",
+            "key": [
+                "Ref_Key",
+                "LineNumber"
+            ],
+            "fields": [
+                {
+                    "name": "Ref_Key",
+                    "type": "Edm.Guid",
+                    "nullable": false
+                },
+                {
+                    "name": "LineNumber",
+                    "type": "Edm.Int64",
+                    "nullable": false
+                },
+                {
+                    "name": "Тип",
+                    "type": "Edm.String",
+                    "nullable": true
+                },
+                {
+                    "name": "Вид_Key",
+                    "type": "Edm.Guid",
+                    "nullable": true
+                },
+                {
+                    "name": "Представление",
+                    "type": "Edm.String",
+                    "nullable": true
+                },
+                {
+                    "name": "ЗначенияПолей",
+                    "type": "Edm.String",
+                    "nullable": true
+                },
+                {
+                    "name": "Страна",
+                    "type": "Edm.String",
+                    "nullable": true
+                },
+                {
+                    "name": "Регион",
+                    "type": "Edm.String",
+                    "nullable": true
+                },
+                {
+                    "name": "Город",
+                    "type": "Edm.String",
+                    "nullable": true
+                },
+                {
+                    "name": "АдресЭП",
+                    "type": "Edm.String",
+                    "nullable": true
+                },
+                {
+                    "name": "ДоменноеИмяСервера",
+                    "type": "Edm.String",
+                    "nullable": true
+                },
+                {
+                    "name": "НомерТелефона",
+                    "type": "Edm.String",
+                    "nullable": true
+                },
+                {
+                    "name": "НомерТелефонаБезКодов",
+                    "type": "Edm.String",
+                    "nullable": true
+                },
+                {
+                    "name": "ВидДляСписка_Key",
+                    "type": "Edm.Guid",
+                    "nullable": true
+                }
+            ],
+            "tables": {}
+        },
+        "Catalog_Номенклатура": {
+            "kind": "catalog",
+            "name": "Номенклатура",
+            "entity_set": "Catalog_Номенклатура",
+            "key": [
+                "Ref_Key"
+            ],
+            "fields": [
+                {
+                    "name": "Ref_Key",
+                    "type": "Edm.Guid",
+                    "nullable": false
+                },
+                {
+                    "name": "Predefined",
+                    "type": "Edm.Boolean",
+                    "nullable": true
+                },
+                {
+                    "name": "PredefinedDataName",
+                    "type": "Edm.String",
+                    "nullable": true
+                },
+                {
+                    "name": "DataVersion",
+                    "type": "Edm.String",
+                    "nullable": true
+                },
+                {
+                    "name": "Description",
+                    "type": "Edm.String",
+                    "nullable": true
+                },
+                {
+                    "name": "Code",
+                    "type": "Edm.String",
+                    "nullable": true
+                },
+                {
+                    "name": "Parent_Key",
+                    "type": "Edm.Guid",
+                    "nullable": true,
+                    "ref_target": "Catalog_Номенклатура"
+                },
+                {
+                    "name": "IsFolder",
+                    "type": "Edm.Boolean",
+                    "nullable": true
+                },
+                {
+                    "name": "DeletionMark",
+                    "type": "Edm.Boolean",
+                    "nullable": true
+                },
+                {
+                    "name": "НаименованиеПолное",
+                    "type": "Edm.String",
+                    "nullable": true
+                },
+                {
+                    "name": "Артикул",
+                    "type": "Edm.String",
+                    "nullable": true
+                },
+                {
+                    "name": "ВариантОформленияПродажи",
+                    "type": "Edm.String",
+                    "nullable": true
+                },
+                {
+                    "name": "ВесЕдиницаИзмерения_Key",
+                    "type": "Edm.Guid",
+                    "nullable": true
+                },
+                {
+                    "name": "ВесЗнаменатель",
+                    "type": "Edm.Double",
+                    "nullable": true
+                },
+                {
+                    "name": "ВесИспользовать",
+                    "type": "Edm.Boolean",
+                    "nullable": true
+                },
+                {
+                    "name": "ВесМожноУказыватьВДокументах",
+                    "type": "Edm.Boolean",
+                    "nullable": true
+                },
+                {
+                    "name": "ВесЧислитель",
+                    "type": "Edm.Double",
+                    "nullable": true
+                },
+                {
+                    "name": "ВестиУчетПоГТД",
+                    "type": "Edm.Boolean",
+                    "nullable": true
+                },
+                {
+                    "name": "ВестиУчетСертификатовНоменклатуры",
+                    "type": "Edm.Boolean",
+                    "nullable": true
+                },
+                {
+                    "name": "ВидНоменклатуры_Key",
+                    "type": "Edm.Guid",
+                    "nullable": true
+                },
+                {
+                    "name": "ГруппаДоступа_Key",
+                    "type": "Edm.Guid",
+                    "nullable": true
+                },
+                {
+                    "name": "ЕдиницаИзмерения",
+                    "type": "Edm.String",
+                    "nullable": true
+                },
+                {
+                    "name": "ЕдиницаИзмеренияСрокаГодности",
+                    "type": "Edm.String",
+                    "nullable": true
+                },
+                {
+                    "name": "ЕстьТоварыДругогоКачества",
+                    "type": "Edm.Boolean",
+                    "nullable": true
+                },
+                {
+                    "name": "ДлинаЕдиницаИзмерения_Key",
+                    "type": "Edm.Guid",
+                    "nullable": true
+                },
+                {
+                    "name": "ДлинаЗнаменатель",
+                    "type": "Edm.Double",
+                    "nullable": true
+                },
+                {
+                    "name": "ДлинаИспользовать",
+                    "type": "Edm.Boolean",
+                    "nullable": true
+                },
+                {
+                    "name": "ДлинаМожноУказыватьВДокументах",
+                    "type": "Edm.Boolean",
+                    "nullable": true
+                },
+                {
+                    "name": "ДлинаЧислитель",
+                    "type": "Edm.Double",
+                    "nullable": true
+                },
+                {
+                    "name": "ИспользованиеХарактеристик",
+                    "type": "Edm.String",
+                    "nullable": true
+                },
+                {
+                    "name": "ИспользоватьИндивидуальныйШаблонЦенника",
+                    "type": "Edm.Boolean",
+                    "nullable": true
+                },
+                {
+                    "name": "ИспользоватьИндивидуальныйШаблонЭтикетки",
+                    "type": "Edm.Boolean",
+                    "nullable": true
+                },
+                {
+                    "name": "ИспользоватьУпаковки",
+                    "type": "Edm.Boolean",
+                    "nullable": true
+                },
+                {
+                    "name": "Качество",
+                    "type": "Edm.String",
+                    "nullable": true
+                },
+                {
+                    "name": "КодДляПоиска",
+                    "type": "Edm.String",
+                    "nullable": true
+                },
+                {
+                    "name": "Марка_Key",
+                    "type": "Edm.Guid",
+                    "nullable": true
+                },
+                {
+                    "name": "НаборУпаковок_Key",
+                    "type": "Edm.Guid",
+                    "nullable": true
+                },
+                {
+                    "name": "СтавкаНДС",
+                    "type": "Edm.String",
+                    "nullable": true
+                },
+                {
+                    "name": "НоменклатураМногооборотнаяТара_Key",
+                    "type": "Edm.Guid",
+                    "nullable": true,
+                    "ref_target": "Catalog_Номенклатура"
+                },
+                {
+                    "name": "УдалитьОбъем",
+                    "type": "Edm.Double",
+                    "nullable": true
+                },
+                {
+                    "name": "Описание",
+                    "type": "Edm.String",
+                    "nullable": true
+                },
+                {
+                    "name": "ПоставляетсяВМногооборотнойТаре",
+                    "type": "Edm.Boolean",
+                    "nullable": true
+                },
+                {
+                    "name": "Производитель_Key",
+                    "type": "Edm.Guid",
+                    "nullable": true
+                },
+                {
+                    "name": "СкладскаяГруппа_Key",
+                    "type": "Edm.Guid",
+                    "nullable": true
+                },
+                {
+                    "name": "СрокГодности",
+                    "type": "Edm.Int64",
+                    "nullable": true
+                },
+                {
+                    "name": "ГруппаФинансовогоУчета_Key",
+                    "type": "Edm.Guid",
+                    "nullable": true
+                },
+                {
+                    "name": "ТипНоменклатуры",
+                    "type": "Edm.String",
+                    "nullable": true
+                },
+                {
+                    "name": "ТоварнаяКатегория_Key",
+                    "type": "Edm.Guid",
+                    "nullable": true
+                },
+                {
+                    "name": "ФайлКартинки_Key",
+                    "type": "Edm.Guid",
+                    "nullable": true
+                },
+                {
+                    "name": "ФайлОписанияДляСайта_Key",
+                    "type": "Edm.Guid",
+                    "nullable": true
+                },
+                {
+                    "name": "ОбъемЕдиницаИзмерения_Key",
+                    "type": "Edm.Guid",
+                    "nullable": true
+                },
+                {
+                    "name": "ОбъемЗнаменатель",
+                    "type": "Edm.Double",
+                    "nullable": true
+                },
+                {
+                    "name": "ОбъемИспользовать",
+                    "type": "Edm.Boolean",
+                    "nullable": true
+                },
+                {
+                    "name": "ОбъемМожноУказыватьВДокументах",
+                    "type": "Edm.Boolean",
+                    "nullable": true
+                },
+                {
+                    "name": "ОбъемЧислитель",
+                    "type": "Edm.Double",
+                    "nullable": true
+                },
+                {
+                    "name": "ХарактеристикаМногооборотнаяТара_Key",
+                    "type": "Edm.Guid",
+                    "nullable": true
+                },
+                {
+                    "name": "ПлощадьЕдиницаИзмерения_Key",
+                    "type": "Edm.Guid",
+                    "nullable": true
+                },
+                {
+                    "name": "ПлощадьЗнаменатель",
+                    "type": "Edm.Double",
+                    "nullable": true
+                },
+                {
+                    "name": "СхемаОбеспечения_Key",
+                    "type": "Edm.Guid",
+                    "nullable": true
+                },
+                {
+                    "name": "СпособОбеспеченияПотребностей_Key",
+                    "type": "Edm.Guid",
+                    "nullable": true
+                },
+                {
+                    "name": "ПлощадьИспользовать",
+                    "type": "Edm.Boolean",
+                    "nullable": true
+                },
+                {
+                    "name": "ПлощадьМожноУказыватьВДокументах",
+                    "type": "Edm.Boolean",
+                    "nullable": true
+                },
+                {
+                    "name": "ПлощадьЧислитель",
+                    "type": "Edm.Double",
+                    "nullable": true
+                },
+                {
+                    "name": "ЦеноваяГруппа_Key",
+                    "type": "Edm.Guid",
+                    "nullable": true
+                },
+                {
+                    "name": "ШаблонЦенника_Key",
+                    "type": "Edm.Guid",
+                    "nullable": true
+                },
+                {
+                    "name": "ЕдиницаДляОтчетов",
+                    "type": "Edm.String",
+                    "nullable": true
+                },
+                {
+                    "name": "КоэффициентЕдиницыДляОтчетов",
+                    "type": "Edm.Double",
+                    "nullable": true
+                },
+                {
+                    "name": "ШаблонЭтикетки_Key",
+                    "type": "Edm.Guid",
+                    "nullable": true
+                },
+                {
+                    "name": "СезоннаяГруппа_Key",
+                    "type": "Edm.Guid",
+                    "nullable": true
+                },
+                {
+                    "name": "КоллекцияНоменклатуры_Key",
+                    "type": "Edm.Guid",
+                    "nullable": true
+                },
+                {
+                    "name": "ЛьготаНДС",
+                    "type": "Edm.String",
+                    "nullable": true
+                },
+                {
+                    "name": "ИзмеряетсяТолькоВСуммовомВыражении",
+                    "type": "Edm.Boolean",
+                    "nullable": true
+                },
+                {
+                    "name": "ТекстДляПечатиВКолонкеЦенаНалоговойНакладной",
+                    "type": "Edm.String",
+                    "nullable": true
+                },
+                {
+                    "name": "ТекстДляПечатиВКолонкеКоличествоНалоговойНакладной",
+                    "type": "Edm.String",
+                    "nullable": true
+                },
+                {
+                    "name": "Принципал",
+                    "type": "Edm.String",
+                    "nullable": true
+                },
+                {
+                    "name": "Контрагент",
+                    "type": "Edm.String",
+                    "nullable": true
+                },
+                {
+                    "name": "РейтингПродаж_Key",
+                    "type": "Edm.Guid",
+                    "nullable": true
+                },
+                {
+                    "name": "ОбособленнаяЗакупкаПродажа",
+                    "type": "Edm.Boolean",
+                    "nullable": true
+                },
+                {
+                    "name": "ГруппаАналитическогоУчета_Key",
+                    "type": "Edm.Guid",
+                    "nullable": true
+                },
+                {
+                    "name": "НоменклатураГТД_Key",
+                    "type": "Edm.Guid",
+                    "nullable": true
+                },
+                {
+                    "name": "ВладелецСерий_Key",
+                    "type": "Edm.Guid",
+                    "nullable": true
+                },
+                {
+                    "name": "ВладелецХарактеристик_Key",
+                    "type": "Edm.Guid",
+                    "nullable": true
+                },
+                {
+                    "name": "ВладелецТоварныхКатегорий_Key",
+                    "type": "Edm.Guid",
+                    "nullable": true
+                },
+                {
+                    "name": "ПодакцизныйТовар",
+                    "type": "Edm.Boolean",
+                    "nullable": true
+                },
+                {
+                    "name": "СтатьяДекларацииПоАкцизномуНалогу_Key",
+                    "type": "Edm.Guid",
+                    "nullable": true
+                },
+                {
+                    "name": "КодЛьготы",
+                    "type": "Edm.String",
+                    "nullable": true
+                },
+                {
+                    "name": "СтатьиКалькуляции_Key",
+                    "type": "Edm.Guid",
+                    "nullable": true
+                },
+                {
+                    "name": "МинимальнаяПартияВыпуска",
+                    "type": "Edm.Double",
+                    "nullable": true
+                },
+                {
+                    "name": "СтатьяРасходов_Key",
+                    "type": "Edm.Guid",
+                    "nullable": true
+                },
+                {
+                    "name": "ВестиУчетВПМ",
+                    "type": "Edm.Boolean",
+                    "nullable": true
+                },
+                {
+                    "name": "СтатусОбъектаПМ",
+                    "type": "Edm.String",
+                    "nullable": true
+                },
+                {
+                    "name": "Подразделение_Key",
+                    "type": "Edm.Guid",
+                    "nullable": true
+                },
+                {
+                    "name": "ЗаполнятьПодразделениеВРасходах",
+                    "type": "Edm.Boolean",
+                    "nullable": true
+                },
+                {
+                    "name": "Пантон",
+                    "type": "Edm.Boolean",
+                    "nullable": true
+                },
+                {
+                    "name": "ЕдиницаИзмерения_Type",
+                    "type": "Edm.String",
+                    "nullable": true
+                },
+                {
+                    "name": "ЕдиницаДляОтчетов_Type",
+                    "type": "Edm.String",
+                    "nullable": true
+                },
+                {
+                    "name": "Принципал_Type",
+                    "type": "Edm.String",
+                    "nullable": true
+                },
+                {
+                    "name": "Контрагент_Type",
+                    "type": "Edm.String",
+                    "nullable": true
+                }
+            ],
+            "tables": {
+                "ДополнительныеРеквизиты": {
+                    "row_type": "Catalog_Номенклатура_ДополнительныеРеквизиты"
+                }
+            }
+        },
+        "Catalog_Номенклатура_ДополнительныеРеквизиты": {
+            "kind": "table",
+            "name": "Catalog_Номенклатура_ДополнительныеРеквизиты",
+            "entity_set": "Catalog_Номенклатура_ДополнительныеРеквизиты",
+            "key": [
+                "Ref_Key",
+                "LineNumber"
+            ],
+            "fields": [
+                {
+                    "name": "Ref_Key",
+                    "type": "Edm.Guid",
+                    "nullable": false
+                },
+                {
+                    "name": "LineNumber",
+                    "type": "Edm.Int64",
+                    "nullable": false
+                },
+                {
+                    "name": "Свойство_Key",
+                    "type": "Edm.Guid",
+                    "nullable": true
+                },
+                {
+                    "name": "Значение",
+                    "type": "Edm.String",
+                    "nullable": true
+                },
+                {
+                    "name": "ТекстоваяСтрока",
+                    "type": "Edm.String",
+                    "nullable": true
+                },
+                {
+                    "name": "Значение_Type",
+                    "type": "Edm.String",
+                    "nullable": true
+                }
+            ],
+            "tables": {}
+        },
+        "Catalog_Организации": {
+            "kind": "catalog",
+            "name": "Организации",
+            "entity_set": "Catalog_Организации",
+            "key": [
+                "Ref_Key"
+            ],
+            "fields": [
+                {
+                    "name": "Ref_Key",
+                    "type": "Edm.Guid",
+                    "nullable": false
+                },
+                {
+                    "name": "Predefined",
+                    "type": "Edm.Boolean",
+                    "nullable": true
+                },
+                {
+                    "name": "PredefinedDataName",
+                    "type": "Edm.String",
+                    "nullable": true
+                },
+                {
+                    "name": "DataVersion",
+                    "type": "Edm.String",
+                    "nullable": true
+                },
+                {
+                    "name": "Description",
+                    "type": "Edm.String",
+                    "nullable": true
+                },
+                {
+                    "name": "DeletionMark",
+                    "type": "Edm.Boolean",
+                    "nullable": true
+                },
+                {
+                    "name": "ГоловнаяОрганизация_Key",
+                    "type": "Edm.Guid",
+                    "nullable": true,
+                    "ref_target": "Catalog_Организации"
+                },
+                {
+                    "name": "ГрафикРаботы_Key",
+                    "type": "Edm.Guid",
+                    "nullable": true
+                },
+                {
+                    "name": "ИндивидуальныйПредприниматель_Key",
+                    "type": "Edm.Guid",
+                    "nullable": true
+                },
+                {
+                    "name": "УдалитьДопускаютсяВзаиморасчетыСКлиентамиЧерезГоловнуюОрганизацию",
+                    "type": "Edm.Boolean",
+                    "nullable": true
+                },
+                {
+                    "name": "УдалитьДопускаютсяВзаиморасчетыСПоставщикамиЧерезГоловнуюОрганизацию",
+                    "type": "Edm.Boolean",
+                    "nullable": true
+                },
+                {
+                    "name": "ЕстьОбособленныеПодразделения",
+                    "type": "Edm.Boolean",
+                    "nullable": true
+                },
+                {
+                    "name": "ДатаРегистрации",
+                    "type": "Edm.DateTime",
+                    "nullable": true
+                },
+                {
+                    "name": "НаименованиеПолное",
+                    "type": "Edm.String",
+                    "nullable": true
+                },
+                {
+                    "name": "НаименованиеСокращенное",
+                    "type": "Edm.String",
+                    "nullable": true
+                },
+                {
+                    "name": "ОбособленноеПодразделение",
+                    "type": "Edm.Boolean",
+                    "nullable": true
+                },
+                {
+                    "name": "Префикс",
+                    "type": "Edm.String",
+                    "nullable": true
+                },
+                {
+                    "name": "ГрафикРаботыСотрудников_Key",
+                    "type": "Edm.Guid",
+                    "nullable": true
+                },
+                {
+                    "name": "ЦифровойИндексОбособленногоПодразделения",
+                    "type": "Edm.Int64",
+                    "nullable": true
+                },
+                {
+                    "name": "ЮрФизЛицо",
+                    "type": "Edm.String",
+                    "nullable": true
+                },
+                {
+                    "name": "ЮридическоеФизическоеЛицо",
+                    "type": "Edm.String",
+                    "nullable": true
+                },
+                {
+                    "name": "ФайлЛоготип_Key",
+                    "type": "Edm.Guid",
+                    "nullable": true
+                },
+                {
+                    "name": "КодПоЕДРПОУ",
+                    "type": "Edm.String",
+                    "nullable": true
+                },
+                {
+                    "name": "КодКВЕД",
+                    "type": "Edm.String",
+                    "nullable": true
+                },
+                {
+                    "name": "ВЭД",
+                    "type": "Edm.String",
+                    "nullable": true
+                },
+                {
+                    "name": "КодОПФГ",
+                    "type": "Edm.String",
+                    "nullable": true
+                },
+                {
+                    "name": "ОПФГ",
+                    "type": "Edm.String",
+                    "nullable": true
+                },
+                {
+                    "name": "НалоговаяИнспекция_Key",
+                    "type": "Edm.Guid",
+                    "nullable": true
+                },
+                {
+                    "name": "ВестиУчетДенежныхСредствПоОбособленнымПодразделениям",
+                    "type": "Edm.Boolean",
+                    "nullable": true
+                },
+                {
+                    "name": "ОбособленноеПодразделениеПоУмолчанию_Key",
+                    "type": "Edm.Guid",
+                    "nullable": true
+                },
+                {
+                    "name": "НоменклатураЗаполненияНалоговыхНаАванс_Key",
+                    "type": "Edm.Guid",
+                    "nullable": true,
+                    "ref_target": "Catalog_Номенклатура"
+                },
+                {
+                    "name": "ФормироватьИтоговыеНалоговыеВРозницеСводноПоНоменклатуре",
+                    "type": "Edm.Boolean",
+                    "nullable": true
+                },
+                {
+                    "name": "НоменклатураЗаполненияИтоговыхНалоговыхПоРознице_Key",
+                    "type": "Edm.Guid",
+                    "nullable": true,
+                    "ref_target": "Catalog_Номенклатура"
+                },
+                {
+                    "name": "МоментОпределенияБазыНДСПоПродажам",
+                    "type": "Edm.String",
+                    "nullable": true
+                },
+                {
+                    "name": "МоментОпределенияБазыНДСПоЗакупкам",
+                    "type": "Edm.String",
+                    "nullable": true
+                },
+                {
+                    "name": "МоментОпределенияБазыНДСПоЭкспорту",
+                    "type": "Edm.String",
+                    "nullable": true
+                },
+                {
+                    "name": "ОтветственныйЗаВыпискуНалоговыхДокументов_Key",
+                    "type": "Edm.Guid",
+                    "nullable": true
+                },
+                {
+                    "name": "ДатаНачалаИспользованияЗвит1С",
+                    "type": "Edm.DateTime",
+                    "nullable": true
+                },
+                {
+                    "name": "ФайлФаксимильнаяПечать_Key",
+                    "type": "Edm.Guid",
+                    "nullable": true
+                },
+                {
+                    "name": "ФайлФаксимильнаяПодпись_Key",
+                    "type": "Edm.Guid",
+                    "nullable": true
+                },
+                {
+                    "name": "ДопускаютсяВзаиморасчетыЧерезГоловнуюОрганизацию",
+                    "type": "Edm.Boolean",
+                    "nullable": true
+                },
+                {
+                    "name": "КодКОАТУУ",
+                    "type": "Edm.String",
+                    "nullable": true
+                },
+                {
+                    "name": "Территория",
+                    "type": "Edm.String",
+                    "nullable": true
+                },
+                {
+                    "name": "КодКФВ",
+                    "type": "Edm.String",
+                    "nullable": true
+                },
+                {
+                    "name": "ФормаСобственности",
+                    "type": "Edm.String",
+                    "nullable": true
+                },
+                {
+                    "name": "КодСПОДУ",
+                    "type": "Edm.String",
+                    "nullable": true
+                },
+                {
+                    "name": "ОрганГУ",
+                    "type": "Edm.String",
+                    "nullable": true
+                },
+                {
+                    "name": "КодЗКГНГ",
+                    "type": "Edm.String",
+                    "nullable": true
+                },
+                {
+                    "name": "Отрасль",
+                    "type": "Edm.String",
+                    "nullable": true
+                },
+                {
+                    "name": "КлассПрофессиональногоРиска",
+                    "type": "Edm.String",
+                    "nullable": true
+                },
+                {
+                    "name": "НомерРегистрации",
+                    "type": "Edm.String",
+                    "nullable": true
+                },
+                {
+                    "name": "КемЗарегистрирована",
+                    "type": "Edm.String",
+                    "nullable": true
+                },
+                {
+                    "name": "НомерРегистрацииПФ",
+                    "type": "Edm.String",
+                    "nullable": true
+                },
+                {
+                    "name": "КодОрганаПФУ",
+                    "type": "Edm.String",
+                    "nullable": true
+                },
+                {
+                    "name": "НомерРегистрацииВСлужбеЗанятости",
+                    "type": "Edm.String",
+                    "nullable": true
+                },
+                {
+                    "name": "НомерФСС",
+                    "type": "Edm.String",
+                    "nullable": true
+                },
+                {
+                    "name": "НомерФССНесчСлучай",
+                    "type": "Edm.String",
+                    "nullable": true
+                },
+                {
+                    "name": "НазваниеРабочегоОрганаФонда",
+                    "type": "Edm.String",
+                    "nullable": true
+                },
+                {
+                    "name": "ФИОДиректораФонда_Key",
+                    "type": "Edm.Guid",
+                    "nullable": true
+                },
+                {
+                    "name": "ОрганСоциальнойЗащитыНаселения",
+                    "type": "Edm.String",
+                    "nullable": true
+                },
+                {
+                    "name": "НомерФССУ",
+                    "type": "Edm.String",
+                    "nullable": true
+                }
+            ],
+            "tables": {
+                "ДополнительныеРеквизиты": {
+                    "row_type": "Catalog_Организации_ДополнительныеРеквизиты"
+                },
+                "КонтактнаяИнформация": {
+                    "row_type": "Catalog_Организации_КонтактнаяИнформация"
+                }
+            }
+        },
+        "Catalog_Организации_ДополнительныеРеквизиты": {
+            "kind": "table",
+            "name": "Catalog_Организации_ДополнительныеРеквизиты",
+            "entity_set": "Catalog_Организации_ДополнительныеРеквизиты",
+            "key": [
+                "Ref_Key",
+                "LineNumber"
+            ],
+            "fields": [
+                {
+                    "name": "Ref_Key",
+                    "type": "Edm.Guid",
+                    "nullable": false
+                },
+                {
+                    "name": "LineNumber",
+                    "type": "Edm.Int64",
+                    "nullable": false
+                },
+                {
+                    "name": "Свойство_Key",
+                    "type": "Edm.Guid",
+                    "nullable": true
+                },
+                {
+                    "name": "Значение",
+                    "type": "Edm.String",
+                    "nullable": true
+                },
+                {
+                    "name": "ТекстоваяСтрока",
+                    "type": "Edm.String",
+                    "nullable": true
+                },
+                {
+                    "name": "Значение_Type",
+                    "type": "Edm.String",
+                    "nullable": true
+                }
+            ],
+            "tables": {}
+        },
+        "Catalog_Организации_КонтактнаяИнформация": {
+            "kind": "table",
+            "name": "Catalog_Организации_КонтактнаяИнформация",
+            "entity_set": "Catalog_Организации_КонтактнаяИнформация",
+            "key": [
+                "Ref_Key",
+                "LineNumber"
+            ],
+            "fields": [
+                {
+                    "name": "Ref_Key",
+                    "type": "Edm.Guid",
+                    "nullable": false
+                },
+                {
+                    "name": "LineNumber",
+                    "type": "Edm.Int64",
+                    "nullable": false
+                },
+                {
+                    "name": "Тип",
+                    "type": "Edm.String",
+                    "nullable": true
+                },
+                {
+                    "name": "Вид_Key",
+                    "type": "Edm.Guid",
+                    "nullable": true
+                },
+                {
+                    "name": "Представление",
+                    "type": "Edm.String",
+                    "nullable": true
+                },
+                {
+                    "name": "ЗначенияПолей",
+                    "type": "Edm.String",
+                    "nullable": true
+                },
+                {
+                    "name": "Страна",
+                    "type": "Edm.String",
+                    "nullable": true
+                },
+                {
+                    "name": "Регион",
+                    "type": "Edm.String",
+                    "nullable": true
+                },
+                {
+                    "name": "Город",
+                    "type": "Edm.String",
+                    "nullable": true
+                },
+                {
+                    "name": "АдресЭП",
+                    "type": "Edm.String",
+                    "nullable": true
+                },
+                {
+                    "name": "ДоменноеИмяСервера",
+                    "type": "Edm.String",
+                    "nullable": true
+                },
+                {
+                    "name": "НомерТелефона",
+                    "type": "Edm.String",
+                    "nullable": true
+                },
+                {
+                    "name": "НомерТелефонаБезКодов",
+                    "type": "Edm.String",
+                    "nullable": true
+                },
+                {
+                    "name": "ВидДляСписка_Key",
+                    "type": "Edm.Guid",
+                    "nullable": true
+                },
+                {
+                    "name": "ДействуетС",
+                    "type": "Edm.DateTime",
+                    "nullable": true
+                }
+            ],
+            "tables": {}
+        },
+        "Catalog_Партнеры": {
+            "kind": "catalog",
+            "name": "Партнеры",
+            "entity_set": "Catalog_Партнеры",
+            "key": [
+                "Ref_Key"
+            ],
+            "fields": [
+                {
+                    "name": "Ref_Key",
+                    "type": "Edm.Guid",
+                    "nullable": false
+                },
+                {
+                    "name": "Predefined",
+                    "type": "Edm.Boolean",
+                    "nullable": true
+                },
+                {
+                    "name": "PredefinedDataName",
+                    "type": "Edm.String",
+                    "nullable": true
+                },
+                {
+                    "name": "DataVersion",
+                    "type": "Edm.String",
+                    "nullable": true
+                },
+                {
+                    "name": "Description",
+                    "type": "Edm.String",
+                    "nullable": true
+                },
+                {
+                    "name": "Code",
+                    "type": "Edm.String",
+                    "nullable": true
+                },
+                {
+                    "name": "Parent_Key",
+                    "type": "Edm.Guid",
+                    "nullable": true,
+                    "ref_target": "Catalog_Партнеры"
+                },
+                {
+                    "name": "DeletionMark",
+                    "type": "Edm.Boolean",
+                    "nullable": true
+                },
+                {
+                    "name": "БизнесРегион_Key",
+                    "type": "Edm.Guid",
+                    "nullable": true
+                },
+                {
+                    "name": "ГруппаДоступа_Key",
+                    "type": "Edm.Guid",
+                    "nullable": true
+                },
+                {
+                    "name": "ДатаРегистрации",
+                    "type": "Edm.DateTime",
+                    "nullable": true
+                },
+                {
+                    "name": "Клиент",
+                    "type": "Edm.Boolean",
+                    "nullable": true
+                },
+                {
+                    "name": "Комментарий",
+                    "type": "Edm.String",
+                    "nullable": true
+                },
+                {
+                    "name": "Поставщик",
+                    "type": "Edm.Boolean",
+                    "nullable": true
+                },
+                {
+                    "name": "НаименованиеПолное",
+                    "type": "Edm.String",
+                    "nullable": true
+                },
+                {
+                    "name": "ОсновнойМенеджер_Key",
+                    "type": "Edm.Guid",
+                    "nullable": true
+                },
+                {
+                    "name": "Конкурент",
+                    "type": "Edm.Boolean",
+                    "nullable": true
+                },
+                {
+                    "name": "ПрочиеОтношения",
+                    "type": "Edm.Boolean",
+                    "nullable": true
+                },
+                {
+                    "name": "ОбслуживаетсяТорговымиПредставителями",
+                    "type": "Edm.Boolean",
+                    "nullable": true
+                },
+                {
+                    "name": "ДополнительнаяИнформация",
+                    "type": "Edm.String",
+                    "nullable": true
+                },
+                {
+                    "name": "Перевозчик",
+                    "type": "Edm.Boolean",
+                    "nullable": true
+                },
+                {
+                    "name": "ШаблонЭтикетки_Key",
+                    "type": "Edm.Guid",
+                    "nullable": true
+                },
+                {
+                    "name": "ЮрФизЛицо",
+                    "type": "Edm.String",
+                    "nullable": true
+                },
+                {
+                    "name": "Пол",
+                    "type": "Edm.String",
+                    "nullable": true
+                },
+                {
+                    "name": "ДатаРождения",
+                    "type": "Edm.DateTime",
+                    "nullable": true
+                }
+            ],
+            "tables": {
+                "ДополнительныеРеквизиты": {
+                    "row_type": "Catalog_Партнеры_ДополнительныеРеквизиты"
+                },
+                "КонтактнаяИнформация": {
+                    "row_type": "Catalog_Партнеры_КонтактнаяИнформация"
+                }
+            }
+        },
+        "Catalog_Партнеры_ДополнительныеРеквизиты": {
+            "kind": "table",
+            "name": "Catalog_Партнеры_ДополнительныеРеквизиты",
+            "entity_set": "Catalog_Партнеры_ДополнительныеРеквизиты",
+            "key": [
+                "Ref_Key",
+                "LineNumber"
+            ],
+            "fields": [
+                {
+                    "name": "Ref_Key",
+                    "type": "Edm.Guid",
+                    "nullable": false
+                },
+                {
+                    "name": "LineNumber",
+                    "type": "Edm.Int64",
+                    "nullable": false
+                },
+                {
+                    "name": "Свойство_Key",
+                    "type": "Edm.Guid",
+                    "nullable": true
+                },
+                {
+                    "name": "Значение",
+                    "type": "Edm.String",
+                    "nullable": true
+                },
+                {
+                    "name": "ТекстоваяСтрока",
+                    "type": "Edm.String",
+                    "nullable": true
+                },
+                {
+                    "name": "Значение_Type",
+                    "type": "Edm.String",
+                    "nullable": true
+                }
+            ],
+            "tables": {}
+        },
+        "Catalog_Партнеры_КонтактнаяИнформация": {
+            "kind": "table",
+            "name": "Catalog_Партнеры_КонтактнаяИнформация",
+            "entity_set": "Catalog_Партнеры_КонтактнаяИнформация",
+            "key": [
+                "Ref_Key",
+                "LineNumber"
+            ],
+            "fields": [
+                {
+                    "name": "Ref_Key",
+                    "type": "Edm.Guid",
+                    "nullable": false
+                },
+                {
+                    "name": "LineNumber",
+                    "type": "Edm.Int64",
+                    "nullable": false
+                },
+                {
+                    "name": "Тип",
+                    "type": "Edm.String",
+                    "nullable": true
+                },
+                {
+                    "name": "Вид_Key",
+                    "type": "Edm.Guid",
+                    "nullable": true
+                },
+                {
+                    "name": "Представление",
+                    "type": "Edm.String",
+                    "nullable": true
+                },
+                {
+                    "name": "ЗначенияПолей",
+                    "type": "Edm.String",
+                    "nullable": true
+                },
+                {
+                    "name": "Страна",
+                    "type": "Edm.String",
+                    "nullable": true
+                },
+                {
+                    "name": "Регион",
+                    "type": "Edm.String",
+                    "nullable": true
+                },
+                {
+                    "name": "Город",
+                    "type": "Edm.String",
+                    "nullable": true
+                },
+                {
+                    "name": "АдресЭП",
+                    "type": "Edm.String",
+                    "nullable": true
+                },
+                {
+                    "name": "ДоменноеИмяСервера",
+                    "type": "Edm.String",
+                    "nullable": true
+                },
+                {
+                    "name": "НомерТелефона",
+                    "type": "Edm.String",
+                    "nullable": true
+                },
+                {
+                    "name": "НомерТелефонаБезКодов",
+                    "type": "Edm.String",
+                    "nullable": true
+                },
+                {
+                    "name": "ВидДляСписка_Key",
+                    "type": "Edm.Guid",
+                    "nullable": true
+                }
+            ],
+            "tables": {}
+        },
+        "Catalog_Склады": {
+            "kind": "catalog",
+            "name": "Склады",
+            "entity_set": "Catalog_Склады",
+            "key": [
+                "Ref_Key"
+            ],
+            "fields": [
+                {
+                    "name": "Ref_Key",
+                    "type": "Edm.Guid",
+                    "nullable": false
+                },
+                {
+                    "name": "Predefined",
+                    "type": "Edm.Boolean",
+                    "nullable": true
+                },
+                {
+                    "name": "PredefinedDataName",
+                    "type": "Edm.String",
+                    "nullable": true
+                },
+                {
+                    "name": "DataVersion",
+                    "type": "Edm.String",
+                    "nullable": true
+                },
+                {
+                    "name": "Description",
+                    "type": "Edm.String",
+                    "nullable": true
+                },
+                {
+                    "name": "Code",
+                    "type": "Edm.String",
+                    "nullable": true
+                },
+                {
+                    "name": "Parent_Key",
+                    "type": "Edm.Guid",
+                    "nullable": true,
+                    "ref_target": "Catalog_Склады"
+                },
+                {
+                    "name": "IsFolder",
+                    "type": "Edm.Boolean",
+                    "nullable": true
+                },
+                {
+                    "name": "DeletionMark",
+                    "type": "Edm.Boolean",
+                    "nullable": true
+                },
+                {
+                    "name": "ВыборГруппы",
+                    "type": "Edm.String",
+                    "nullable": true
+                },
+                {
+                    "name": "ИспользоватьАдресноеХранение",
+                    "type": "Edm.Boolean",
+                    "nullable": true
+                },
+                {
+                    "name": "ИспользоватьАдресноеХранениеСправочно",
+                    "type": "Edm.Boolean",
+                    "nullable": true
+                },
+                {
+                    "name": "ИспользоватьОрдернуюСхемуПриОтгрузке",
+                    "type": "Edm.Boolean",
+                    "nullable": true
+                },
+                {
+                    "name": "ИспользоватьОрдернуюСхемуПриОтраженииИзлишковНедостач",
+                    "type": "Edm.Boolean",
+                    "nullable": true
+                },
+                {
+                    "name": "ИспользоватьОрдернуюСхемуПриПоступлении",
+                    "type": "Edm.Boolean",
+                    "nullable": true
+                },
+                {
+                    "name": "ИспользоватьСерииНоменклатуры",
+                    "type": "Edm.Boolean",
+                    "nullable": true
+                },
+                {
+                    "name": "ИспользоватьСкладскиеПомещения",
+                    "type": "Edm.Boolean",
+                    "nullable": true
+                },
+                {
+                    "name": "Календарь_Key",
+                    "type": "Edm.Guid",
+                    "nullable": true
+                },
+                {
+                    "name": "КонтролироватьОперативныеОстатки",
+                    "type": "Edm.Boolean",
+                    "nullable": true
+                },
+                {
+                    "name": "НастройкаАдресногоХранения",
+                    "type": "Edm.String",
+                    "nullable": true
+                },
+                {
+                    "name": "Подразделение_Key",
+                    "type": "Edm.Guid",
+                    "nullable": true
+                },
+                {
+                    "name": "БизнесРегион_Key",
+                    "type": "Edm.Guid",
+                    "nullable": true
+                },
+                {
+                    "name": "РозничныйВидЦены_Key",
+                    "type": "Edm.Guid",
+                    "nullable": true
+                },
+                {
+                    "name": "ТекущаяДолжностьОтветственного",
+                    "type": "Edm.String",
+                    "nullable": true
+                },
+                {
+                    "name": "ТекущийОтветственный_Key",
+                    "type": "Edm.Guid",
+                    "nullable": true
+                },
+                {
+                    "name": "ТипСклада",
+                    "type": "Edm.String",
+                    "nullable": true
+                },
+                {
+                    "name": "УровеньОбслуживания",
+                    "type": "Edm.String",
+                    "nullable": true
+                },
+                {
+                    "name": "УчетныйВидЦены_Key",
+                    "type": "Edm.Guid",
+                    "nullable": true
+                },
+                {
+                    "name": "НачинатьОтгрузкуПослеФормированияЗаданияНаПеревозку",
+                    "type": "Edm.Boolean",
+                    "nullable": true
+                },
+                {
+                    "name": "ИспользованиеРабочихУчастков",
+                    "type": "Edm.String",
+                    "nullable": true
+                },
+                {
+                    "name": "ИсточникИнформацииОЦенахДляПечати",
+                    "type": "Edm.String",
+                    "nullable": true
+                },
+                {
+                    "name": "ИспользоватьСтатусыРасходныхОрдеров",
+                    "type": "Edm.Boolean",
+                    "nullable": true
+                },
+                {
+                    "name": "ИспользоватьСтатусыПриходныхОрдеров",
+                    "type": "Edm.Boolean",
+                    "nullable": true
+                },
+                {
+                    "name": "ИспользоватьСтатусыПересчетовТоваров",
+                    "type": "Edm.Boolean",
+                    "nullable": true
+                },
+                {
+                    "name": "УдалитьСпособОбеспеченияПотребностей_Key",
+                    "type": "Edm.Guid",
+                    "nullable": true
+                },
+                {
+                    "name": "ДатаНачалаОрдернойСхемыПриОтгрузке",
+                    "type": "Edm.DateTime",
+                    "nullable": true
+                },
+                {
+                    "name": "ДатаНачалаОрдернойСхемыПриПоступлении",
+                    "type": "Edm.DateTime",
+                    "nullable": true
+                },
+                {
+                    "name": "ДатаНачалаОрдернойСхемыПриОтраженииИзлишковНедостач",
+                    "type": "Edm.DateTime",
+                    "nullable": true
+                },
+                {
+                    "name": "ДатаНачалаИспользованияСкладскихПомещений",
+                    "type": "Edm.DateTime",
+                    "nullable": true
+                },
+                {
+                    "name": "ДатаНачалаАдресногоХраненияОстатков",
+                    "type": "Edm.DateTime",
+                    "nullable": true
+                },
+                {
+                    "name": "УчитыватьСебестоимостьПоСериям",
+                    "type": "Edm.Boolean",
+                    "nullable": true
+                },
+                {
+                    "name": "КонтролироватьОбеспечение",
+                    "type": "Edm.Boolean",
+                    "nullable": true
+                },
+                {
+                    "name": "СкладОтветственногоХранения",
+                    "type": "Edm.Boolean",
+                    "nullable": true
+                },
+                {
+                    "name": "ВидПоклажедержателя",
+                    "type": "Edm.String",
+                    "nullable": true
+                },
+                {
+                    "name": "Поклажедержатель",
+                    "type": "Edm.String",
+                    "nullable": true
+                },
+                {
+                    "name": "СрокОтветственногоХранения",
+                    "type": "Edm.Int16",
+                    "nullable": true
+                },
+                {
+                    "name": "ОтветственноеХранениеДоВостребования",
+                    "type": "Edm.Boolean",
+                    "nullable": true
+                },
+                {
+                    "name": "ОсобыеОтметки",
+                    "type": "Edm.String",
+                    "nullable": true
+                },
+                {
+                    "name": "УсловияХраненияТоваров",
+                    "type": "Edm.String",
+                    "nullable": true
+                },
+                {
+                    "name": "ТерриторияПоКОАТУУ_Key",
+                    "type": "Edm.Guid",
+                    "nullable": true
+                },
+                {
+                    "name": "ВестиУчетВПМ",
+                    "type": "Edm.Boolean",
+                    "nullable": true
+                },
+                {
+                    "name": "СтатусОбъектаПМ",
+                    "type": "Edm.String",
+                    "nullable": true
+                },
+                {
+                    "name": "ИдентификаторПМ",
+                    "type": "Edm.String",
+                    "nullable": true
+                },
+                {
+                    "name": "Поклажедержатель_Type",
+                    "type": "Edm.String",
+                    "nullable": true
+                }
+            ],
+            "tables": {
+                "ДополнительныеРеквизиты": {
+                    "row_type": "Catalog_Склады_ДополнительныеРеквизиты"
+                },
+                "КонтактнаяИнформация": {
+                    "row_type": "Catalog_Склады_КонтактнаяИнформация"
+                }
+            }
+        },
+        "Catalog_Склады_ДополнительныеРеквизиты": {
+            "kind": "table",
+            "name": "Catalog_Склады_ДополнительныеРеквизиты",
+            "entity_set": "Catalog_Склады_ДополнительныеРеквизиты",
+            "key": [
+                "Ref_Key",
+                "LineNumber"
+            ],
+            "fields": [
+                {
+                    "name": "Ref_Key",
+                    "type": "Edm.Guid",
+                    "nullable": false
+                },
+                {
+                    "name": "LineNumber",
+                    "type": "Edm.Int64",
+                    "nullable": false
+                },
+                {
+                    "name": "Свойство_Key",
+                    "type": "Edm.Guid",
+                    "nullable": true
+                },
+                {
+                    "name": "Значение",
+                    "type": "Edm.String",
+                    "nullable": true
+                },
+                {
+                    "name": "ТекстоваяСтрока",
+                    "type": "Edm.String",
+                    "nullable": true
+                },
+                {
+                    "name": "Значение_Type",
+                    "type": "Edm.String",
+                    "nullable": true
+                }
+            ],
+            "tables": {}
+        },
+        "Catalog_Склады_КонтактнаяИнформация": {
+            "kind": "table",
+            "name": "Catalog_Склады_КонтактнаяИнформация",
+            "entity_set": "Catalog_Склады_КонтактнаяИнформация",
+            "key": [
+                "Ref_Key",
+                "LineNumber"
+            ],
+            "fields": [
+                {
+                    "name": "Ref_Key",
+                    "type": "Edm.Guid",
+                    "nullable": false
+                },
+                {
+                    "name": "LineNumber",
+                    "type": "Edm.Int64",
+                    "nullable": false
+                },
+                {
+                    "name": "Тип",
+                    "type": "Edm.String",
+                    "nullable": true
+                },
+                {
+                    "name": "Вид_Key",
+                    "type": "Edm.Guid",
+                    "nullable": true
+                },
+                {
+                    "name": "Представление",
+                    "type": "Edm.String",
+                    "nullable": true
+                },
+                {
+                    "name": "ЗначенияПолей",
+                    "type": "Edm.String",
+                    "nullable": true
+                },
+                {
+                    "name": "Страна",
+                    "type": "Edm.String",
+                    "nullable": true
+                },
+                {
+                    "name": "Регион",
+                    "type": "Edm.String",
+                    "nullable": true
+                },
+                {
+                    "name": "Город",
+                    "type": "Edm.String",
+                    "nullable": true
+                },
+                {
+                    "name": "АдресЭП",
+                    "type": "Edm.String",
+                    "nullable": true
+                },
+                {
+                    "name": "ДоменноеИмяСервера",
+                    "type": "Edm.String",
+                    "nullable": true
+                },
+                {
+                    "name": "НомерТелефона",
+                    "type": "Edm.String",
+                    "nullable": true
+                },
+                {
+                    "name": "НомерТелефонаБезКодов",
+                    "type": "Edm.String",
+                    "nullable": true
+                },
+                {
+                    "name": "ВидДляСписка_Key",
+                    "type": "Edm.Guid",
+                    "nullable": true
+                }
+            ],
+            "tables": {}
+        },
+        "Document_ВыпускПродукции": {
+            "kind": "document",
+            "name": "ВыпускПродукции",
+            "entity_set": "Document_ВыпускПродукции",
+            "key": [
+                "Ref_Key"
+            ],
+            "fields": [
+                {
+                    "name": "Ref_Key",
+                    "type": "Edm.Guid",
+                    "nullable": false
+                },
+                {
+                    "name": "DataVersion",
+                    "type": "Edm.String",
+                    "nullable": true
+                },
+                {
+                    "name": "Number",
+                    "type": "Edm.String",
+                    "nullable": true
+                },
+                {
+                    "name": "Date",
+                    "type": "Edm.DateTime",
+                    "nullable": true
+                },
+                {
+                    "name": "DeletionMark",
+                    "type": "Edm.Boolean",
+                    "nullable": true
+                },
+                {
+                    "name": "Posted",
+                    "type": "Edm.Boolean",
+                    "nullable": true
+                },
+                {
+                    "name": "Организация_Key",
+                    "type": "Edm.Guid",
+                    "nullable": true,
+                    "ref_target": "Catalog_Организации"
+                },
+                {
+                    "name": "Распоряжение_Key",
+                    "type": "Edm.Guid",
+                    "nullable": true,
+                    "ref_target": "Document_МаршрутныйЛистПроизводства"
+                },
+                {
+                    "name": "Подразделение_Key",
+                    "type": "Edm.Guid",
+                    "nullable": true
+                },
+                {
+                    "name": "Склад_Key",
+                    "type": "Edm.Guid",
+                    "nullable": true,
+                    "ref_target": "Catalog_Склады"
+                },
+                {
+                    "name": "ВидЦены_Key",
+                    "type": "Edm.Guid",
+                    "nullable": true
+                },
+                {
+                    "name": "Ответственный_Key",
+                    "type": "Edm.Guid",
+                    "nullable": true
+                },
+                {
+                    "name": "Комментарий",
+                    "type": "Edm.String",
+                    "nullable": true
+                },
+                {
+                    "name": "ВыпускПоРаспоряжениям",
+                    "type": "Edm.Boolean",
+                    "nullable": true
+                },
+                {
+                    "name": "НаправлениеВыпуска",
+                    "type": "Edm.String",
+                    "nullable": true
+                },
+                {
+                    "name": "Валюта_Key",
+                    "type": "Edm.Guid",
+                    "nullable": true
+                },
+                {
+                    "name": "МаксимальныйКодСтроки",
+                    "type": "Edm.Int64",
+                    "nullable": true
+                },
+                {
+                    "name": "НаправлениеДеятельности_Key",
+                    "type": "Edm.Guid",
+                    "nullable": true
+                },
+                {
+                    "name": "НалоговоеНазначение_Key",
+                    "type": "Edm.Guid",
+                    "nullable": true
+                },
+                {
+                    "name": "СформированПМ",
+                    "type": "Edm.Boolean",
+                    "nullable": true
+                }
+            ],
+            "tables": {
+                "ДополнительныеРеквизиты": {
+                    "row_type": "Document_ВыпускПродукции_ДополнительныеРеквизиты"
+                },
+                "Серии": {
+                    "row_type": "Document_ВыпускПродукции_Серии"
+                },
+                "Товары": {
+                    "row_type": "Document_ВыпускПродукции_Товары"
+                }
+            }
+        },
+        "Document_ВыпускПродукции_ДополнительныеРеквизиты": {
+            "kind": "table",
+            "name": "Document_ВыпускПродукции_ДополнительныеРеквизиты",
+            "entity_set": "Document_ВыпускПродукции_ДополнительныеРеквизиты",
+            "key": [
+                "Ref_Key",
+                "LineNumber"
+            ],
+            "fields": [
+                {
+                    "name": "Ref_Key",
+                    "type": "Edm.Guid",
+                    "nullable": false
+                },
+                {
+                    "name": "LineNumber",
+                    "type": "Edm.Int64",
+                    "nullable": false
+                },
+                {
+                    "name": "Свойство_Key",
+                    "type": "Edm.Guid",
+                    "nullable": true
+                },
+                {
+                    "name": "Значение",
+                    "type": "Edm.String",
+                    "nullable": true
+                },
+                {
+                    "name": "ТекстоваяСтрока",
+                    "type": "Edm.String",
+                    "nullable": true
+                },
+                {
+                    "name": "Значение_Type",
+                    "type": "Edm.String",
+                    "nullable": true
+                }
+            ],
+            "tables": {}
+        },
+        "Document_ВыпускПродукции_Серии": {
+            "kind": "table",
+            "name": "Document_ВыпускПродукции_Серии",
+            "entity_set": "Document_ВыпускПродукции_Серии",
+            "key": [
+                "Ref_Key",
+                "LineNumber"
+            ],
+            "fields": [
+                {
+                    "name": "Ref_Key",
+                    "type": "Edm.Guid",
+                    "nullable": false
+                },
+                {
+                    "name": "LineNumber",
+                    "type": "Edm.Int64",
+                    "nullable": false
+                },
+                {
+                    "name": "Серия_Key",
+                    "type": "Edm.Guid",
+                    "nullable": true
+                },
+                {
+                    "name": "Количество",
+                    "type": "Edm.Double",
+                    "nullable": true
+                },
+                {
+                    "name": "Номенклатура_Key",
+                    "type": "Edm.Guid",
+                    "nullable": true,
+                    "ref_target": "Catalog_Номенклатура"
+                },
+                {
+                    "name": "Характеристика_Key",
+                    "type": "Edm.Guid",
+                    "nullable": true
+                },
+                {
+                    "name": "Назначение_Key",
+                    "type": "Edm.Guid",
+                    "nullable": true
+                },
+                {
+                    "name": "Склад_Key",
+                    "type": "Edm.Guid",
+                    "nullable": true,
+                    "ref_target": "Catalog_Склады"
+                },
+                {
+                    "name": "Подразделение_Key",
+                    "type": "Edm.Guid",
+                    "nullable": true
+                }
+            ],
+            "tables": {}
+        },
+        "Document_ВыпускПродукции_Товары": {
+            "kind": "table",
+            "name": "Document_ВыпускПродукции_Товары",
+            "entity_set": "Document_ВыпускПродукции_Товары",
+            "key": [
+                "Ref_Key",
+                "LineNumber"
+            ],
+            "fields": [
+                {
+                    "name": "Ref_Key",
+                    "type": "Edm.Guid",
+                    "nullable": false
+                },
+                {
+                    "name": "LineNumber",
+                    "type": "Edm.Int64",
+                    "nullable": false
+                },
+                {
+                    "name": "Номенклатура_Key",
+                    "type": "Edm.Guid",
+                    "nullable": true,
+                    "ref_target": "Catalog_Номенклатура"
+                },
+                {
+                    "name": "Характеристика_Key",
+                    "type": "Edm.Guid",
+                    "nullable": true
+                },
+                {
+                    "name": "Спецификация_Key",
+                    "type": "Edm.Guid",
+                    "nullable": true
+                },
+                {
+                    "name": "Упаковка_Key",
+                    "type": "Edm.Guid",
+                    "nullable": true
+                },
+                {
+                    "name": "КоличествоУпаковок",
+                    "type": "Edm.Double",
+                    "nullable": true
+                },
+                {
+                    "name": "Количество",
+                    "type": "Edm.Double",
+                    "nullable": true
+                },
+                {
+                    "name": "Цена",
+                    "type": "Edm.Double",
+                    "nullable": true
+                },
+                {
+                    "name": "Сумма",
+                    "type": "Edm.Double",
+                    "nullable": true
+                },
+                {
+                    "name": "Распоряжение_Key",
+                    "type": "Edm.Guid",
+                    "nullable": true,
+                    "ref_target": "Document_МаршрутныйЛистПроизводства"
+                },
+                {
+                    "name": "ТипСтоимости",
+                    "type": "Edm.String",
+                    "nullable": true
+                },
+                {
+                    "name": "СтатусУказанияСерий",
+                    "type": "Edm.Int16",
+                    "nullable": true
+                },
+                {
+                    "name": "АналитикаУчетаПартий_Key",
+                    "type": "Edm.Guid",
+                    "nullable": true
+                },
+                {
+                    "name": "ВидЗапасов_Key",
+                    "type": "Edm.Guid",
+                    "nullable": true
+                },
+                {
+                    "name": "КодСтроки",
+                    "type": "Edm.Int64",
+                    "nullable": true
+                },
+                {
+                    "name": "ИдентификаторСтроки",
+                    "type": "Edm.String",
+                    "nullable": true
+                },
+                {
+                    "name": "Серия_Key",
+                    "type": "Edm.Guid",
+                    "nullable": true
+                },
+                {
+                    "name": "АналитикаУчетаНоменклатуры_Key",
+                    "type": "Edm.Guid",
+                    "nullable": true
+                },
+                {
+                    "name": "Назначение_Key",
+                    "type": "Edm.Guid",
+                    "nullable": true
+                },
+                {
+                    "name": "СтатьяРасходов_Key",
+                    "type": "Edm.Guid",
+                    "nullable": true
+                },
+                {
+                    "name": "АналитикаРасходов",
+                    "type": "Edm.String",
+                    "nullable": true
+                },
+                {
+                    "name": "СписатьНаРасходы",
+                    "type": "Edm.Boolean",
+                    "nullable": true
+                },
+                {
+                    "name": "Склад_Key",
+                    "type": "Edm.Guid",
+                    "nullable": true,
+                    "ref_target": "Catalog_Склады"
+                },
+                {
+                    "name": "Подразделение_Key",
+                    "type": "Edm.Guid",
+                    "nullable": true
+                },
+                {
+                    "name": "Калькуляция_Key",
+                    "type": "Edm.Guid",
+                    "nullable": true
+                },
+                {
+                    "name": "АналитикаРасходов_Type",
+                    "type": "Edm.String",
+                    "nullable": true
+                }
+            ],
+            "tables": {}
+        },
+        "Document_ДоступностьРабочихЦентров": {
+            "kind": "document",
+            "name": "ДоступностьРабочихЦентров",
+            "entity_set": "Document_ДоступностьРабочихЦентров",
+            "key": [
+                "Ref_Key"
+            ],
+            "fields": [
+                {
+                    "name": "Ref_Key",
+                    "type": "Edm.Guid",
+                    "nullable": false
+                },
+                {
+                    "name": "DataVersion",
+                    "type": "Edm.String",
+                    "nullable": true
+                },
+                {
+                    "name": "Number",
+                    "type": "Edm.String",
+                    "nullable": true
+                },
+                {
+                    "name": "Date",
+                    "type": "Edm.DateTime",
+                    "nullable": true
+                },
+                {
+                    "name": "DeletionMark",
+                    "type": "Edm.Boolean",
+                    "nullable": true
+                },
+                {
+                    "name": "Posted",
+                    "type": "Edm.Boolean",
+                    "nullable": true
+                },
+                {
+                    "name": "ВидРабочегоЦентра_Key",
+                    "type": "Edm.Guid",
+                    "nullable": true
+                },
+                {
+                    "name": "ВнесеныРучныеИзменения",
+                    "type": "Edm.Boolean",
+                    "nullable": true
+                },
+                {
+                    "name": "ДатаГрафика",
+                    "type": "Edm.DateTime",
+                    "nullable": true
+                }
+            ],
+            "tables": {
+                "Доступность": {
+                    "row_type": "Document_ДоступностьРабочихЦентров_Доступность"
+                },
+                "Интервалы": {
+                    "row_type": "Document_ДоступностьРабочихЦентров_Интервалы"
+                }
+            }
+        },
+        "Document_ДоступностьРабочихЦентров_Доступность": {
+            "kind": "table",
+            "name": "Document_ДоступностьРабочихЦентров_Доступность",
+            "entity_set": "Document_ДоступностьРабочихЦентров_Доступность",
+            "key": [
+                "Ref_Key",
+                "LineNumber"
+            ],
+            "fields": [
+                {
+                    "name": "Ref_Key",
+                    "type": "Edm.Guid",
+                    "nullable": false
+                },
+                {
+                    "name": "LineNumber",
+                    "type": "Edm.Int64",
+                    "nullable": false
+                },
+                {
+                    "name": "РабочийЦентр_Key",
+                    "type": "Edm.Guid",
+                    "nullable": true
+                },
+                {
+                    "name": "Количество",
+                    "type": "Edm.Int64",
+                    "nullable": true
+                },
+                {
+                    "name": "ВнесеныРучныеИзменения",
+                    "type": "Edm.Boolean",
+                    "nullable": true
+                }
+            ],
+            "tables": {}
+        },
+        "Document_ДоступностьРабочихЦентров_Интервалы": {
+            "kind": "table",
+            "name": "Document_ДоступностьРабочихЦентров_Интервалы",
+            "entity_set": "Document_ДоступностьРабочихЦентров_Интервалы",
+            "key": [
+                "Ref_Key",
+                "LineNumber"
+            ],
+            "fields": [
+                {
+                    "name": "Ref_Key",
+                    "type": "Edm.Guid",
+                    "nullable": false
+                },
+                {
+                    "name": "LineNumber",
+                    "type": "Edm.Int64",
+                    "nullable": false
+                },
+                {
+                    "name": "РабочийЦентр_Key",
+                    "type": "Edm.Guid",
+                    "nullable": true
+                },
+                {
+                    "name": "ДатаГрафика",
+                    "type": "Edm.DateTime",
+                    "nullable": true
+                },
+                {
+                    "name": "ВремяНачала",
+                    "type": "Edm.DateTime",
+                    "nullable": true
+                },
+                {
+                    "name": "ВремяОкончания",
+                    "type": "Edm.DateTime",
+                    "nullable": true
+                },
+                {
+                    "name": "Количество",
+                    "type": "Edm.Double",
+                    "nullable": true
+                }
+            ],
+            "tables": {}
+        },
+        "Document_ЗаказПоставщику": {
+            "kind": "document",
+            "name": "ЗаказПоставщику",
+            "entity_set": "Document_ЗаказПоставщику",
+            "key": [
+                "Ref_Key"
+            ],
+            "fields": [
+                {
+                    "name": "Ref_Key",
+                    "type": "Edm.Guid",
+                    "nullable": false
+                },
+                {
+                    "name": "DataVersion",
+                    "type": "Edm.String",
+                    "nullable": true
+                },
+                {
+                    "name": "Number",
+                    "type": "Edm.String",
+                    "nullable": true
+                },
+                {
+                    "name": "Date",
+                    "type": "Edm.DateTime",
+                    "nullable": true
+                },
+                {
+                    "name": "DeletionMark",
+                    "type": "Edm.Boolean",
+                    "nullable": true
+                },
+                {
+                    "name": "Posted",
+                    "type": "Edm.Boolean",
+                    "nullable": true
+                },
+                {
+                    "name": "Партнер_Key",
+                    "type": "Edm.Guid",
+                    "nullable": true,
+                    "ref_target": "Catalog_Партнеры"
+                },
+                {
+                    "name": "Контрагент_Key",
+                    "type": "Edm.Guid",
+                    "nullable": true,
+                    "ref_target": "Catalog_Контрагенты"
+                },
+                {
+                    "name": "Организация_Key",
+                    "type": "Edm.Guid",
+                    "nullable": true,
+                    "ref_target": "Catalog_Организации"
+                },
+                {
+                    "name": "Соглашение_Key",
+                    "type": "Edm.Guid",
+                    "nullable": true
+                },
+                {
+                    "name": "Склад_Key",
+                    "type": "Edm.Guid",
+                    "nullable": true,
+                    "ref_target": "Catalog_Склады"
+                },
+                {
+                    "name": "Валюта_Key",
+                    "type": "Edm.Guid",
+                    "nullable": true
+                },
+                {
+                    "name": "Менеджер_Key",
+                    "type": "Edm.Guid",
+                    "nullable": true
+                },
+                {
+                    "name": "ЦенаВключаетНДС",
+                    "type": "Edm.Boolean",
+                    "nullable": true
+                },
+                {
+                    "name": "Статус",
+                    "type": "Edm.String",
+                    "nullable": true
+                },
+                {
+                    "name": "СуммаДокумента",
+                    "type": "Edm.Double",
+                    "nullable": true
+                },
+                {
+                    "name": "ДополнительнаяИнформация",
+                    "type": "Edm.String",
+                    "nullable": true
+                },
+                {
+                    "name": "ЖелаемаяДатаПоступления",
+                    "type": "Edm.DateTime",
+                    "nullable": true
+                },
+                {
+                    "name": "МаксимальныйКодСтроки",
+                    "type": "Edm.Int64",
+                    "nullable": true
+                },
+                {
+                    "name": "Согласован",
+                    "type": "Edm.Boolean",
+                    "nullable": true
+                },
+                {
+                    "name": "ФормаОплаты",
+                    "type": "Edm.String",
+                    "nullable": true
+                },
+                {
+                    "name": "Касса_Key",
+                    "type": "Edm.Guid",
+                    "nullable": true
+                },
+                {
+                    "name": "БанковскийСчет_Key",
+                    "type": "Edm.Guid",
+                    "nullable": true
+                },
+                {
+                    "name": "СуммаАвансаДоПодтверждения",
+                    "type": "Edm.Double",
+                    "nullable": true
+                },
+                {
+                    "name": "СуммаПредоплатыДоПоступления",
+                    "type": "Edm.Double",
+                    "nullable": true
+                },
+                {
+                    "name": "ДатаПервогоПоступления",
+                    "type": "Edm.DateTime",
+                    "nullable": true
+                },
+                {
+                    "name": "ДатаСогласования",
+                    "type": "Edm.DateTime",
+                    "nullable": true
+                },
+                {
+                    "name": "ХозяйственнаяОперация",
+                    "type": "Edm.String",
+                    "nullable": true
+                },
+                {
+                    "name": "Комментарий",
+                    "type": "Edm.String",
+                    "nullable": true
+                },
+                {
+                    "name": "НомерПоДаннымПоставщика",
+                    "type": "Edm.String",
+                    "nullable": true
+                },
+                {
+                    "name": "ДатаПоДаннымПоставщика",
+                    "type": "Edm.DateTime",
+                    "nullable": true
+                },
+                {
+                    "name": "Сделка_Key",
+                    "type": "Edm.Guid",
+                    "nullable": true
+                },
+                {
+                    "name": "Подразделение_Key",
+                    "type": "Edm.Guid",
+                    "nullable": true
+                },
+                {
+                    "name": "ГруппаФинансовогоУчета_Key",
+                    "type": "Edm.Guid",
+                    "nullable": true
+                },
+                {
+                    "name": "РегистрироватьЦеныПоставщика",
+                    "type": "Edm.Boolean",
+                    "nullable": true
+                },
+                {
+                    "name": "Договор_Key",
+                    "type": "Edm.Guid",
+                    "nullable": true
+                },
+                {
+                    "name": "Автор_Key",
+                    "type": "Edm.Guid",
+                    "nullable": true
+                },
+                {
+                    "name": "ДокументОснование",
+                    "type": "Edm.String",
+                    "nullable": true
+                },
+                {
+                    "name": "ПоступлениеОднойДатой",
+                    "type": "Edm.Boolean",
+                    "nullable": true
+                },
+                {
+                    "name": "ДатаПоступления",
+                    "type": "Edm.DateTime",
+                    "nullable": true
+                },
+                {
+                    "name": "ПорядокРасчетов",
+                    "type": "Edm.String",
+                    "nullable": true
+                },
+                {
+                    "name": "АдресДоставкиДляПоставщика",
+                    "type": "Edm.String",
+                    "nullable": true
+                },
+                {
+                    "name": "КонтактноеЛицо_Key",
+                    "type": "Edm.Guid",
+                    "nullable": true
+                },
+                {
+                    "name": "ВернутьМногооборотнуюТару",
+                    "type": "Edm.Boolean",
+                    "nullable": true
+                },
+                {
+                    "name": "СрокВозвратаМногооборотнойТары",
+                    "type": "Edm.Int16",
+                    "nullable": true
+                },
+                {
+                    "name": "СостояниеЗаполненияМногооборотнойТары",
+                    "type": "Edm.String",
+                    "nullable": true
+                },
+                {
+                    "name": "ТребуетсяЗалогЗаТару",
+                    "type": "Edm.Boolean",
+                    "nullable": true
+                },
+                {
+                    "name": "СуммаВозвратнойТары",
+                    "type": "Edm.Double",
+                    "nullable": true
+                },
+                {
+                    "name": "Приоритет_Key",
+                    "type": "Edm.Guid",
+                    "nullable": true
+                },
+                {
+                    "name": "СпособДоставки",
+                    "type": "Edm.String",
+                    "nullable": true
+                },
+                {
+                    "name": "ПеревозчикПартнер_Key",
+                    "type": "Edm.Guid",
+                    "nullable": true,
+                    "ref_target": "Catalog_Партнеры"
+                },
+                {
+                    "name": "ЗонаДоставки_Key",
+                    "type": "Edm.Guid",
+                    "nullable": true
+                },
+                {
+                    "name": "ВремяДоставкиС",
+                    "type": "Edm.DateTime",
+                    "nullable": true
+                },
+                {
+                    "name": "ВремяДоставкиПо",
+                    "type": "Edm.DateTime",
+                    "nullable": true
+                },
+                {
+                    "name": "АдресДоставки",
+                    "type": "Edm.String",
+                    "nullable": true
+                },
+                {
+                    "name": "АдресДоставкиЗначенияПолей",
+                    "type": "Edm.String",
+                    "nullable": true
+                },
+                {
+                    "name": "ДополнительнаяИнформацияПоДоставке",
+                    "type": "Edm.String",
+                    "nullable": true
+                },
+                {
+                    "name": "АдресДоставкиПеревозчика",
+                    "type": "Edm.String",
+                    "nullable": true
+                },
+                {
+                    "name": "АдресДоставкиПеревозчикаЗначенияПолей",
+                    "type": "Edm.String",
+                    "nullable": true
+                },
+                {
+                    "name": "ОсобыеУсловияПеревозки",
+                    "type": "Edm.Boolean",
+                    "nullable": true
+                },
+                {
+                    "name": "ОсобыеУсловияПеревозкиОписание",
+                    "type": "Edm.String",
+                    "nullable": true
+                },
+                {
+                    "name": "НаправлениеДеятельности_Key",
+                    "type": "Edm.Guid",
+                    "nullable": true
+                },
+                {
+                    "name": "Звит1С_DOC_ID",
+                    "type": "Edm.String",
+                    "nullable": true
+                },
+                {
+                    "name": "КонсолидацияСПМ",
+                    "type": "Edm.String",
+                    "nullable": true
+                },
+                {
+                    "name": "ДокументОснование_Type",
+                    "type": "Edm.String",
+                    "nullable": true
+                }
+            ],
+            "tables": {
+                "ДополнительныеРеквизиты": {
+                    "row_type": "Document_ЗаказПоставщику_ДополнительныеРеквизиты"
+                },
+                "Товары": {
+                    "row_type": "Document_ЗаказПоставщику_Товары"
+                },
+                "ЭтапыГрафикаОплаты": {
+                    "row_type": "Document_ЗаказПоставщику_ЭтапыГрафикаОплаты"
+                }
+            }
+        },
+        "Document_ЗаказПоставщику_ДополнительныеРеквизиты": {
+            "kind": "table",
+            "name": "Document_ЗаказПоставщику_ДополнительныеРеквизиты",
+            "entity_set": "Document_ЗаказПоставщику_ДополнительныеРеквизиты",
+            "key": [
+                "Ref_Key",
+                "LineNumber"
+            ],
+            "fields": [
+                {
+                    "name": "Ref_Key",
+                    "type": "Edm.Guid",
+                    "nullable": false
+                },
+                {
+                    "name": "LineNumber",
+                    "type": "Edm.Int64",
+                    "nullable": false
+                },
+                {
+                    "name": "Свойство_Key",
+                    "type": "Edm.Guid",
+                    "nullable": true
+                },
+                {
+                    "name": "Значение",
+                    "type": "Edm.String",
+                    "nullable": true
+                },
+                {
+                    "name": "ТекстоваяСтрока",
+                    "type": "Edm.String",
+                    "nullable": true
+                },
+                {
+                    "name": "Значение_Type",
+                    "type": "Edm.String",
+                    "nullable": true
+                }
+            ],
+            "tables": {}
+        },
+        "Document_ЗаказПоставщику_Товары": {
+            "kind": "table",
+            "name": "Document_ЗаказПоставщику_Товары",
+            "entity_set": "Document_ЗаказПоставщику_Товары",
+            "key": [
+                "Ref_Key",
+                "LineNumber"
+            ],
+            "fields": [
+                {
+                    "name": "Ref_Key",
+                    "type": "Edm.Guid",
+                    "nullable": false
+                },
+                {
+                    "name": "LineNumber",
+                    "type": "Edm.Int64",
+                    "nullable": false
+                },
+                {
+                    "name": "НоменклатураПоставщика_Key",
+                    "type": "Edm.Guid",
+                    "nullable": true
+                },
+                {
+                    "name": "Номенклатура_Key",
+                    "type": "Edm.Guid",
+                    "nullable": true,
+                    "ref_target": "Catalog_Номенклатура"
+                },
+                {
+                    "name": "Характеристика_Key",
+                    "type": "Edm.Guid",
+                    "nullable": true
+                },
+                {
+                    "name": "Упаковка_Key",
+                    "type": "Edm.Guid",
+                    "nullable": true
+                },
+                {
+                    "name": "КоличествоУпаковок",
+                    "type": "Edm.Double",
+                    "nullable": true
+                },
+                {
+                    "name": "Количество",
+                    "type": "Edm.Double",
+                    "nullable": true
+                },
+                {
+                    "name": "ДатаПоступления",
+                    "type": "Edm.DateTime",
+                    "nullable": true
+                },
+                {
+                    "name": "ВидЦеныПоставщика_Key",
+                    "type": "Edm.Guid",
+                    "nullable": true
+                },
+                {
+                    "name": "Цена",
+                    "type": "Edm.Double",
+                    "nullable": true
+                },
+                {
+                    "name": "Сумма",
+                    "type": "Edm.Double",
+                    "nullable": true
+                },
+                {
+                    "name": "ПроцентРучнойСкидки",
+                    "type": "Edm.Double",
+                    "nullable": true
+                },
+                {
+                    "name": "СуммаРучнойСкидки",
+                    "type": "Edm.Double",
+                    "nullable": true
+                },
+                {
+                    "name": "СтавкаНДС",
+                    "type": "Edm.String",
+                    "nullable": true
+                },
+                {
+                    "name": "СуммаНДС",
+                    "type": "Edm.Double",
+                    "nullable": true
+                },
+                {
+                    "name": "СуммаСНДС",
+                    "type": "Edm.Double",
+                    "nullable": true
+                },
+                {
+                    "name": "КодСтроки",
+                    "type": "Edm.Int64",
+                    "nullable": true
+                },
+                {
+                    "name": "Отменено",
+                    "type": "Edm.Boolean",
+                    "nullable": true
+                },
+                {
+                    "name": "СтатьяРасходов_Key",
+                    "type": "Edm.Guid",
+                    "nullable": true
+                },
+                {
+                    "name": "АналитикаРасходов",
+                    "type": "Edm.String",
+                    "nullable": true
+                },
+                {
+                    "name": "ПричинаОтмены_Key",
+                    "type": "Edm.Guid",
+                    "nullable": true
+                },
+                {
+                    "name": "Склад_Key",
+                    "type": "Edm.Guid",
+                    "nullable": true,
+                    "ref_target": "Catalog_Склады"
+                },
+                {
+                    "name": "Назначение_Key",
+                    "type": "Edm.Guid",
+                    "nullable": true
+                },
+                {
+                    "name": "Подразделение_Key",
+                    "type": "Edm.Guid",
+                    "nullable": true
+                },
+                {
+                    "name": "СписатьНаРасходы",
+                    "type": "Edm.Boolean",
+                    "nullable": true
+                },
+                {
+                    "name": "АналитикаРасходов_Type",
+                    "type": "Edm.String",
+                    "nullable": true
+                }
+            ],
+            "tables": {}
+        },
+        "Document_ЗаказПоставщику_ЭтапыГрафикаОплаты": {
+            "kind": "table",
+            "name": "Document_ЗаказПоставщику_ЭтапыГрафикаОплаты",
+            "entity_set": "Document_ЗаказПоставщику_ЭтапыГрафикаОплаты",
+            "key": [
+                "Ref_Key",
+                "LineNumber"
+            ],
+            "fields": [
+                {
+                    "name": "Ref_Key",
+                    "type": "Edm.Guid",
+                    "nullable": false
+                },
+                {
+                    "name": "LineNumber",
+                    "type": "Edm.Int64",
+                    "nullable": false
+                },
+                {
+                    "name": "ВариантОплаты",
+                    "type": "Edm.String",
+                    "nullable": true
+                },
+                {
+                    "name": "ДатаПлатежа",
+                    "type": "Edm.DateTime",
+                    "nullable": true
+                },
+                {
+                    "name": "ПроцентПлатежа",
+                    "type": "Edm.Double",
+                    "nullable": true
+                },
+                {
+                    "name": "СуммаПлатежа",
+                    "type": "Edm.Double",
+                    "nullable": true
+                },
+                {
+                    "name": "ПроцентЗалогаЗаТару",
+                    "type": "Edm.Double",
+                    "nullable": true
+                },
+                {
+                    "name": "СуммаЗалогаЗаТару",
+                    "type": "Edm.Double",
+                    "nullable": true
+                }
+            ],
+            "tables": {}
+        },
+        "Document_МаршрутныйЛистПроизводства": {
+            "kind": "document",
+            "name": "МаршрутныйЛистПроизводства",
+            "entity_set": "Document_МаршрутныйЛистПроизводства",
+            "key": [
+                "Ref_Key"
+            ],
+            "fields": [
+                {
+                    "name": "Ref_Key",
+                    "type": "Edm.Guid",
+                    "nullable": false
+                },
+                {
+                    "name": "DataVersion",
+                    "type": "Edm.String",
+                    "nullable": true
+                },
+                {
+                    "name": "Number",
+                    "type": "Edm.String",
+                    "nullable": true
+                },
+                {
+                    "name": "Date",
+                    "type": "Edm.DateTime",
+                    "nullable": true
+                },
+                {
+                    "name": "DeletionMark",
+                    "type": "Edm.Boolean",
+                    "nullable": true
+                },
+                {
+                    "name": "Posted",
+                    "type": "Edm.Boolean",
+                    "nullable": true
+                },
+                {
+                    "name": "Организация_Key",
+                    "type": "Edm.Guid",
+                    "nullable": true,
+                    "ref_target": "Catalog_Организации"
+                },
+                {
+                    "name": "Статус",
+                    "type": "Edm.String",
+                    "nullable": true
+                },
+                {
+                    "name": "Этап_Key",
+                    "type": "Edm.Guid",
+                    "nullable": true
+                },
+                {
+                    "name": "Спецификация_Key",
+                    "type": "Edm.Guid",
+                    "nullable": true
+                },
+                {
+                    "name": "СпецификацияПолуфабриката_Key",
+                    "type": "Edm.Guid",
+                    "nullable": true
+                },
+                {
+                    "name": "ЭтапПродукции_Key",
+                    "type": "Edm.Guid",
+                    "nullable": true
+                },
+                {
+                    "name": "МаршрутнаяКарта_Key",
+                    "type": "Edm.Guid",
+                    "nullable": true
+                },
+                {
+                    "name": "Подразделение_Key",
+                    "type": "Edm.Guid",
+                    "nullable": true
+                },
+                {
+                    "name": "Распоряжение_Key",
+                    "type": "Edm.Guid",
+                    "nullable": true
+                },
+                {
+                    "name": "Номенклатура_Key",
+                    "type": "Edm.Guid",
+                    "nullable": true,
+                    "ref_target": "Catalog_Номенклатура"
+                },
+                {
+                    "name": "Характеристика_Key",
+                    "type": "Edm.Guid",
+                    "nullable": true
+                },
+                {
+                    "name": "КодСтроки",
+                    "type": "Edm.Int64",
+                    "nullable": true
+                },
+                {
+                    "name": "КодСтрокиЭтапыГрафик",
+                    "type": "Edm.Int64",
+                    "nullable": true
+                },
+                {
+                    "name": "Начало",
+                    "type": "Edm.DateTime",
+                    "nullable": true
+                },
+                {
+                    "name": "Окончание",
+                    "type": "Edm.DateTime",
+                    "nullable": true
+                },
+                {
+                    "name": "Непрерывный",
+                    "type": "Edm.Boolean",
+                    "nullable": true
+                },
+                {
+                    "name": "Запланировано",
+                    "type": "Edm.Int64",
+                    "nullable": true
+                },
+                {
+                    "name": "Произведено",
+                    "type": "Edm.Int64",
+                    "nullable": true
+                },
+                {
+                    "name": "Брак",
+                    "type": "Edm.Int64",
+                    "nullable": true
+                },
+                {
+                    "name": "ОдновременноПроизводимоеКоличествоЕдиницПартийИзделий",
+                    "type": "Edm.Int64",
+                    "nullable": true
+                },
+                {
+                    "name": "НачалоРаботыКлючевогоРабочегоЦентраПоГрафику",
+                    "type": "Edm.DateTime",
+                    "nullable": true
+                },
+                {
+                    "name": "ОкончаниеРаботыКлючевогоРабочегоЦентраПоГрафику",
+                    "type": "Edm.DateTime",
+                    "nullable": true
+                },
+                {
+                    "name": "ФактическоеОкончаниеРаботыКлючевогоРабочегоЦентра",
+                    "type": "Edm.DateTime",
+                    "nullable": true
+                },
+                {
+                    "name": "ПредварительныйБуфер",
+                    "type": "Edm.Int64",
+                    "nullable": true
+                },
+                {
+                    "name": "ЕдиницаИзмеренияПредварительногоБуфера",
+                    "type": "Edm.String",
+                    "nullable": true
+                },
+                {
+                    "name": "ЗавершающийБуфер",
+                    "type": "Edm.Int64",
+                    "nullable": true
+                },
+                {
+                    "name": "ЕдиницаИзмеренияЗавершающегоБуфера",
+                    "type": "Edm.String",
+                    "nullable": true
+                },
+                {
+                    "name": "ГотовоКРаботеКлючевогоРабочегоЦентра",
+                    "type": "Edm.Boolean",
+                    "nullable": true
+                },
+                {
+                    "name": "ДатаВыполненияРаботВПредварительномБуфере",
+                    "type": "Edm.DateTime",
+                    "nullable": true
+                },
+                {
+                    "name": "ПорядокВыполненияОперацийЗадаетсяПроизвольно",
+                    "type": "Edm.Boolean",
+                    "nullable": true
+                },
+                {
+                    "name": "Диспетчер_Key",
+                    "type": "Edm.Guid",
+                    "nullable": true
+                },
+                {
+                    "name": "ПланироватьРаботуВидовРабочихЦентров",
+                    "type": "Edm.Boolean",
+                    "nullable": true
+                },
+                {
+                    "name": "ЗавершеноВыполнениеМаршрутногоЛиста",
+                    "type": "Edm.Boolean",
+                    "nullable": true
+                },
+                {
+                    "name": "ДлительностьЭтапа",
+                    "type": "Edm.Int64",
+                    "nullable": true
+                },
+                {
+                    "name": "ЕдиницаИзмеренияДлительностиЭтапа",
+                    "type": "Edm.String",
+                    "nullable": true
+                },
+                {
+                    "name": "ЗатраченоВремениОтПредварительногоБуфера",
+                    "type": "Edm.Int16",
+                    "nullable": true
+                },
+                {
+                    "name": "ЗатраченоВремениОтЗавершающегоБуфера",
+                    "type": "Edm.Int16",
+                    "nullable": true
+                },
+                {
+                    "name": "ПричинаЗадержкиПредварительныйБуфер_Key",
+                    "type": "Edm.Guid",
+                    "nullable": true
+                },
+                {
+                    "name": "ПричинаЗадержкиЗавершающийБуфер_Key",
+                    "type": "Edm.Guid",
+                    "nullable": true
+                },
+                {
+                    "name": "ФактическоеОкончание",
+                    "type": "Edm.DateTime",
+                    "nullable": true
+                },
+                {
+                    "name": "ДатаВыполненияРаботВЗавершающемБуфере",
+                    "type": "Edm.DateTime",
+                    "nullable": true
+                },
+                {
+                    "name": "ЗатраченоВремениОтДлительностиЭтапа",
+                    "type": "Edm.Int16",
+                    "nullable": true
+                },
+                {
+                    "name": "ПричинаЗадержкиЭтап_Key",
+                    "type": "Edm.Guid",
+                    "nullable": true
+                },
+                {
+                    "name": "ЗавершенаРаботаКлючевогоРабочегоЦентра",
+                    "type": "Edm.Boolean",
+                    "nullable": true
+                },
+                {
+                    "name": "ОкончаниеВыполненияОпераций",
+                    "type": "Edm.DateTime",
+                    "nullable": true
+                },
+                {
+                    "name": "ОписаниеБрака",
+                    "type": "Edm.String",
+                    "nullable": true
+                },
+                {
+                    "name": "Назначение_Key",
+                    "type": "Edm.Guid",
+                    "nullable": true
+                },
+                {
+                    "name": "Комментарий",
+                    "type": "Edm.String",
+                    "nullable": true
+                },
+                {
+                    "name": "ЭтапВосстановленияБрака",
+                    "type": "Edm.Boolean",
+                    "nullable": true
+                },
+                {
+                    "name": "ДатаВыполненияОпераций",
+                    "type": "Edm.DateTime",
+                    "nullable": true
+                },
+                {
+                    "name": "СостояниеРасписания",
+                    "type": "Edm.String",
+                    "nullable": true
+                },
+                {
+                    "name": "Очередь",
+                    "type": "Edm.Int64",
+                    "nullable": true
+                },
+                {
+                    "name": "УправлениеМаршрутнымиЛистами",
+                    "type": "Edm.String",
+                    "nullable": true
+                },
+                {
+                    "name": "МаксимальныйКодСтрокиИзделия",
+                    "type": "Edm.Int64",
+                    "nullable": true
+                },
+                {
+                    "name": "МаксимальныйКодСтрокиМатериалы",
+                    "type": "Edm.Int64",
+                    "nullable": true
+                },
+                {
+                    "name": "МаксимальныйКодСтрокиТрудозатраты",
+                    "type": "Edm.Int64",
+                    "nullable": true
+                },
+                {
+                    "name": "НоменклатураПолуфабриката_Key",
+                    "type": "Edm.Guid",
+                    "nullable": true,
+                    "ref_target": "Catalog_Номенклатура"
+                },
+                {
+                    "name": "ХарактеристикаПолуфабриката_Key",
+                    "type": "Edm.Guid",
+                    "nullable": true
+                },
+                {
+                    "name": "ДопроизводствоМаршрутногоЛиста_Key",
+                    "type": "Edm.Guid",
+                    "nullable": true,
+                    "ref_target": "Document_МаршрутныйЛистПроизводства"
+                },
+                {
+                    "name": "ПеренесенНаДругойИнтервал",
+                    "type": "Edm.Boolean",
+                    "nullable": true
+                },
+                {
+                    "name": "ФактическоеНачало",
+                    "type": "Edm.DateTime",
+                    "nullable": true
+                },
+                {
+                    "name": "ФактическоеНачалоВыполненияОпераций",
+                    "type": "Edm.DateTime",
+                    "nullable": true
+                },
+                {
+                    "name": "НомерПартии",
+                    "type": "Edm.Int64",
+                    "nullable": true
+                },
+                {
+                    "name": "Приоритет_Key",
+                    "type": "Edm.Guid",
+                    "nullable": true
+                },
+                {
+                    "name": "ПлановаяДатаНачалаРабот",
+                    "type": "Edm.DateTime",
+                    "nullable": true
+                },
+                {
+                    "name": "ПлановаяДатаОкончанияРабот",
+                    "type": "Edm.DateTime",
+                    "nullable": true
+                },
+                {
+                    "name": "КонсолидацияСПМ",
+                    "type": "Edm.String",
+                    "nullable": true
+                },
+                {
+                    "name": "Материал_Key",
+                    "type": "Edm.Guid",
+                    "nullable": true,
+                    "ref_target": "Catalog_Номенклатура"
+                },
+                {
+                    "name": "РазмерЛиста",
+                    "type": "Edm.String",
+                    "nullable": true
+                }
+            ],
+            "tables": {
+                "ВидыРабочихЦентров": {
+                    "row_type": "Document_МаршрутныйЛистПроизводства_ВидыРабочихЦентров"
+                },
+                "ВозвратныеОтходы": {
+                    "row_type": "Document_МаршрутныйЛистПроизводства_ВозвратныеОтходы"
+                },
+                "ВспомогательныеРабочиеЦентры": {
+                    "row_type": "Document_МаршрутныйЛистПроизводства_ВспомогательныеРабочиеЦентры"
+                },
+                "ВыходныеИзделия": {
+                    "row_type": "Document_МаршрутныйЛистПроизводства_ВыходныеИзделия"
+                },
+                "ВыходныеИзделияСерии": {
+                    "row_type": "Document_МаршрутныйЛистПроизводства_ВыходныеИзделияСерии"
+                },
+                "ДополнительныеРеквизиты": {
+                    "row_type": "Document_МаршрутныйЛистПроизводства_ДополнительныеРеквизиты"
+                },
+                "ЗанятостьВидовРабочихЦентровПоГрафику": {
+                    "row_type": "Document_МаршрутныйЛистПроизводства_ЗанятостьВидовРабочихЦентровПоГрафику"
+                },
+                "МатериалыИУслуги": {
+                    "row_type": "Document_МаршрутныйЛистПроизводства_МатериалыИУслуги"
+                },
+                "Операции": {
+                    "row_type": "Document_МаршрутныйЛистПроизводства_Операции"
+                },
+                "РаспоряжениеСпецификация": {
+                    "row_type": "Document_МаршрутныйЛистПроизводства_РаспоряжениеСпецификация"
+                },
+                "РаспоряжениеТрудозатраты": {
+                    "row_type": "Document_МаршрутныйЛистПроизводства_РаспоряжениеТрудозатраты"
+                },
+                "Трудозатраты": {
+                    "row_type": "Document_МаршрутныйЛистПроизводства_Трудозатраты"
+                },
+                "УдалитьМатериалыИУслугиСерии": {
+                    "row_type": "Document_МаршрутныйЛистПроизводства_УдалитьМатериалыИУслугиСерии"
+                }
+            }
+        },
+        "Document_МаршрутныйЛистПроизводства_ВидыРабочихЦентров": {
+            "kind": "table",
+            "name": "Document_МаршрутныйЛистПроизводства_ВидыРабочихЦентров",
+            "entity_set": "Document_МаршрутныйЛистПроизводства_ВидыРабочихЦентров",
+            "key": [
+                "Ref_Key",
+                "LineNumber"
+            ],
+            "fields": [
+                {
+                    "name": "Ref_Key",
+                    "type": "Edm.Guid",
+                    "nullable": false
+                },
+                {
+                    "name": "LineNumber",
+                    "type": "Edm.Int64",
+                    "nullable": false
+                },
+                {
+                    "name": "ВидРабочегоЦентра_Key",
+                    "type": "Edm.Guid",
+                    "nullable": true
+                },
+                {
+                    "name": "РабочийЦентр_Key",
+                    "type": "Edm.Guid",
+                    "nullable": true
+                },
+                {
+                    "name": "ВариантНаладки_Key",
+                    "type": "Edm.Guid",
+                    "nullable": true
+                },
+                {
+                    "name": "ДатаИнтервала",
+                    "type": "Edm.DateTime",
+                    "nullable": true
+                },
+                {
+                    "name": "ВремяРаботы",
+                    "type": "Edm.Int64",
+                    "nullable": true
+                },
+                {
+                    "name": "ВремяРаботыНорматив",
+                    "type": "Edm.Int64",
+                    "nullable": true
+                },
+                {
+                    "name": "Загрузка",
+                    "type": "Edm.Double",
+                    "nullable": true
+                },
+                {
+                    "name": "ЗагрузкаНорматив",
+                    "type": "Edm.Double",
+                    "nullable": true
+                }
+            ],
+            "tables": {}
+        },
+        "Document_МаршрутныйЛистПроизводства_ВозвратныеОтходы": {
+            "kind": "table",
+            "name": "Document_МаршрутныйЛистПроизводства_ВозвратныеОтходы",
+            "entity_set": "Document_МаршрутныйЛистПроизводства_ВозвратныеОтходы",
+            "key": [
+                "Ref_Key",
+                "LineNumber"
+            ],
+            "fields": [
+                {
+                    "name": "Ref_Key",
+                    "type": "Edm.Guid",
+                    "nullable": false
+                },
+                {
+                    "name": "LineNumber",
+                    "type": "Edm.Int64",
+                    "nullable": false
+                },
+                {
+                    "name": "Номенклатура_Key",
+                    "type": "Edm.Guid",
+                    "nullable": true,
+                    "ref_target": "Catalog_Номенклатура"
+                },
+                {
+                    "name": "Характеристика_Key",
+                    "type": "Edm.Guid",
+                    "nullable": true
+                },
+                {
+                    "name": "КоличествоУпаковок",
+                    "type": "Edm.Double",
+                    "nullable": true
+                },
+                {
+                    "name": "Количество",
+                    "type": "Edm.Double",
+                    "nullable": true
+                },
+                {
+                    "name": "КоличествоУпаковокОтклонение",
+                    "type": "Edm.Double",
+                    "nullable": true
+                },
+                {
+                    "name": "КоличествоОтклонение",
+                    "type": "Edm.Double",
+                    "nullable": true
+                },
+                {
+                    "name": "Упаковка_Key",
+                    "type": "Edm.Guid",
+                    "nullable": true
+                },
+                {
+                    "name": "Получатель",
+                    "type": "Edm.String",
+                    "nullable": true
+                },
+                {
+                    "name": "КлючСвязиОперации",
+                    "type": "Edm.Guid",
+                    "nullable": true
+                },
+                {
+                    "name": "КодСтроки",
+                    "type": "Edm.Int64",
+                    "nullable": true
+                },
+                {
+                    "name": "СтатьяКалькуляции_Key",
+                    "type": "Edm.Guid",
+                    "nullable": true
+                },
+                {
+                    "name": "ОписаниеИзделия",
+                    "type": "Edm.String",
+                    "nullable": true
+                },
+                {
+                    "name": "КоличествоУпаковокФакт",
+                    "type": "Edm.Double",
+                    "nullable": true
+                },
+                {
+                    "name": "КоличествоФакт",
+                    "type": "Edm.Double",
+                    "nullable": true
+                },
+                {
+                    "name": "ПроизводитсяВПроцессе",
+                    "type": "Edm.Boolean",
+                    "nullable": true
+                },
+                {
+                    "name": "Назначение_Key",
+                    "type": "Edm.Guid",
+                    "nullable": true
+                },
+                {
+                    "name": "Серия_Key",
+                    "type": "Edm.Guid",
+                    "nullable": true
+                },
+                {
+                    "name": "Получатель_Type",
+                    "type": "Edm.String",
+                    "nullable": true
+                }
+            ],
+            "tables": {}
+        },
+        "Document_МаршрутныйЛистПроизводства_ВспомогательныеРабочиеЦентры": {
+            "kind": "table",
+            "name": "Document_МаршрутныйЛистПроизводства_ВспомогательныеРабочиеЦентры",
+            "entity_set": "Document_МаршрутныйЛистПроизводства_ВспомогательныеРабочиеЦентры",
+            "key": [
+                "Ref_Key",
+                "LineNumber"
+            ],
+            "fields": [
+                {
+                    "name": "Ref_Key",
+                    "type": "Edm.Guid",
+                    "nullable": false
+                },
+                {
+                    "name": "LineNumber",
+                    "type": "Edm.Int64",
+                    "nullable": false
+                },
+                {
+                    "name": "РабочийЦентр",
+                    "type": "Edm.String",
+                    "nullable": true
+                },
+                {
+                    "name": "КлючСвязиОперации",
+                    "type": "Edm.Guid",
+                    "nullable": true
+                },
+                {
+                    "name": "РабочийЦентр_Type",
+                    "type": "Edm.String",
+                    "nullable": true
+                }
+            ],
+            "tables": {}
+        },
+        "Document_МаршрутныйЛистПроизводства_ВыходныеИзделия": {
+            "kind": "table",
+            "name": "Document_МаршрутныйЛистПроизводства_ВыходныеИзделия",
+            "entity_set": "Document_МаршрутныйЛистПроизводства_ВыходныеИзделия",
+            "key": [
+                "Ref_Key",
+                "LineNumber"
+            ],
+            "fields": [
+                {
+                    "name": "Ref_Key",
+                    "type": "Edm.Guid",
+                    "nullable": false
+                },
+                {
+                    "name": "LineNumber",
+                    "type": "Edm.Int64",
+                    "nullable": false
+                },
+                {
+                    "name": "Номенклатура_Key",
+                    "type": "Edm.Guid",
+                    "nullable": true,
+                    "ref_target": "Catalog_Номенклатура"
+                },
+                {
+                    "name": "Характеристика_Key",
+                    "type": "Edm.Guid",
+                    "nullable": true
+                },
+                {
+                    "name": "КоличествоУпаковок",
+                    "type": "Edm.Double",
+                    "nullable": true
+                },
+                {
+                    "name": "Количество",
+                    "type": "Edm.Double",
+                    "nullable": true
+                },
+                {
+                    "name": "КоличествоУпаковокОтклонение",
+                    "type": "Edm.Double",
+                    "nullable": true
+                },
+                {
+                    "name": "КоличествоОтклонение",
+                    "type": "Edm.Double",
+                    "nullable": true
+                },
+                {
+                    "name": "Упаковка_Key",
+                    "type": "Edm.Guid",
+                    "nullable": true
+                },
+                {
+                    "name": "Получатель",
+                    "type": "Edm.String",
+                    "nullable": true
+                },
+                {
+                    "name": "КлючСвязиОперации",
+                    "type": "Edm.Guid",
+                    "nullable": true
+                },
+                {
+                    "name": "ДоляСтоимости",
+                    "type": "Edm.Int64",
+                    "nullable": true
+                },
+                {
+                    "name": "КодСтроки",
+                    "type": "Edm.Int64",
+                    "nullable": true
+                },
+                {
+                    "name": "КоличествоУпаковокФакт",
+                    "type": "Edm.Double",
+                    "nullable": true
+                },
+                {
+                    "name": "КоличествоФакт",
+                    "type": "Edm.Double",
+                    "nullable": true
+                },
+                {
+                    "name": "ПроизводитсяВПроцессе",
+                    "type": "Edm.Boolean",
+                    "nullable": true
+                },
+                {
+                    "name": "Серия_Key",
+                    "type": "Edm.Guid",
+                    "nullable": true
+                },
+                {
+                    "name": "СтатусУказанияСерий",
+                    "type": "Edm.Int16",
+                    "nullable": true
+                },
+                {
+                    "name": "АналитикаУчетаНоменклатуры_Key",
+                    "type": "Edm.Guid",
+                    "nullable": true
+                },
+                {
+                    "name": "Назначение_Key",
+                    "type": "Edm.Guid",
+                    "nullable": true
+                },
+                {
+                    "name": "Получатель_Type",
+                    "type": "Edm.String",
+                    "nullable": true
+                }
+            ],
+            "tables": {}
+        },
+        "Document_МаршрутныйЛистПроизводства_ВыходныеИзделияСерии": {
+            "kind": "table",
+            "name": "Document_МаршрутныйЛистПроизводства_ВыходныеИзделияСерии",
+            "entity_set": "Document_МаршрутныйЛистПроизводства_ВыходныеИзделияСерии",
+            "key": [
+                "Ref_Key",
+                "LineNumber"
+            ],
+            "fields": [
+                {
+                    "name": "Ref_Key",
+                    "type": "Edm.Guid",
+                    "nullable": false
+                },
+                {
+                    "name": "LineNumber",
+                    "type": "Edm.Int64",
+                    "nullable": false
+                },
+                {
+                    "name": "Серия_Key",
+                    "type": "Edm.Guid",
+                    "nullable": true
+                },
+                {
+                    "name": "КоличествоФакт",
+                    "type": "Edm.Double",
+                    "nullable": true
+                },
+                {
+                    "name": "Номенклатура_Key",
+                    "type": "Edm.Guid",
+                    "nullable": true,
+                    "ref_target": "Catalog_Номенклатура"
+                },
+                {
+                    "name": "Характеристика_Key",
+                    "type": "Edm.Guid",
+                    "nullable": true
+                },
+                {
+                    "name": "Получатель",
+                    "type": "Edm.String",
+                    "nullable": true
+                },
+                {
+                    "name": "Назначение_Key",
+                    "type": "Edm.Guid",
+                    "nullable": true
+                },
+                {
+                    "name": "Получатель_Type",
+                    "type": "Edm.String",
+                    "nullable": true
+                }
+            ],
+            "tables": {}
+        },
+        "Document_МаршрутныйЛистПроизводства_ДополнительныеРеквизиты": {
+            "kind": "table",
+            "name": "Document_МаршрутныйЛистПроизводства_ДополнительныеРеквизиты",
+            "entity_set": "Document_МаршрутныйЛистПроизводства_ДополнительныеРеквизиты",
+            "key": [
+                "Ref_Key",
+                "LineNumber"
+            ],
+            "fields": [
+                {
+                    "name": "Ref_Key",
+                    "type": "Edm.Guid",
+                    "nullable": false
+                },
+                {
+                    "name": "LineNumber",
+                    "type": "Edm.Int64",
+                    "nullable": false
+                },
+                {
+                    "name": "Свойство_Key",
+                    "type": "Edm.Guid",
+                    "nullable": true
+                },
+                {
+                    "name": "Значение",
+                    "type": "Edm.String",
+                    "nullable": true
+                },
+                {
+                    "name": "ТекстоваяСтрока",
+                    "type": "Edm.String",
+                    "nullable": true
+                },
+                {
+                    "name": "Значение_Type",
+                    "type": "Edm.String",
+                    "nullable": true
+                }
+            ],
+            "tables": {}
+        },
+        "Document_МаршрутныйЛистПроизводства_ЗанятостьВидовРабочихЦентровПоГрафику": {
+            "kind": "table",
+            "name": "Document_МаршрутныйЛистПроизводства_ЗанятостьВидовРабочихЦентровПоГрафику",
+            "entity_set": "Document_МаршрутныйЛистПроизводства_ЗанятостьВидовРабочихЦентровПоГрафику",
+            "key": [
+                "Ref_Key",
+                "LineNumber"
+            ],
+            "fields": [
+                {
+                    "name": "Ref_Key",
+                    "type": "Edm.Guid",
+                    "nullable": false
+                },
+                {
+                    "name": "LineNumber",
+                    "type": "Edm.Int64",
+                    "nullable": false
+                },
+                {
+                    "name": "ВидРабочегоЦентра_Key",
+                    "type": "Edm.Guid",
+                    "nullable": true
+                },
+                {
+                    "name": "ВариантНаладки_Key",
+                    "type": "Edm.Guid",
+                    "nullable": true
+                },
+                {
+                    "name": "ДатаИнтервала",
+                    "type": "Edm.DateTime",
+                    "nullable": true
+                },
+                {
+                    "name": "ВремяРаботы",
+                    "type": "Edm.Double",
+                    "nullable": true
+                },
+                {
+                    "name": "ВремяРаботыНорматив",
+                    "type": "Edm.Double",
+                    "nullable": true
+                },
+                {
+                    "name": "Загрузка",
+                    "type": "Edm.Double",
+                    "nullable": true
+                },
+                {
+                    "name": "ЗагрузкаНорматив",
+                    "type": "Edm.Double",
+                    "nullable": true
+                }
+            ],
+            "tables": {}
+        },
+        "Document_МаршрутныйЛистПроизводства_МатериалыИУслуги": {
+            "kind": "table",
+            "name": "Document_МаршрутныйЛистПроизводства_МатериалыИУслуги",
+            "entity_set": "Document_МаршрутныйЛистПроизводства_МатериалыИУслуги",
+            "key": [
+                "Ref_Key",
+                "LineNumber"
+            ],
+            "fields": [
+                {
+                    "name": "Ref_Key",
+                    "type": "Edm.Guid",
+                    "nullable": false
+                },
+                {
+                    "name": "LineNumber",
+                    "type": "Edm.Int64",
+                    "nullable": false
+                },
+                {
+                    "name": "Номенклатура_Key",
+                    "type": "Edm.Guid",
+                    "nullable": true,
+                    "ref_target": "Catalog_Номенклатура"
+                },
+                {
+                    "name": "Характеристика_Key",
+                    "type": "Edm.Guid",
+                    "nullable": true
+                },
+                {
+                    "name": "КоличествоУпаковок",
+                    "type": "Edm.Double",
+                    "nullable": true
+                },
+                {
+                    "name": "Количество",
+                    "type": "Edm.Double",
+                    "nullable": true
+                },
+                {
+                    "name": "КоличествоУпаковокОтклонение",
+                    "type": "Edm.Double",
+                    "nullable": true
+                },
+                {
+                    "name": "КоличествоОтклонение",
+                    "type": "Edm.Double",
+                    "nullable": true
+                },
+                {
+                    "name": "Упаковка_Key",
+                    "type": "Edm.Guid",
+                    "nullable": true
+                },
+                {
+                    "name": "СтатьяКалькуляции_Key",
+                    "type": "Edm.Guid",
+                    "nullable": true
+                },
+                {
+                    "name": "ИспользуетсяАвтовыбор",
+                    "type": "Edm.Boolean",
+                    "nullable": true
+                },
+                {
+                    "name": "ПрименениеМатериала",
+                    "type": "Edm.String",
+                    "nullable": true
+                },
+                {
+                    "name": "СведенияАвтовыбора",
+                    "type": "Edm.String",
+                    "nullable": true
+                },
+                {
+                    "name": "КлючСвязиОперации",
+                    "type": "Edm.Guid",
+                    "nullable": true
+                },
+                {
+                    "name": "Назначение_Key",
+                    "type": "Edm.Guid",
+                    "nullable": true
+                },
+                {
+                    "name": "КоличествоУпаковокФакт",
+                    "type": "Edm.Double",
+                    "nullable": true
+                },
+                {
+                    "name": "КоличествоФакт",
+                    "type": "Edm.Double",
+                    "nullable": true
+                },
+                {
+                    "name": "СтатусУказанияСерий",
+                    "type": "Edm.Int16",
+                    "nullable": true
+                },
+                {
+                    "name": "Серия_Key",
+                    "type": "Edm.Guid",
+                    "nullable": true
+                },
+                {
+                    "name": "ПроизводитсяВПроцессе",
+                    "type": "Edm.Boolean",
+                    "nullable": true
+                },
+                {
+                    "name": "АналитикаУчетаНоменклатуры_Key",
+                    "type": "Edm.Guid",
+                    "nullable": true
+                },
+                {
+                    "name": "ДатаРасхода",
+                    "type": "Edm.DateTime",
+                    "nullable": true
+                },
+                {
+                    "name": "МатериалИзрасходован",
+                    "type": "Edm.Boolean",
+                    "nullable": true
+                },
+                {
+                    "name": "КодСтроки",
+                    "type": "Edm.Int64",
+                    "nullable": true
+                }
+            ],
+            "tables": {}
+        },
+        "Document_МаршрутныйЛистПроизводства_Операции": {
+            "kind": "table",
+            "name": "Document_МаршрутныйЛистПроизводства_Операции",
+            "entity_set": "Document_МаршрутныйЛистПроизводства_Операции",
+            "key": [
+                "Ref_Key",
+                "LineNumber"
+            ],
+            "fields": [
+                {
+                    "name": "Ref_Key",
+                    "type": "Edm.Guid",
+                    "nullable": false
+                },
+                {
+                    "name": "LineNumber",
+                    "type": "Edm.Int64",
+                    "nullable": false
+                },
+                {
+                    "name": "Операция",
+                    "type": "Edm.String",
+                    "nullable": true
+                },
+                {
+                    "name": "РабочийЦентр_Key",
+                    "type": "Edm.Guid",
+                    "nullable": true
+                },
+                {
+                    "name": "ВидРабочегоЦентра_Key",
+                    "type": "Edm.Guid",
+                    "nullable": true
+                },
+                {
+                    "name": "РабочийЦентрПоРасписанию_Key",
+                    "type": "Edm.Guid",
+                    "nullable": true
+                },
+                {
+                    "name": "НомерОперации",
+                    "type": "Edm.Int64",
+                    "nullable": true
+                },
+                {
+                    "name": "НомерСледующейОперации",
+                    "type": "Edm.Int64",
+                    "nullable": true
+                },
+                {
+                    "name": "Начало",
+                    "type": "Edm.DateTime",
+                    "nullable": true
+                },
+                {
+                    "name": "СтатусВыполнения",
+                    "type": "Edm.String",
+                    "nullable": true
+                },
+                {
+                    "name": "РасписаниеВведеноВручную",
+                    "type": "Edm.Boolean",
+                    "nullable": true
+                },
+                {
+                    "name": "Окончание",
+                    "type": "Edm.DateTime",
+                    "nullable": true
+                },
+                {
+                    "name": "ВремяВыполнения",
+                    "type": "Edm.Double",
+                    "nullable": true
+                },
+                {
+                    "name": "ВремяВыполненияЕдИзм",
+                    "type": "Edm.String",
+                    "nullable": true
+                },
+                {
+                    "name": "ВремяШтучное",
+                    "type": "Edm.Double",
+                    "nullable": true
+                },
+                {
+                    "name": "ВремяШтучноеЕдИзм",
+                    "type": "Edm.String",
+                    "nullable": true
+                },
+                {
+                    "name": "ВремяПЗ",
+                    "type": "Edm.Double",
+                    "nullable": true
+                },
+                {
+                    "name": "ВремяПЗЕдИзм",
+                    "type": "Edm.String",
+                    "nullable": true
+                },
+                {
+                    "name": "ВариантНаладки_Key",
+                    "type": "Edm.Guid",
+                    "nullable": true
+                },
+                {
+                    "name": "Загрузка",
+                    "type": "Edm.Double",
+                    "nullable": true
+                },
+                {
+                    "name": "Непрерывная",
+                    "type": "Edm.Boolean",
+                    "nullable": true
+                },
+                {
+                    "name": "Приоритет_Key",
+                    "type": "Edm.Guid",
+                    "nullable": true
+                },
+                {
+                    "name": "КлючСвязи",
+                    "type": "Edm.Guid",
+                    "nullable": true
+                },
+                {
+                    "name": "Операция_Type",
+                    "type": "Edm.String",
+                    "nullable": true
+                }
+            ],
+            "tables": {}
+        },
+        "Document_МаршрутныйЛистПроизводства_РаспоряжениеСпецификация": {
+            "kind": "table",
+            "name": "Document_МаршрутныйЛистПроизводства_РаспоряжениеСпецификация",
+            "entity_set": "Document_МаршрутныйЛистПроизводства_РаспоряжениеСпецификация",
+            "key": [
+                "Ref_Key",
+                "LineNumber"
+            ],
+            "fields": [
+                {
+                    "name": "Ref_Key",
+                    "type": "Edm.Guid",
+                    "nullable": false
+                },
+                {
+                    "name": "LineNumber",
+                    "type": "Edm.Int64",
+                    "nullable": false
+                },
+                {
+                    "name": "Номенклатура_Key",
+                    "type": "Edm.Guid",
+                    "nullable": true,
+                    "ref_target": "Catalog_Номенклатура"
+                },
+                {
+                    "name": "Характеристика_Key",
+                    "type": "Edm.Guid",
+                    "nullable": true
+                },
+                {
+                    "name": "Количество",
+                    "type": "Edm.Double",
+                    "nullable": true
+                },
+                {
+                    "name": "КоличествоПоЗаказу",
+                    "type": "Edm.Double",
+                    "nullable": true
+                },
+                {
+                    "name": "КоличествоОтклонение",
+                    "type": "Edm.Double",
+                    "nullable": true
+                },
+                {
+                    "name": "Получатель",
+                    "type": "Edm.String",
+                    "nullable": true
+                },
+                {
+                    "name": "Назначение_Key",
+                    "type": "Edm.Guid",
+                    "nullable": true
+                },
+                {
+                    "name": "ПроизводитсяВПроцессе",
+                    "type": "Edm.Boolean",
+                    "nullable": true
+                },
+                {
+                    "name": "Получатель_Type",
+                    "type": "Edm.String",
+                    "nullable": true
+                }
+            ],
+            "tables": {}
+        },
+        "Document_МаршрутныйЛистПроизводства_РаспоряжениеТрудозатраты": {
+            "kind": "table",
+            "name": "Document_МаршрутныйЛистПроизводства_РаспоряжениеТрудозатраты",
+            "entity_set": "Document_МаршрутныйЛистПроизводства_РаспоряжениеТрудозатраты",
+            "key": [
+                "Ref_Key",
+                "LineNumber"
+            ],
+            "fields": [
+                {
+                    "name": "Ref_Key",
+                    "type": "Edm.Guid",
+                    "nullable": false
+                },
+                {
+                    "name": "LineNumber",
+                    "type": "Edm.Int64",
+                    "nullable": false
+                },
+                {
+                    "name": "ВидРабот_Key",
+                    "type": "Edm.Guid",
+                    "nullable": true
+                },
+                {
+                    "name": "КоличествоПоЗаказу",
+                    "type": "Edm.Double",
+                    "nullable": true
+                },
+                {
+                    "name": "Количество",
+                    "type": "Edm.Double",
+                    "nullable": true
+                },
+                {
+                    "name": "КоличествоОтклонение",
+                    "type": "Edm.Double",
+                    "nullable": true
+                }
+            ],
+            "tables": {}
+        },
+        "Document_МаршрутныйЛистПроизводства_Трудозатраты": {
+            "kind": "table",
+            "name": "Document_МаршрутныйЛистПроизводства_Трудозатраты",
+            "entity_set": "Document_МаршрутныйЛистПроизводства_Трудозатраты",
+            "key": [
+                "Ref_Key",
+                "LineNumber"
+            ],
+            "fields": [
+                {
+                    "name": "Ref_Key",
+                    "type": "Edm.Guid",
+                    "nullable": false
+                },
+                {
+                    "name": "LineNumber",
+                    "type": "Edm.Int64",
+                    "nullable": false
+                },
+                {
+                    "name": "ВидРабот_Key",
+                    "type": "Edm.Guid",
+                    "nullable": true
+                },
+                {
+                    "name": "Количество",
+                    "type": "Edm.Double",
+                    "nullable": true
+                },
+                {
+                    "name": "КоличествоОтклонение",
+                    "type": "Edm.Double",
+                    "nullable": true
+                },
+                {
+                    "name": "Бригада_Key",
+                    "type": "Edm.Guid",
+                    "nullable": true
+                },
+                {
+                    "name": "СтатьяКалькуляции_Key",
+                    "type": "Edm.Guid",
+                    "nullable": true
+                },
+                {
+                    "name": "КлючСвязиОперации",
+                    "type": "Edm.Guid",
+                    "nullable": true
+                },
+                {
+                    "name": "СодержаниеРабот",
+                    "type": "Edm.String",
+                    "nullable": true
+                },
+                {
+                    "name": "КоличествоФакт",
+                    "type": "Edm.Double",
+                    "nullable": true
+                },
+                {
+                    "name": "КодСтроки",
+                    "type": "Edm.Int64",
+                    "nullable": true
+                },
+                {
+                    "name": "НазначениеРабот",
+                    "type": "Edm.String",
+                    "nullable": true
+                }
+            ],
+            "tables": {}
+        },
+        "Document_МаршрутныйЛистПроизводства_УдалитьМатериалыИУслугиСерии": {
+            "kind": "table",
+            "name": "Document_МаршрутныйЛистПроизводства_УдалитьМатериалыИУслугиСерии",
+            "entity_set": "Document_МаршрутныйЛистПроизводства_УдалитьМатериалыИУслугиСерии",
+            "key": [
+                "Ref_Key",
+                "LineNumber"
+            ],
+            "fields": [
+                {
+                    "name": "Ref_Key",
+                    "type": "Edm.Guid",
+                    "nullable": false
+                },
+                {
+                    "name": "LineNumber",
+                    "type": "Edm.Int64",
+                    "nullable": false
+                },
+                {
+                    "name": "Серия_Key",
+                    "type": "Edm.Guid",
+                    "nullable": true
+                },
+                {
+                    "name": "УдалитьКоличество",
+                    "type": "Edm.Double",
+                    "nullable": true
+                },
+                {
+                    "name": "КоличествоФакт",
+                    "type": "Edm.Double",
+                    "nullable": true
+                },
+                {
+                    "name": "Номенклатура_Key",
+                    "type": "Edm.Guid",
+                    "nullable": true,
+                    "ref_target": "Catalog_Номенклатура"
+                },
+                {
+                    "name": "Характеристика_Key",
+                    "type": "Edm.Guid",
+                    "nullable": true
+                },
+                {
+                    "name": "Назначение_Key",
+                    "type": "Edm.Guid",
+                    "nullable": true
+                },
+                {
+                    "name": "МатериалИзрасходован",
+                    "type": "Edm.Boolean",
+                    "nullable": true
+                }
+            ],
+            "tables": {}
+        },
+        "Document_ПоступлениеТоваровУслуг": {
+            "kind": "document",
+            "name": "ПоступлениеТоваровУслуг",
+            "entity_set": "Document_ПоступлениеТоваровУслуг",
+            "key": [
+                "Ref_Key"
+            ],
+            "fields": [
+                {
+                    "name": "Ref_Key",
+                    "type": "Edm.Guid",
+                    "nullable": false
+                },
+                {
+                    "name": "DataVersion",
+                    "type": "Edm.String",
+                    "nullable": true
+                },
+                {
+                    "name": "Number",
+                    "type": "Edm.String",
+                    "nullable": true
+                },
+                {
+                    "name": "Date",
+                    "type": "Edm.DateTime",
+                    "nullable": true
+                },
+                {
+                    "name": "DeletionMark",
+                    "type": "Edm.Boolean",
+                    "nullable": true
+                },
+                {
+                    "name": "Posted",
+                    "type": "Edm.Boolean",
+                    "nullable": true
+                },
+                {
+                    "name": "Валюта_Key",
+                    "type": "Edm.Guid",
+                    "nullable": true
+                },
+                {
+                    "name": "Партнер_Key",
+                    "type": "Edm.Guid",
+                    "nullable": true,
+                    "ref_target": "Catalog_Партнеры"
+                },
+                {
+                    "name": "Соглашение_Key",
+                    "type": "Edm.Guid",
+                    "nullable": true
+                },
+                {
+                    "name": "ХозяйственнаяОперация",
+                    "type": "Edm.String",
+                    "nullable": true
+                },
+                {
+                    "name": "Организация_Key",
+                    "type": "Edm.Guid",
+                    "nullable": true,
+                    "ref_target": "Catalog_Организации"
+                },
+                {
+                    "name": "Подразделение_Key",
+                    "type": "Edm.Guid",
+                    "nullable": true
+                },
+                {
+                    "name": "Склад_Key",
+                    "type": "Edm.Guid",
+                    "nullable": true,
+                    "ref_target": "Catalog_Склады"
+                },
+                {
+                    "name": "Контрагент_Key",
+                    "type": "Edm.Guid",
+                    "nullable": true,
+                    "ref_target": "Catalog_Контрагенты"
+                },
+                {
+                    "name": "СуммаДокумента",
+                    "type": "Edm.Double",
+                    "nullable": true
+                },
+                {
+                    "name": "СуммаВзаиморасчетовПоЗаказу",
+                    "type": "Edm.Double",
+                    "nullable": true
+                },
+                {
+                    "name": "Менеджер_Key",
+                    "type": "Edm.Guid",
+                    "nullable": true
+                },
+                {
+                    "name": "ЗаказПоставщику_Key",
+                    "type": "Edm.Guid",
+                    "nullable": true,
+                    "ref_target": "Document_ЗаказПоставщику"
+                },
+                {
+                    "name": "ПодотчетноеЛицо_Key",
+                    "type": "Edm.Guid",
+                    "nullable": true
+                },
+                {
+                    "name": "ЦенаВключаетНДС",
+                    "type": "Edm.Boolean",
+                    "nullable": true
+                },
+                {
+                    "name": "ВалютаВзаиморасчетов_Key",
+                    "type": "Edm.Guid",
+                    "nullable": true
+                },
+                {
+                    "name": "Комментарий",
+                    "type": "Edm.String",
+                    "nullable": true
+                },
+                {
+                    "name": "ДатаПлатежа",
+                    "type": "Edm.DateTime",
+                    "nullable": true
+                },
+                {
+                    "name": "ФормаОплаты",
+                    "type": "Edm.String",
+                    "nullable": true
+                },
+                {
+                    "name": "Согласован",
+                    "type": "Edm.Boolean",
+                    "nullable": true
+                },
+                {
+                    "name": "СуммаВзаиморасчетов",
+                    "type": "Edm.Double",
+                    "nullable": true
+                },
+                {
+                    "name": "БанковскийСчетОрганизации_Key",
+                    "type": "Edm.Guid",
+                    "nullable": true
+                },
+                {
+                    "name": "НомерВходящегоДокумента",
+                    "type": "Edm.String",
+                    "nullable": true
+                },
+                {
+                    "name": "ДатаВходящегоДокумента",
+                    "type": "Edm.DateTime",
+                    "nullable": true
+                },
+                {
+                    "name": "Грузоотправитель_Key",
+                    "type": "Edm.Guid",
+                    "nullable": true,
+                    "ref_target": "Catalog_Контрагенты"
+                },
+                {
+                    "name": "БанковскийСчетКонтрагента_Key",
+                    "type": "Edm.Guid",
+                    "nullable": true
+                },
+                {
+                    "name": "БанковскийСчетГрузоотправителя_Key",
+                    "type": "Edm.Guid",
+                    "nullable": true
+                },
+                {
+                    "name": "Сделка_Key",
+                    "type": "Edm.Guid",
+                    "nullable": true
+                },
+                {
+                    "name": "УдалитьСуммаРасхождений",
+                    "type": "Edm.Double",
+                    "nullable": true
+                },
+                {
+                    "name": "УдалитьСуммаИзлишков",
+                    "type": "Edm.Double",
+                    "nullable": true
+                },
+                {
+                    "name": "УдалитьСуммаНедостачи",
+                    "type": "Edm.Double",
+                    "nullable": true
+                },
+                {
+                    "name": "УдалитьСторонняяКомпания_Key",
+                    "type": "Edm.Guid",
+                    "nullable": true,
+                    "ref_target": "Catalog_Партнеры"
+                },
+                {
+                    "name": "УдалитьКонтрагентСтороннейКомпании_Key",
+                    "type": "Edm.Guid",
+                    "nullable": true,
+                    "ref_target": "Catalog_Контрагенты"
+                },
+                {
+                    "name": "УдалитьВалютаВзаиморасчетовСоСтороннейКомпанией_Key",
+                    "type": "Edm.Guid",
+                    "nullable": true
+                },
+                {
+                    "name": "УдалитьСуммаРасчетовСоСтороннейКомпаниейПоРасхождениям",
+                    "type": "Edm.Double",
+                    "nullable": true
+                },
+                {
+                    "name": "УдалитьСтатьяРасходовПоРасхождениям_Key",
+                    "type": "Edm.Guid",
+                    "nullable": true
+                },
+                {
+                    "name": "УдалитьАналитикаРасходовПоРасхождениям",
+                    "type": "Edm.String",
+                    "nullable": true
+                },
+                {
+                    "name": "УдалитьСтатьяДоходовПоРасхождениям_Key",
+                    "type": "Edm.Guid",
+                    "nullable": true
+                },
+                {
+                    "name": "УдалитьАналитикаДоходовПоРасхождениям",
+                    "type": "Edm.String",
+                    "nullable": true
+                },
+                {
+                    "name": "УдалитьЕстьРасхождения",
+                    "type": "Edm.Boolean",
+                    "nullable": true
+                },
+                {
+                    "name": "Принял_Key",
+                    "type": "Edm.Guid",
+                    "nullable": true
+                },
+                {
+                    "name": "ПринялДолжность",
+                    "type": "Edm.String",
+                    "nullable": true
+                },
+                {
+                    "name": "ПоступлениеПоЗаказам",
+                    "type": "Edm.Boolean",
+                    "nullable": true
+                },
+                {
+                    "name": "ГруппаФинансовогоУчета_Key",
+                    "type": "Edm.Guid",
+                    "nullable": true
+                },
+                {
+                    "name": "РегистрироватьЦеныПоставщика",
+                    "type": "Edm.Boolean",
+                    "nullable": true
+                },
+                {
+                    "name": "Договор_Key",
+                    "type": "Edm.Guid",
+                    "nullable": true
+                },
+                {
+                    "name": "Автор_Key",
+                    "type": "Edm.Guid",
+                    "nullable": true
+                },
+                {
+                    "name": "Руководитель_Key",
+                    "type": "Edm.Guid",
+                    "nullable": true
+                },
+                {
+                    "name": "ПорядокРасчетов",
+                    "type": "Edm.String",
+                    "nullable": true
+                },
+                {
+                    "name": "ВернутьМногооборотнуюТару",
+                    "type": "Edm.Boolean",
+                    "nullable": true
+                },
+                {
+                    "name": "ДатаВозвратаМногооборотнойТары",
+                    "type": "Edm.DateTime",
+                    "nullable": true
+                },
+                {
+                    "name": "СостояниеЗаполненияМногооборотнойТары",
+                    "type": "Edm.String",
+                    "nullable": true
+                },
+                {
+                    "name": "ТребуетсяЗалогЗаТару",
+                    "type": "Edm.Boolean",
+                    "nullable": true
+                },
+                {
+                    "name": "УдалитьДоговорСоСтороннейКомпанией_Key",
+                    "type": "Edm.Guid",
+                    "nullable": true
+                },
+                {
+                    "name": "ДопоступлениеПоДокументу",
+                    "type": "Edm.String",
+                    "nullable": true
+                },
+                {
+                    "name": "НазначениеАванса",
+                    "type": "Edm.String",
+                    "nullable": true
+                },
+                {
+                    "name": "КоличествоДокументов",
+                    "type": "Edm.String",
+                    "nullable": true
+                },
+                {
+                    "name": "ГлавныйБухгалтер_Key",
+                    "type": "Edm.Guid",
+                    "nullable": true
+                },
+                {
+                    "name": "СтатьяДвиженияДенежныхСредств_Key",
+                    "type": "Edm.Guid",
+                    "nullable": true
+                },
+                {
+                    "name": "СпособДоставки",
+                    "type": "Edm.String",
+                    "nullable": true
+                },
+                {
+                    "name": "ПеревозчикПартнер_Key",
+                    "type": "Edm.Guid",
+                    "nullable": true,
+                    "ref_target": "Catalog_Партнеры"
+                },
+                {
+                    "name": "ЗонаДоставки_Key",
+                    "type": "Edm.Guid",
+                    "nullable": true
+                },
+                {
+                    "name": "ВремяДоставкиС",
+                    "type": "Edm.DateTime",
+                    "nullable": true
+                },
+                {
+                    "name": "ВремяДоставкиПо",
+                    "type": "Edm.DateTime",
+                    "nullable": true
+                },
+                {
+                    "name": "АдресДоставки",
+                    "type": "Edm.String",
+                    "nullable": true
+                },
+                {
+                    "name": "АдресДоставкиЗначенияПолей",
+                    "type": "Edm.String",
+                    "nullable": true
+                },
+                {
+                    "name": "ДополнительнаяИнформацияПоДоставке",
+                    "type": "Edm.String",
+                    "nullable": true
+                },
+                {
+                    "name": "АдресДоставкиПеревозчика",
+                    "type": "Edm.String",
+                    "nullable": true
+                },
+                {
+                    "name": "АдресДоставкиПеревозчикаЗначенияПолей",
+                    "type": "Edm.String",
+                    "nullable": true
+                },
+                {
+                    "name": "ОсобыеУсловияПеревозки",
+                    "type": "Edm.Boolean",
+                    "nullable": true
+                },
+                {
+                    "name": "ОсобыеУсловияПеревозкиОписание",
+                    "type": "Edm.String",
+                    "nullable": true
+                },
+                {
+                    "name": "НаправлениеДеятельности_Key",
+                    "type": "Edm.Guid",
+                    "nullable": true
+                },
+                {
+                    "name": "Звит1С_DOC_ID",
+                    "type": "Edm.String",
+                    "nullable": true
+                },
+                {
+                    "name": "ОтображатьБазовоеКоличество",
+                    "type": "Edm.Boolean",
+                    "nullable": true
+                },
+                {
+                    "name": "УдалитьАналитикаРасходовПоРасхождениям_Type",
+                    "type": "Edm.String",
+                    "nullable": true
+                },
+                {
+                    "name": "УдалитьАналитикаДоходовПоРасхождениям_Type",
+                    "type": "Edm.String",
+                    "nullable": true
+                },
+                {
+                    "name": "ДопоступлениеПоДокументу_Type",
+                    "type": "Edm.String",
+                    "nullable": true
+                }
+            ],
+            "tables": {
+                "ДополнительныеРеквизиты": {
+                    "row_type": "Document_ПоступлениеТоваровУслуг_ДополнительныеРеквизиты"
+                },
+                "РасшифровкаПлатежа": {
+                    "row_type": "Document_ПоступлениеТоваровУслуг_РасшифровкаПлатежа"
+                },
+                "Серии": {
+                    "row_type": "Document_ПоступлениеТоваровУслуг_Серии"
+                },
+                "Товары": {
+                    "row_type": "Document_ПоступлениеТоваровУслуг_Товары"
+                },
+                "УдалитьРасхождения": {
+                    "row_type": "Document_ПоступлениеТоваровУслуг_УдалитьРасхождения"
+                },
+                "УдалитьТоварыПоДаннымПоставщика": {
+                    "row_type": "Document_ПоступлениеТоваровУслуг_УдалитьТоварыПоДаннымПоставщика"
+                }
+            }
+        },
+        "Document_ПоступлениеТоваровУслуг_ДополнительныеРеквизиты": {
+            "kind": "table",
+            "name": "Document_ПоступлениеТоваровУслуг_ДополнительныеРеквизиты",
+            "entity_set": "Document_ПоступлениеТоваровУслуг_ДополнительныеРеквизиты",
+            "key": [
+                "Ref_Key",
+                "LineNumber"
+            ],
+            "fields": [
+                {
+                    "name": "Ref_Key",
+                    "type": "Edm.Guid",
+                    "nullable": false
+                },
+                {
+                    "name": "LineNumber",
+                    "type": "Edm.Int64",
+                    "nullable": false
+                },
+                {
+                    "name": "Свойство_Key",
+                    "type": "Edm.Guid",
+                    "nullable": true
+                },
+                {
+                    "name": "Значение",
+                    "type": "Edm.String",
+                    "nullable": true
+                },
+                {
+                    "name": "ТекстоваяСтрока",
+                    "type": "Edm.String",
+                    "nullable": true
+                },
+                {
+                    "name": "Значение_Type",
+                    "type": "Edm.String",
+                    "nullable": true
+                }
+            ],
+            "tables": {}
+        },
+        "Document_ПоступлениеТоваровУслуг_РасшифровкаПлатежа": {
+            "kind": "table",
+            "name": "Document_ПоступлениеТоваровУслуг_РасшифровкаПлатежа",
+            "entity_set": "Document_ПоступлениеТоваровУслуг_РасшифровкаПлатежа",
+            "key": [
+                "Ref_Key",
+                "LineNumber"
+            ],
+            "fields": [
+                {
+                    "name": "Ref_Key",
+                    "type": "Edm.Guid",
+                    "nullable": false
+                },
+                {
+                    "name": "LineNumber",
+                    "type": "Edm.Int64",
+                    "nullable": false
+                },
+                {
+                    "name": "Заказ",
+                    "type": "Edm.String",
+                    "nullable": true
+                },
+                {
+                    "name": "Сумма",
+                    "type": "Edm.Double",
+                    "nullable": true
+                },
+                {
+                    "name": "ВалютаВзаиморасчетов_Key",
+                    "type": "Edm.Guid",
+                    "nullable": true
+                },
+                {
+                    "name": "СуммаВзаиморасчетов",
+                    "type": "Edm.Double",
+                    "nullable": true
+                },
+                {
+                    "name": "Заказ_Type",
+                    "type": "Edm.String",
+                    "nullable": true
+                }
+            ],
+            "tables": {}
+        },
+        "Document_ПоступлениеТоваровУслуг_Серии": {
+            "kind": "table",
+            "name": "Document_ПоступлениеТоваровУслуг_Серии",
+            "entity_set": "Document_ПоступлениеТоваровУслуг_Серии",
+            "key": [
+                "Ref_Key",
+                "LineNumber"
+            ],
+            "fields": [
+                {
+                    "name": "Ref_Key",
+                    "type": "Edm.Guid",
+                    "nullable": false
+                },
+                {
+                    "name": "LineNumber",
+                    "type": "Edm.Int64",
+                    "nullable": false
+                },
+                {
+                    "name": "Серия_Key",
+                    "type": "Edm.Guid",
+                    "nullable": true
+                },
+                {
+                    "name": "Количество",
+                    "type": "Edm.Double",
+                    "nullable": true
+                },
+                {
+                    "name": "Номенклатура_Key",
+                    "type": "Edm.Guid",
+                    "nullable": true,
+                    "ref_target": "Catalog_Номенклатура"
+                },
+                {
+                    "name": "Характеристика_Key",
+                    "type": "Edm.Guid",
+                    "nullable": true
+                },
+                {
+                    "name": "Назначение_Key",
+                    "type": "Edm.Guid",
+                    "nullable": true
+                },
+                {
+                    "name": "Склад_Key",
+                    "type": "Edm.Guid",
+                    "nullable": true,
+                    "ref_target": "Catalog_Склады"
+                }
+            ],
+            "tables": {}
+        },
+        "Document_ПоступлениеТоваровУслуг_Товары": {
+            "kind": "table",
+            "name": "Document_ПоступлениеТоваровУслуг_Товары",
+            "entity_set": "Document_ПоступлениеТоваровУслуг_Товары",
+            "key": [
+                "Ref_Key",
+                "LineNumber"
+            ],
+            "fields": [
+                {
+                    "name": "Ref_Key",
+                    "type": "Edm.Guid",
+                    "nullable": false
+                },
+                {
+                    "name": "LineNumber",
+                    "type": "Edm.Int64",
+                    "nullable": false
+                },
+                {
+                    "name": "Номенклатура_Key",
+                    "type": "Edm.Guid",
+                    "nullable": true,
+                    "ref_target": "Catalog_Номенклатура"
+                },
+                {
+                    "name": "НоменклатураПоставщика_Key",
+                    "type": "Edm.Guid",
+                    "nullable": true
+                },
+                {
+                    "name": "Характеристика_Key",
+                    "type": "Edm.Guid",
+                    "nullable": true
+                },
+                {
+                    "name": "Упаковка_Key",
+                    "type": "Edm.Guid",
+                    "nullable": true
+                },
+                {
+                    "name": "КоличествоУпаковок",
+                    "type": "Edm.Double",
+                    "nullable": true
+                },
+                {
+                    "name": "Количество",
+                    "type": "Edm.Double",
+                    "nullable": true
+                },
+                {
+                    "name": "Цена",
+                    "type": "Edm.Double",
+                    "nullable": true
+                },
+                {
+                    "name": "ВидЦеныПоставщика_Key",
+                    "type": "Edm.Guid",
+                    "nullable": true
+                },
+                {
+                    "name": "ПроцентРучнойСкидки",
+                    "type": "Edm.Double",
+                    "nullable": true
+                },
+                {
+                    "name": "СуммаРучнойСкидки",
+                    "type": "Edm.Double",
+                    "nullable": true
+                },
+                {
+                    "name": "Сумма",
+                    "type": "Edm.Double",
+                    "nullable": true
+                },
+                {
+                    "name": "СтавкаНДС",
+                    "type": "Edm.String",
+                    "nullable": true
+                },
+                {
+                    "name": "СуммаНДС",
+                    "type": "Edm.Double",
+                    "nullable": true
+                },
+                {
+                    "name": "СуммаСНДС",
+                    "type": "Edm.Double",
+                    "nullable": true
+                },
+                {
+                    "name": "СтатьяРасходов_Key",
+                    "type": "Edm.Guid",
+                    "nullable": true
+                },
+                {
+                    "name": "АналитикаРасходов",
+                    "type": "Edm.String",
+                    "nullable": true
+                },
+                {
+                    "name": "КодСтроки",
+                    "type": "Edm.Int64",
+                    "nullable": true
+                },
+                {
+                    "name": "НомерГТД_Key",
+                    "type": "Edm.Guid",
+                    "nullable": true
+                },
+                {
+                    "name": "Склад_Key",
+                    "type": "Edm.Guid",
+                    "nullable": true,
+                    "ref_target": "Catalog_Склады"
+                },
+                {
+                    "name": "ЗаказПоставщику_Key",
+                    "type": "Edm.Guid",
+                    "nullable": true,
+                    "ref_target": "Document_ЗаказПоставщику"
+                },
+                {
+                    "name": "УдалитьНомерСтрокиДокументаПоставщика",
+                    "type": "Edm.Int64",
+                    "nullable": true
+                },
+                {
+                    "name": "Сертификат",
+                    "type": "Edm.String",
+                    "nullable": true
+                },
+                {
+                    "name": "НомерПаспорта",
+                    "type": "Edm.String",
+                    "nullable": true
+                },
+                {
+                    "name": "СтатусУказанияСерий",
+                    "type": "Edm.Int16",
+                    "nullable": true
+                },
+                {
+                    "name": "Сделка_Key",
+                    "type": "Edm.Guid",
+                    "nullable": true
+                },
+                {
+                    "name": "СуммаВзаиморасчетов",
+                    "type": "Edm.Double",
+                    "nullable": true
+                },
+                {
+                    "name": "СуммаНДСВзаиморасчетов",
+                    "type": "Edm.Double",
+                    "nullable": true
+                },
+                {
+                    "name": "ВидЗапасов_Key",
+                    "type": "Edm.Guid",
+                    "nullable": true
+                },
+                {
+                    "name": "ИдентификаторСтроки",
+                    "type": "Edm.String",
+                    "nullable": true
+                },
+                {
+                    "name": "АналитикаУчетаПартий_Key",
+                    "type": "Edm.Guid",
+                    "nullable": true
+                },
+                {
+                    "name": "Назначение_Key",
+                    "type": "Edm.Guid",
+                    "nullable": true
+                },
+                {
+                    "name": "Серия_Key",
+                    "type": "Edm.Guid",
+                    "nullable": true
+                },
+                {
+                    "name": "АналитикаУчетаНоменклатуры_Key",
+                    "type": "Edm.Guid",
+                    "nullable": true
+                },
+                {
+                    "name": "Подразделение_Key",
+                    "type": "Edm.Guid",
+                    "nullable": true
+                },
+                {
+                    "name": "СписатьНаРасходы",
+                    "type": "Edm.Boolean",
+                    "nullable": true
+                },
+                {
+                    "name": "НалоговоеНазначение_Key",
+                    "type": "Edm.Guid",
+                    "nullable": true
+                },
+                {
+                    "name": "СуммаНДСПропорционально",
+                    "type": "Edm.Double",
+                    "nullable": true
+                },
+                {
+                    "name": "АналитикаРасходов_Type",
+                    "type": "Edm.String",
+                    "nullable": true
+                }
+            ],
+            "tables": {}
+        },
+        "Document_ПоступлениеТоваровУслуг_УдалитьРасхождения": {
+            "kind": "table",
+            "name": "Document_ПоступлениеТоваровУслуг_УдалитьРасхождения",
+            "entity_set": "Document_ПоступлениеТоваровУслуг_УдалитьРасхождения",
+            "key": [
+                "Ref_Key",
+                "LineNumber"
+            ],
+            "fields": [
+                {
+                    "name": "Ref_Key",
+                    "type": "Edm.Guid",
+                    "nullable": false
+                },
+                {
+                    "name": "LineNumber",
+                    "type": "Edm.Int64",
+                    "nullable": false
+                },
+                {
+                    "name": "НоменклатураПоставщика_Key",
+                    "type": "Edm.Guid",
+                    "nullable": true
+                },
+                {
+                    "name": "Номенклатура_Key",
+                    "type": "Edm.Guid",
+                    "nullable": true,
+                    "ref_target": "Catalog_Номенклатура"
+                },
+                {
+                    "name": "Характеристика_Key",
+                    "type": "Edm.Guid",
+                    "nullable": true
+                },
+                {
+                    "name": "Упаковка_Key",
+                    "type": "Edm.Guid",
+                    "nullable": true
+                },
+                {
+                    "name": "КоличествоУпаковок",
+                    "type": "Edm.Double",
+                    "nullable": true
+                },
+                {
+                    "name": "Количество",
+                    "type": "Edm.Double",
+                    "nullable": true
+                },
+                {
+                    "name": "ВидЦеныПоставщика_Key",
+                    "type": "Edm.Guid",
+                    "nullable": true
+                },
+                {
+                    "name": "Цена",
+                    "type": "Edm.Double",
+                    "nullable": true
+                },
+                {
+                    "name": "Сумма",
+                    "type": "Edm.Double",
+                    "nullable": true
+                },
+                {
+                    "name": "СтавкаНДС",
+                    "type": "Edm.String",
+                    "nullable": true
+                },
+                {
+                    "name": "СуммаНДС",
+                    "type": "Edm.Double",
+                    "nullable": true
+                },
+                {
+                    "name": "СуммаСНДС",
+                    "type": "Edm.Double",
+                    "nullable": true
+                },
+                {
+                    "name": "КодСтроки",
+                    "type": "Edm.Int64",
+                    "nullable": true
+                },
+                {
+                    "name": "Склад_Key",
+                    "type": "Edm.Guid",
+                    "nullable": true,
+                    "ref_target": "Catalog_Склады"
+                },
+                {
+                    "name": "ЗаказПоставщику_Key",
+                    "type": "Edm.Guid",
+                    "nullable": true,
+                    "ref_target": "Document_ЗаказПоставщику"
+                },
+                {
+                    "name": "ВариантРасхождений",
+                    "type": "Edm.String",
+                    "nullable": true
+                },
+                {
+                    "name": "ВариантОтраженияРасхождений",
+                    "type": "Edm.String",
+                    "nullable": true
+                },
+                {
+                    "name": "СуммаВзаиморасчетов",
+                    "type": "Edm.Double",
+                    "nullable": true
+                },
+                {
+                    "name": "СуммаНДСВзаиморасчетов",
+                    "type": "Edm.Double",
+                    "nullable": true
+                },
+                {
+                    "name": "АналитикаУчетаПартий_Key",
+                    "type": "Edm.Guid",
+                    "nullable": true
+                },
+                {
+                    "name": "ИдентификаторСтроки",
+                    "type": "Edm.String",
+                    "nullable": true
+                },
+                {
+                    "name": "ВидЗапасов_Key",
+                    "type": "Edm.Guid",
+                    "nullable": true
+                },
+                {
+                    "name": "НалоговоеНазначение_Key",
+                    "type": "Edm.Guid",
+                    "nullable": true
+                }
+            ],
+            "tables": {}
+        },
+        "Document_ПоступлениеТоваровУслуг_УдалитьТоварыПоДаннымПоставщика": {
+            "kind": "table",
+            "name": "Document_ПоступлениеТоваровУслуг_УдалитьТоварыПоДаннымПоставщика",
+            "entity_set": "Document_ПоступлениеТоваровУслуг_УдалитьТоварыПоДаннымПоставщика",
+            "key": [
+                "Ref_Key",
+                "LineNumber"
+            ],
+            "fields": [
+                {
+                    "name": "Ref_Key",
+                    "type": "Edm.Guid",
+                    "nullable": false
+                },
+                {
+                    "name": "LineNumber",
+                    "type": "Edm.Int64",
+                    "nullable": false
+                },
+                {
+                    "name": "НоменклатураПоставщика_Key",
+                    "type": "Edm.Guid",
+                    "nullable": true
+                },
+                {
+                    "name": "Номенклатура_Key",
+                    "type": "Edm.Guid",
+                    "nullable": true,
+                    "ref_target": "Catalog_Номенклатура"
+                },
+                {
+                    "name": "Характеристика_Key",
+                    "type": "Edm.Guid",
+                    "nullable": true
+                },
+                {
+                    "name": "Упаковка_Key",
+                    "type": "Edm.Guid",
+                    "nullable": true
+                },
+                {
+                    "name": "КоличествоУпаковок",
+                    "type": "Edm.Double",
+                    "nullable": true
+                },
+                {
+                    "name": "Количество",
+                    "type": "Edm.Double",
+                    "nullable": true
+                },
+                {
+                    "name": "Цена",
+                    "type": "Edm.Double",
+                    "nullable": true
+                },
+                {
+                    "name": "ВидЦеныПоставщика_Key",
+                    "type": "Edm.Guid",
+                    "nullable": true
+                },
+                {
+                    "name": "Сумма",
+                    "type": "Edm.Double",
+                    "nullable": true
+                },
+                {
+                    "name": "СтавкаНДС",
+                    "type": "Edm.String",
+                    "nullable": true
+                },
+                {
+                    "name": "СуммаНДС",
+                    "type": "Edm.Double",
+                    "nullable": true
+                },
+                {
+                    "name": "СуммаСНДС",
+                    "type": "Edm.Double",
+                    "nullable": true
+                },
+                {
+                    "name": "НомерГТД_Key",
+                    "type": "Edm.Guid",
+                    "nullable": true
+                }
+            ],
+            "tables": {}
+        }
+    },
+    "enums": {
+        "AccountType": [
+            "Active",
+            "ActivePassive",
+            "Passive"
+        ],
+        "AccountingRecordType": [
+            "Credit",
+            "Debit"
+        ],
+        "AccumulationRecordType": [
+            "Expense",
+            "Receipt"
+        ],
+        "AllowedLength": [
+            "Fixed",
+            "Variable"
+        ],
+        "AllowedSign": [
+            "Any",
+            "Nonnegative"
+        ],
+        "DateFractions": [
+            "Date",
+            "DateTime",
+            "Time"
+        ]
+    }
+}

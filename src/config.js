@@ -208,6 +208,10 @@ export const config = {
     oneCOData: {
         ...oneCOData,
         passwordStatePath: path.join(paths.vmDbDir, oneCOData.user.passwordStateFilename),
+        metadata: {
+            ...oneCOData.metadata,
+            dumpPath: path.join(projectRoot, oneCOData.metadata.dumpPath),
+        },
         publisher: {
             ...oneCOData.publisher,
             sourceDirectory: path.join(projectRoot, oneCOData.publisher.sourceDirectory),
