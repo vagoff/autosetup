@@ -139,6 +139,25 @@ function odatatest_filter_date($property, $value, $operator)
 }
 
 /**
+ * Представление ссылочного реквизита. 1С отдаёт в поле <Имя>_Key только GUID,
+ * поэтому связанный объект подтягивается через $expand одним запросом
+ * (без N+1 на строку) и здесь берётся его человекочитаемое имя.
+ */
+function odatatest_presentation($value)
+{
+    if (!is_object($value)) {
+        return '';
+    }
+    if (isset($value->Description) && $value->Description !== '') {
+        return $value->Description;
+    }
+    if (isset($value->Presentation)) {
+        return $value->Presentation;
+    }
+    return '';
+}
+
+/**
  * Слаг колонки Dolibarr -> имя свойства 1С.
  * Слаги нужны потому, что GETPOST('sortfield', 'aZ09comma') вырезает
  * кириллицу, а имена реквизитов 1С кириллические.
@@ -159,6 +178,9 @@ function odatatest_sort_property($field_map, $sortfield)
 function odatatest_fetch_list($request)
 {
     $query = odatatest_client()->query($request['entity_set'])->select($request['select']);
+    if (!empty($request['expand'])) {
+        $query->expand(...$request['expand']);
+    }
     foreach ($request['filters'] as $condition) {
         $query->where($condition);
     }

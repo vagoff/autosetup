@@ -41,8 +41,8 @@ async function main() {
     for (const document of config.documents) {
         const entity = dbinfo.entities['Document_' + document.name];
         if (!entity) throw new Error(`${document.name}: no metadata, re-run read-1c-odata-metadata.js`);
-        const {fields, field_map} = build_document_list_fields(entity, document);
-        await generate_list_page({config, document, entity, fields, field_map, output_dir});
+        const {fields, field_map, expand} = build_document_list_fields(entity, document);
+        await generate_list_page({config, document, entity, fields, field_map, expand, output_dir});
     }
     const connection = await load_odata_connection();
     await generate_runtime_includes({config, connection, output_dir});
@@ -51,9 +51,16 @@ async function main() {
     console.log(`${output_dir}: ${config.documents.length} list pages, runtime, secrets, module descriptor`);
 }
 
-async function generate_list_page({config, document, entity, fields, field_map, output_dir}) {
+async function generate_list_page({config, document, entity, fields, field_map, expand, output_dir}) {
     const field_map_var = '$odatatest_fields';
-    const select_fields = ['Ref_Key', 'DataVersion', ...document.columns];
+    // Одного $expand мало: 1С отдаёт связанный объект, только если поле
+    // явно указано и в $select (проверено на живой ИБ).
+    const select_fields = [
+        'Ref_Key',
+        'DataVersion',
+        ...document.columns,
+        ...expand.map((navigation) => `${navigation}/Description`),
+    ];
 
     const definition = {
         '': 'smart_php_page',
@@ -74,10 +81,13 @@ async function generate_list_page({config, document, entity, fields, field_map, 
                     entity_set: entity.entity_set,
                     field_map_var,
                     select_fields,
+                    expand,
                     count_total: config.odata.countTotal,
                 }),
                 _oo: {
                     table_init: `${field_map_var} = ${php_array(field_map)};`,
+                    // Идентификатор строки таблицы Dolibarr -- ссылка документа.
+                    tr_id_init: `$row_id = $obj->Ref_Key;`,
                 },
             },
         ],

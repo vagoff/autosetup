@@ -15,11 +15,12 @@ const {reindent0} = require('../compilerlib/reindent');
 //    поэтому раскладка знает слаг, а карта слаг->свойство живёт в PHP;
 //  * освобождать нечего -- результат уже в памяти.
 class ODataTableRowSource {
-    constructor(gen, {entity_set, field_map_var, select_fields, count_total}) {
+    constructor(gen, {entity_set, field_map_var, select_fields, expand, count_total}) {
         this.gen = gen;
         this.entity_set = entity_set;
         this.field_map_var = field_map_var;
         this.select_fields = select_fields;
+        this.expand = expand ?? [];
         this.count_total = count_total;
     }
 
@@ -89,6 +90,7 @@ class ODataTableRowSource {
             ${res_var} = odatatest_fetch_list(array(
                 'entity_set' => '${this.entity_set}',
                 'select' => '${select}',
+                'expand' => array(${this.expand.map((name) => `'${name}'`).join(', ')}),
                 'filters' => $odata_filters,
                 'sort_property' => $odata_sort_property,
                 'sort_order' => $sortorder,

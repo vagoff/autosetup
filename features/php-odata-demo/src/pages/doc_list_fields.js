@@ -32,6 +32,7 @@ function build_document_list_fields(entity, document) {
     const by_name = new Map(entity.fields.map((field) => [field.name, field]));
     const fields = {};
     const field_map = {};
+    const expand = [];
 
     for (const [position, name] of document.columns.entries()) {
         const meta = by_name.get(name);
@@ -49,12 +50,14 @@ function build_document_list_fields(entity, document) {
         };
 
         if (meta.ref_target) {
-            // Ссылка: показываем представление, которое 1С отдаёт в Presentation
-            // соответствующего навигационного свойства; фильтруем по GUID.
+            // Ссылка: связанный объект подтягиваем через $expand и показываем
+            // его наименование; фильтруем по GUID самого реквизита.
+            const navigation = name.replace(/_Key$/u, '');
+            expand.push(navigation);
             fields[slug] = {
                 ...common,
                 td_class: 'tdoverflowmax200',
-                td_block: `dol_escape_htmltag(odatatest_ref_presentation(${php_property(name)}, '${meta.ref_target}'))`,
+                td_block: `dol_escape_htmltag(odatatest_presentation($obj->{'${navigation}'}))`,
                 ti_class: 'liste_titre left',
                 ti_expr: `'<input class="flat maxwidth100" type="text" name="${search_param}" value="'.dol_escape_htmltag($${search_param}).'">'`,
                 search: {param: search_param, odata_property: name, odata_type: 'guid'},
@@ -105,7 +108,7 @@ function build_document_list_fields(entity, document) {
 
     // Ref_Key нужен для ссылки на карточку, но колонкой не показывается.
     field_map.ref_key = 'Ref_Key';
-    return {fields, field_map};
+    return {fields, field_map, expand};
 }
 
 module.exports.build_document_list_fields = build_document_list_fields;
