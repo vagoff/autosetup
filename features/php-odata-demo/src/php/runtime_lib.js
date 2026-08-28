@@ -280,6 +280,33 @@ function odatatest_resolve_references($entity_set, $keys)
 }
 
 /**
+ * Полный список справочника для настоящего <select> (виджет выбора ссылки).
+ * Решение "этому справочнику подходит <select>, а не автодополнение по
+ * вводу" принимает генератор один раз при сборке модуля, сверяясь с $count
+ * (features/php-odata-demo/scripts/generate-odatatest-module.js,
+ * data/gen-config.json5#odata.selectMaxOptions) -- сюда эта функция уже
+ * приходит только для тех справочников, что прошли порог.
+ *
+ * $limit -- защитный потолок на случай, если каталог вырастет между
+ * генерацией модуля и открытием страницы: тогда список в выпадашке честно
+ * обрежется, а не утащит на страницу неограниченный ответ 1С.
+ */
+function odatatest_select_options($entity_set, $limit = 5000)
+{
+    $result = odatatest_fetch_list(array(
+        'entity_set' => $entity_set,
+        'select' => 'Ref_Key,Description',
+        'filters' => array(),
+        'sort_property' => 'Description',
+        'sort_order' => 'asc',
+        'limit' => $limit,
+        'offset' => 0,
+        'count_total' => false,
+    ));
+    return $result['rows'];
+}
+
+/**
  * Запись табличной части.
  *
  * Стандартный OData не умеет менять строку по отдельности: табличная часть

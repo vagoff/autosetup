@@ -13,6 +13,35 @@ function php_string(value) {
     return `'${String(value).replace(/\\/gu, '\\\\').replace(/'/gu, "\\'")}'`;
 }
 
+// Настоящий <select> + select2 (идиома Dolibarr для небольших справочников,
+// см. Form::select_produits()/selectWarehouses() в ветке, где
+// PRODUIT_USE_SEARCH_TO_SELECT выключен: там ровно тот же приём). Список
+// вариантов ($select_options[ref_target]) собран заранее одним запросом
+// на справочник, см. gen_select_options_preamble ниже.
+//
+// $name_php -- PHP-выражение, вычисляющее name (может быть литералом вида
+// 'field_sklad' или PHP-массивом 'line_tovary_nomenklatura[]' -- <select> не
+// требует id === name, в отличие от ajax_autocompleter); $id_php -- отдельное
+// PHP-выражение для id (по умолчанию совпадает с $name_php; для строк
+// табличной части обязано быть уникальным на строку, иначе select2 в
+// нескольких строках зацепит один и тот же элемент); $current_value_php --
+// PHP-выражение с текущим GUID; $empty_option_value -- значение "пусто" для
+// сентинел-опции: nil-guid для уже существующих значений (так их и отдаёт
+// 1С) либо '' для новой строки табличной части, где по пустой строке решают,
+// тронул ли пользователь это поле вообще (см. gen_tables_save).
+function gen_select_widget({name_php, id_php = name_php, current_value_php, ref_target, empty_option_value}) {
+    return [
+        `print '<select class="flat minwidth200" name="' . ${name_php} . '" id="' . ${id_php} . '">';`,
+        `$odatatest_current = ${current_value_php};`,
+        `print '<option value="${empty_option_value}"' . ($odatatest_current === ${php_string(empty_option_value)} ? ' selected' : '') . '>—</option>';`,
+        `foreach ($select_options[${php_string(ref_target)}] as $odatatest_option) {`,
+        `    print '<option value="' . dol_escape_htmltag($odatatest_option->Ref_Key) . '"' . ($odatatest_option->Ref_Key === $odatatest_current ? ' selected' : '') . '>' . dol_escape_htmltag($odatatest_option->Description) . '</option>';`,
+        `}`,
+        `print '</select>';`,
+        `print ajax_combobox(${id_php});`,
+    ].join('\n            ');
+}
+
 function gen_field_input(field) {
     const name = `field_${field.slug}`;
     switch (field.kind) {
@@ -23,14 +52,23 @@ function gen_field_input(field) {
         case 'number':
             return `print '<input type="text" class="flat maxwidth100 right" name="${name}" value="'.dol_escape_htmltag($value).'">';`;
         case 'reference':
-            // Идиома Dolibarr для больших справочников (см. Form::select_company()):
-            // видимый текстовый инпут "search_<htmlname>" + ajax_autocompleter(),
-            // который сам печатает единственный hidden-инпут "<htmlname>" со
-            // значением ключа. Свой hidden рядом печатать нельзя -- получится
-            // дубликат id/name, и виджет не находит поле по селектору.
-            // Списком тут обойтись нельзя -- в Номенклатуре сотни тысяч позиций.
+            if (field.pickerKind === 'select') {
+                return gen_select_widget({
+                    name_php: php_string(name),
+                    current_value_php: '$value',
+                    ref_target: field.ref_target,
+                    empty_option_value: '00000000-0000-0000-0000-000000000000',
+                });
+            }
+            // Запасной вариант для справочников, не прошедших порог
+            // data/gen-config.json5#odata.selectMaxOptions (идиома
+            // Form::select_company(): видимый текстовый инпут
+            // "search_<htmlname>" + ajax_autocompleter(), который сам печатает
+            // единственный hidden-инпут "<htmlname>" со значением ключа; свой
+            // hidden рядом печатать нельзя -- получится дубликат id/name, и
+            // виджет не находит поле по селектору).
             return [
-                `print '<input type="text" class="flat minwidth300" name="search_${name}" id="search_${name}" value="'.dol_escape_htmltag(odatatest_presentation($object->{${php_string(field.navigation)}})).'">';`,
+                `print '<input type="text" class="flat minwidth300" name="search_${name}" id="search_${name}" value="'.dol_escape_htmltag(odatatest_presentation($object->{${php_string(field.navigation)}})).'" placeholder="начните вводить, минимум 2 буквы...">';`,
                 `print ajax_autocompleter($value, '${name}', DOL_URL_ROOT.'/custom/odatatest/ajax/lookup.php', 'entity_set='.urlencode(${php_string(field.ref_target)}).'&htmlname=${name}', 2, 0);`,
             ].join('\n            ');
         default:
@@ -87,8 +125,28 @@ function gen_tables_block(tables) {
         print '<td class="liste_titre${column.kind === 'number' ? ' right' : ''}">' . ${php_string(column.label)} . '</td>';`).join('');
         const inputs = table.columns.map((column) => {
             const input_name = `line_${table.slug}_${column.slug}[]`;
+            if (column.kind === 'reference' && column.pickerKind === 'select') {
+                // <select> не требует id === name (в отличие от
+                // ajax_autocompleter), поэтому имя остаётся обычным PHP-массивом
+                // (единообразно с остальными колонками; на сохранении читается
+                // как $posted_<slug>[$index], см. gen_tables_save), а уникален
+                // на строку только id -- select2 должен цеплять конкретный
+                // инстанс.
+                const widget = gen_select_widget({
+                    name_php: php_string(`line_${table.slug}_${column.slug}[]`),
+                    id_php: `'line_${table.slug}_${column.slug}_' . $index`,
+                    current_value_php: `$line->{${php_string(column.name)}}`,
+                    ref_target: column.ref_target,
+                    empty_option_value: '00000000-0000-0000-0000-000000000000',
+                });
+                return `
+            print '<td>';
+            ${widget}
+            print '</td>';`;
+            }
             if (column.kind === 'reference') {
-                // Ссылку в строке правим выбором из справочника по наименованию:
+                // Запасной вариант (см. data/gen-config.json5#odata.selectMaxOptions):
+                // ссылку в строке правим выбором из справочника по наименованию,
                 // ajax-подсказка та же, что и в шапке. htmlname обязан быть
                 // уникальным на строку и не может быть PHP-массивом ('[]') --
                 // ajax_autocompleter() печатает hidden с id === name, а
@@ -99,7 +157,7 @@ function gen_tables_block(tables) {
                 const htmlname = `'line_${table.slug}_${column.slug}_' . $index`;
                 return `
             print '<td>';
-            print '<input type="text" class="flat minwidth200" name="search_' . ${htmlname} . '" id="search_' . ${htmlname} . '" value="'.dol_escape_htmltag(isset($references[${php_string(column.ref_target)}][$line->{${php_string(column.name)}}]) ? $references[${php_string(column.ref_target)}][$line->{${php_string(column.name)}}] : '').'">';
+            print '<input type="text" class="flat minwidth200" name="search_' . ${htmlname} . '" id="search_' . ${htmlname} . '" value="'.dol_escape_htmltag(isset($references[${php_string(column.ref_target)}][$line->{${php_string(column.name)}}]) ? $references[${php_string(column.ref_target)}][$line->{${php_string(column.name)}}] : '').'" placeholder="начните вводить, минимум 2 буквы...">';
             print ajax_autocompleter($line->{${php_string(column.name)}}, ${htmlname}, DOL_URL_ROOT.'/custom/odatatest/ajax/lookup.php', 'entity_set='.urlencode(${php_string(column.ref_target)}).'&htmlname='.(${htmlname}), 2, 0);
             print '</td>';`;
             }
@@ -113,6 +171,23 @@ function gen_tables_block(tables) {
 
         const new_inputs = table.columns.map((column) => {
             const input_name = `line_${table.slug}_new_${column.slug}`;
+            if (column.kind === 'reference' && column.pickerKind === 'select') {
+                // Сентинел пустого выбора -- ИМЕННО '' (не nil-guid): по сырому
+                // значению этого поля gen_tables_save решает, тронул ли
+                // пользователь новую строку вообще (иначе строка не добавится).
+                // odatatest_guid_or_empty() на сохранении сама превращает ''
+                // в nil-guid, как и для остальных ссылочных полей.
+                const widget = gen_select_widget({
+                    name_php: php_string(input_name),
+                    current_value_php: `''`,
+                    ref_target: column.ref_target,
+                    empty_option_value: '',
+                });
+                return `
+        print '<td>';
+        ${widget}
+        print '</td>';`;
+            }
             if (column.kind === 'reference') {
                 return `
         print '<td>';
@@ -217,19 +292,22 @@ function gen_tables_save(tables, namespace) {
     }
     return tables.map((table) => {
         const edits = table.columns.map((column) => {
-            if (column.kind === 'reference') {
-                // Ссылочная колонка не идёт через $posted_<slug>[$index]: её
-                // htmlname на форме -- не PHP-массив (см. gen_tables_block),
-                // а уникальное на строку имя вида 'line_<table>_<col>_<index>'.
+            if (column.kind === 'reference' && column.pickerKind === 'autocomplete') {
+                // Запасной вариант (см. data/gen-config.json5#odata.selectMaxOptions):
+                // эта колонка не идёт через $posted_<slug>[$index] -- её
+                // htmlname на форме не PHP-массив (см. gen_tables_block), а
+                // уникальное на строку имя вида 'line_<table>_<col>_<index>'.
                 // Значение поэтому читается поштучно, тем же $index, которым
                 // и так уже перебираются строки.
                 const field_name = `'line_${table.slug}_${column.slug}_' . $index`;
                 return `
                 ${php_string(column.name)} => GETPOSTISSET(${field_name}) ? odatatest_guid_or_empty(GETPOST(${field_name}, 'alphanohtml')) : $line->{${php_string(column.name)}},`;
             }
+            // И обычные колонки, и ссылочные с <select> (htmlname -- обычный
+            // PHP-массив, см. gen_tables_block) читаются одинаково.
             const post = column.kind === 'number'
                 ? `(float) price2num($posted_${column.slug}[$index])`
-                : `$posted_${column.slug}[$index]`;
+                : (column.kind === 'reference' ? `odatatest_guid_or_empty($posted_${column.slug}[$index])` : `$posted_${column.slug}[$index]`);
             return `
                 ${php_string(column.name)} => isset($posted_${column.slug}[$index]) ? ${post} : $line->{${php_string(column.name)}},`;
         }).join('');
@@ -245,10 +323,12 @@ function gen_tables_save(tables, namespace) {
             .map((column) => `GETPOST('line_${table.slug}_new_${column.slug}', 'alphanohtml')`)
             .join(', ');
 
-        // Ссылочные колонки читаются поштучно внутри цикла (см. edits выше),
-        // общий массив для них не собирается.
+        // Ссылочные колонки с запасным (autocomplete) виджетом читаются
+        // поштучно внутри цикла (см. edits выше), общий массив для них не
+        // собирается. У select-виджета htmlname -- обычный PHP-массив,
+        // как и у нессылочных колонок.
         const posted = table.columns
-            .filter((column) => column.kind !== 'reference')
+            .filter((column) => !(column.kind === 'reference' && column.pickerKind === 'autocomplete'))
             .map((column) => `
         $posted_${column.slug} = GETPOST('line_${table.slug}_${column.slug}', 'array');`).join('');
 
@@ -292,6 +372,29 @@ function gen_tables_save(tables, namespace) {
     }).join('\n');
 }
 
+// Собирает варианты для всех select-виджетов страницы ОДИН раз на справочник
+// (даже если один и тот же справочник встречается и в шапке, и в таблице).
+// Только для $edit_mode -- в режиме просмотра выбор не нужен вообще.
+function gen_select_options_preamble(fields, tables) {
+    const ref_targets = new Set();
+    for (const field of fields) {
+        if (field.kind === 'reference' && field.pickerKind === 'select') ref_targets.add(field.ref_target);
+    }
+    for (const table of tables) {
+        for (const column of table.columns) {
+            if (column.kind === 'reference' && column.pickerKind === 'select') ref_targets.add(column.ref_target);
+        }
+    }
+    if (ref_targets.size === 0) return '';
+    const fetches = [...ref_targets].map((ref_target) => `    $select_options[${php_string(ref_target)}] = odatatest_select_options(${php_string(ref_target)});`).join('\n');
+    return `
+$select_options = array();
+if ($edit_mode) {
+${fetches}
+}
+`;
+}
+
 function gen_card_page({document, entity_set, fields, select_fields, expand, read_only, tables, namespace}) {
     const editable = fields.filter((field) => field.editable);
     const rows = fields.map((field) => `
@@ -307,6 +410,12 @@ function gen_card_page({document, entity_set, fields, select_fields, expand, rea
     return `<?php
 
 // СГЕНЕРИРОВАНО features/php-odata-demo. Не редактировать.
+
+// Включает select2 для <select> ссылочных полей (ajax_combobox() в
+// core/lib/ajax.lib.php иначе ничего не печатает: на этом стенде глобальная
+// конфигурация MAIN_USE_JQUERY_MULTISELECT не выставлена). Обязано стоять до
+// подключения main.inc.php -- решение принимается при выводе <head>.
+define('REQUIRE_JQUERY_MULTISELECT', 'select2');
 
 $res = 0;
 foreach (array('../../main.inc.php', '../../../main.inc.php') as $candidate) {
@@ -412,7 +521,7 @@ if ($action === 'confirm_delete' && $user->hasRight('odatatest', 'delete') && $c
 // В режиме создания читать нечего: форма заполняется значениями по умолчанию.
 $object = $create_mode ? new stdClass() : odatatest_fetch_entity($entity_set, $ref, $select, $expand);
 $edit_mode = (($action === 'edit') && $can_write) || $create_mode;
-
+${gen_select_options_preamble(fields, tables)}
 llxHeader('', ${php_string(document.title)});
 
 $head = array();

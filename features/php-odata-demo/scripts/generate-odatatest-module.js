@@ -46,19 +46,64 @@ async function main() {
     const output_dir = pth.join(output_root, config.module.docrootSubdirectory) + pth.sep;
     await afs.mkdir(output_dir, {recursive: true});
 
+    const connection = await load_odata_connection();
+    config.catalogEntitySets = connection.catalog_entity_sets;
+
+    // Поля/таблицы карточек всех документов собираются заранее (чистая
+    // функция от dbinfo.json, сети не требует), чтобы до генерации страниц
+    // узнать полный список задействованных справочников и спросить у 1С
+    // $count по каждому РОВНО ОДИН раз -- даже если один справочник
+    // встречается и в шапке одного документа, и в таблице другого.
+    const card_data = new Map();
+    const ref_targets = new Set();
     for (const document of config.documents) {
         const entity = dbinfo.entities['Document_' + document.name];
         if (!entity) throw new Error(`${document.name}: no metadata, re-run read-1c-odata-metadata.js`);
+        const {fields, expand} = build_document_card_fields(entity, document);
+        const tables = build_document_table_columns(dbinfo, entity, document);
+        for (const field of fields) if (field.kind === 'reference') ref_targets.add(field.ref_target);
+        for (const table of tables) for (const column of table.columns) if (column.kind === 'reference') ref_targets.add(column.ref_target);
+        card_data.set(document.name, {entity, fields, expand, tables});
+    }
+    const picker_kinds = await build_picker_kinds(connection, ref_targets, config.odata.selectMaxOptions);
+    for (const {fields, tables} of card_data.values()) {
+        for (const field of fields) if (field.kind === 'reference') field.pickerKind = picker_kinds.get(field.ref_target);
+        for (const table of tables) for (const column of table.columns) if (column.kind === 'reference') column.pickerKind = picker_kinds.get(column.ref_target);
+    }
+
+    for (const document of config.documents) {
+        const {entity, fields: card_fields, expand: card_expand, tables} = card_data.get(document.name);
         const {fields, field_map, expand} = build_document_list_fields(entity, document);
         await generate_list_page({config, document, entity, fields, field_map, expand, output_dir});
-        await generate_card_page({document, entity, dbinfo, output_dir});
+        await generate_card_page({document, entity, card_fields, card_expand, tables, namespace: dbinfo.namespace, output_dir});
     }
-    const connection = await load_odata_connection();
-    config.catalogEntitySets = connection.catalog_entity_sets;
     await generate_runtime_includes({config, connection, output_dir, output_root});
     await generate_secrets({config, connection, output_root});
     await generate_module_descriptor({config, output_root});
     console.log(`${output_dir}: ${config.documents.length} list pages, runtime, secrets, module descriptor`);
+}
+
+// Спрашивает у 1С $count по каждому уникальному справочнику ровно один раз
+// и решает, какой виджет ему подходит: select.md-обсуждение -- в
+// data/gen-config.json5#odata.selectMaxOptions.
+async function build_picker_kinds(connection, ref_targets, max_options) {
+    const kinds = new Map();
+    for (const ref_target of ref_targets) {
+        const count = await fetch_entity_set_count(connection, ref_target);
+        kinds.set(ref_target, count <= max_options ? 'select' : 'autocomplete');
+        console.log(`${ref_target}: $count=${count} -> ${kinds.get(ref_target)}`);
+    }
+    return kinds;
+}
+
+async function fetch_entity_set_count(connection, entity_set) {
+    const url = `${connection.base_uri}${encodeURIComponent(entity_set)}/$count`;
+    const auth = Buffer.from(`${connection.login}:${connection.password}`).toString('base64');
+    const response = await fetch(url, {headers: {Authorization: `Basic ${auth}`}});
+    if (!response.ok) throw new Error(`${entity_set}: $count HTTP ${response.status}`);
+    const text = (await response.text()).trim();
+    if (!/^\d+$/u.test(text)) throw new Error(`${entity_set}: $count вернул не число: ${JSON.stringify(text)}`);
+    return Number(text);
 }
 
 async function generate_list_page({config, document, entity, fields, field_map, expand, output_dir}) {
@@ -142,18 +187,17 @@ if (require.main === module) {
 // второй уровень под статическим пунктом "Документы", чтобы рядом можно было
 // добавлять другие статические пункты первого уровня.
 // Карточка документа: просмотр и редактирование шапки.
-async function generate_card_page({document, entity, dbinfo, output_dir}) {
-    const {fields, expand} = build_document_card_fields(entity, document);
-    const select = ['Ref_Key', 'DataVersion', ...fields.map((field) => field.name), ...expand.map((name) => `${name}/Description`)];
+async function generate_card_page({document, entity, card_fields, card_expand, tables, namespace, output_dir}) {
+    const select = ['Ref_Key', 'DataVersion', ...card_fields.map((field) => field.name), ...card_expand.map((name) => `${name}/Description`)];
     const text = gen_card_page({
         document,
         entity_set: entity.entity_set,
-        fields,
+        fields: card_fields,
         select_fields: [...new Set(select)],
-        expand,
+        expand: card_expand,
         read_only: Boolean(document.readOnly),
-        tables: build_document_table_columns(dbinfo, entity, document),
-        namespace: dbinfo.namespace,
+        tables,
+        namespace,
     });
     await afs.writeFile(pth.join(output_dir, `${document.slug}-card.php`), text);
 }
