@@ -18,6 +18,16 @@ import { loadDotenv } from './lib/load-dotenv.js';
 // тут быть не должно.
 const DATA_DIR = '/data/wd/aibox/autosetup/data';
 loadDotenv(path.join(DATA_DIR, '..', '.env'));
+// Секрет, не конфиг — отдельный файл, не коммитится (см. .gitignore),
+// заводится один раз src/verbs/ensure-admin-password-secret.js.
+loadDotenv(path.join(DATA_DIR, '..', '.env.secrets'));
+
+function requireEnv(name, hint) {
+    const value = process.env[name];
+    if (!value) throw new Error(`${name} не задан в окружении/.env.secrets — ${hint}`);
+    return value;
+}
+
 const vars = JSON5.parse(readFileSync(path.join(DATA_DIR, 'vars.json5'), 'utf8'));
 const base = JSON5.parse(readFileSync(path.join(DATA_DIR, 'base.json5'), 'utf8'));
 const oneC = JSON5.parse(readFileSync(path.join(DATA_DIR, '1c-platform.json5'), 'utf8'));
@@ -249,6 +259,11 @@ export const config = {
     ...namedFeatureConfigs,
     unattend: {
         ...raw.unattend,
+        // Секрет, не конфиг: сюда НЕ пишем литерал в data/base.json5
+        // (это ушло бы в git). Источник — .env.secrets, заводится один раз
+        // src/verbs/ensure-admin-password-secret.js. Fail-fast, если его
+        // ещё не запускали — см. комментарий в src/main.js.
+        adminPassword: requireEnv('AUTOSETUP_ADMIN_PASSWORD', 'сначала запусти node src/verbs/ensure-admin-password-secret.js'),
         // чистый build-артефакт из конфига, без накопленного состояния —
         // поэтому в cache/, а не в db/ (в отличие от диска/OVMF vars/tpm).
         answerFileImagePath: path.join(paths.vmCacheDir, raw.unattend.answerFileFilename.replace(/\.xml$/i, '.img')),

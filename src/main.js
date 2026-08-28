@@ -36,7 +36,12 @@ import { publishOneCOData } from './verbs/publish-1c-odata.js';
 //      data/1c-configuration.json5, data/1c-techsys-update.json5).
 //      Каждый install-модуль сам проверяет их SHA-256 и fail-fast, если
 //      их нет.
-//   2. после генерации модуля Dolibarr его нужно один раз выключить и
+//   2. .env.secrets (AUTOSETUP_ADMIN_PASSWORD) — сгенерировать один раз
+//      node src/verbs/ensure-admin-password-secret.js до первого запуска
+//      этого пайплайна; без него configure.js (импортируется выше, на
+//      верхнем уровне модуля) fail-fast упадёт ещё до входа в
+//      runFullPipeline().
+//   3. после генерации модуля Dolibarr его нужно один раз выключить и
 //      включить в админке (см. features/php-odata-demo/README.md) —
 //      это GUI-only шаг самого Dolibarr, скриптом не нажимается.
 //

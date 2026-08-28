@@ -94,11 +94,13 @@
     // шаблона под "это builtin-аккаунт". Отдельное имя с правами
     // Administrators — проще и без этой развилки.
     adminUsername: 'admin',
-    // Тестовый пароль одноразовой VM: доступ только с loopback хоста
-    // (SPICE/VNC/QMP/WinRM/ssh — ничего наружу не пробрасывается за
-    // пределы localhost), наружу не торчит. Поменять здесь при желании —
-    // единственный источник.
-    adminPassword: 'ChangeMe!2026',
+    // adminPassword здесь намеренно нет: это секрет, не конфиг. Источник —
+    // .env.secrets (AUTOSETUP_ADMIN_PASSWORD), заводится один раз
+    // src/verbs/ensure-admin-password-secret.js, подмешивается в
+    // src/configure.js. Доступ и так только с loopback хоста (SPICE/VNC/
+    // QMP/WinRM/ssh/RDP — ничего наружу не пробрасывается за пределы
+    // localhost, см. data/vars.json5), но коммитить пароль в git всё равно
+    // незачем.
     enableAutoLogon: true,
     // Файл ответов и guest-пакеты доставляются одним отдельным USB-диском
     // (removable media — только там Setup ищет autounattend.xml), не тем

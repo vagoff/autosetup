@@ -8,4 +8,10 @@
   guestScripts: {
     firstLogon: ['enable-rdp-access.ps1'],
   },
+  check: {
+    // Таймаут одной попытки CredSSP-логина через vendor/impacket/examples/
+    // rdp_check.py (src/tools/check-rdp-login.js) — не сетевой connect,
+    // а весь TLS+CredSSP handshake целиком.
+    timeoutSeconds: 10,
+  },
 }

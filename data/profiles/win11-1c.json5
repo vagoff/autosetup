@@ -4,10 +4,9 @@
 //
 // Выбирается автоматически, пока это единственный файл в
 // data/profiles/ (см. resolveActiveProfilePath в src/configure.js). Как
-// только появится второй профиль (например win11-1c-rdp.json5) —
-// выбор надо будет делать явно через переменную окружения
-// AUTOSETUP_PROFILE=data/profiles/<имя>.json5, иначе configure.js
-// откажется грузиться (fail-fast на неоднозначность).
+// только появится второй профиль — выбор надо будет делать явно через
+// переменную окружения AUTOSETUP_PROFILE=data/profiles/<имя>.json5, иначе
+// configure.js откажется грузиться (fail-fast на неоднозначность).
 {
   vmName: 'win11-1c',
   // 'winrm' отключён намеренно.
@@ -25,5 +24,10 @@
   //
   // Чтобы вернуть: добавить 'winrm' обратно в список -- data/features/winrm.json5
   // и src/verbs/check-winrm-access.js остаются на месте и никуда не делись.
-  features: ['openssh', 'serial-agent'],
+  //
+  // 'rdp' — вход для человека (SPICE/VNC остаются основным способом,
+  // RDP — альтернатива поверх сети), проверяется src/verbs/check-rdp-access.js
+  // (реестр/firewall) и src/tools/check-rdp-login.js (настоящий протокольный
+  // логин через vendor/impacket).
+  features: ['openssh', 'serial-agent', 'rdp'],
 }

@@ -19,8 +19,8 @@
   эквивалент выдернутой вилки (то же самое, чего мы избегаем через
   `scripts/shutdown.sh`/жёсткий kill, просто с другой стороны). Актуально:
   - если VM поднята через process-manager (обычный случай, см.
-    `scripts/services.def`) — `a pm stop --name qemu-win11-1c` (или
-    `-rdp`): лестница `qmp-graceful → SIGTERM → SIGKILL`, ACPI-путь пробует
+    `scripts/services.def`) — `a pm stop --name qemu-win11-1c`: лестница
+    `qmp-graceful → SIGTERM → SIGKILL`, ACPI-путь пробует
     выключить гостя штатно первым, подробности —
     `/data/wd/aibox/dev-env/tools/process-manager/doc/PROBES.md`.
   - если VM поднята напрямую (`node src/services/run-vm.js`, в обход process-manager) —
@@ -48,8 +48,8 @@
 совсем. До тех пор `run-vm-cli.js` -- единственное место во всей системе, где
 `AUTOSETUP_PROFILE` пишется, и второй такой переменной заводить нельзя.
 
-Сервисы в `scripts/services.def` объявлены по одному на профиль (`qemu-win11-1c`,
-`qemu-win11-1c-rdp`) -- сервис process-manager'а это определение, а не шаблон, и профиль
+Сервисы в `scripts/services.def` объявлены по одному на профиль (сейчас один — `qemu-win11-1c`)
+-- сервис process-manager'а это определение, а не шаблон, и профиль
 входит в смысл имени. `min_uptime_sec = 3` там стоит потому, что профиль плагинов `bare`
 ничего не доказывает; правильная замена -- проба по QMP-сокету или serial-логу.
 

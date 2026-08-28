@@ -1,5 +1,5 @@
 // One service per VM profile, on purpose: a process-manager service is a definition, not
-// a template -- `a pm start --name qemu-win11-1c-rdp` needs no way to pass a profile at
+// a template -- `a pm start --name qemu-win11-1c` needs no way to pass a profile at
 // start time, because the profile is part of what that name means.
 //
 // Each VM gets the same three-rung probe ladder (order is priority, see
@@ -13,20 +13,10 @@
 // is a fraction of a second, and Windows needs tens of seconds -- see the same PROBES.md.
 // It matches qemu.guestShutdownTimeoutMs (180000) in data/base.json5, which is the same
 // number for the same reason on the src/verbs/orchestrators/shutdown-guest.js path.
-//
-// [!] Both services probe port 4000 because both VMs *use* port 4000 -- data/vars.json5
-// [!] has one set of ports for all profiles, so the two are mutually exclusive and rung 2
-// [!] is the only thing telling them apart. See doc/TODO.md ("per-profile port base").
 
 {profile: name = qemu_win11_1c
     {plugin: name=tcp_probe require="/data/wd/aibox/dev-env/tools/process-manager/src/plugins/tcp-probe/tcp-probe.js" projection=TcpProbe options {port=4000}}
     {plugin: name=qmp_probe require="/data/wd/aibox/dev-env/tools/process-manager/src/plugins/qmp-probe/qmp-probe.js" projection=QmpProbe options {port=4000; vm_name="win11-1c"}}
-    {plugin: name=qmp_graceful require="/data/wd/aibox/dev-env/tools/process-manager/src/plugins/qmp-graceful/qmp-graceful.js" projection=QmpGraceful options {port=4000}}
-}
-
-{profile: name = qemu_win11_1c_rdp
-    {plugin: name=tcp_probe require="/data/wd/aibox/dev-env/tools/process-manager/src/plugins/tcp-probe/tcp-probe.js" projection=TcpProbe options {port=4000}}
-    {plugin: name=qmp_probe require="/data/wd/aibox/dev-env/tools/process-manager/src/plugins/qmp-probe/qmp-probe.js" projection=QmpProbe options {port=4000; vm_name="win11-1c-rdp"}}
     {plugin: name=qmp_graceful require="/data/wd/aibox/dev-env/tools/process-manager/src/plugins/qmp-graceful/qmp-graceful.js" projection=QmpGraceful options {port=4000}}
 }
 
@@ -37,14 +27,6 @@
     profile = qemu_win11_1c // [!] separate class, subclass and instance
     // no minimum: rung 2 proves the VM is up, and anything that fails before qemu even
     // exists (missing disk, bad profile) is caught by the child's own exit
-    min_uptime_sec = 0.4
-    stop_timeout_sec = 180
-}
-
-{service:
-    name = "qemu-win11-1c-rdp"
-    command = "/usr/bin/node /data/wd/aibox/autosetup/src/services/run-vm-cli.js --profile win11-1c-rdp"
-    profile = qemu_win11_1c_rdp // [!] separate class, subclass and instance
     min_uptime_sec = 0.4
     stop_timeout_sec = 180
 }
