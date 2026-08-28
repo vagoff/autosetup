@@ -5,9 +5,9 @@ import { spawn } from 'node:child_process';
 // которым нужно один раз вызвать внешнюю утилиту и дождаться результата
 // (в отличие от spawn-*-process.js, которые запускают долгоживущие
 // процессы вроде qemu/swtpm).
-export function runProcess(command, args) {
+export function runProcess(command, args, options = {}) {
     return new Promise((resolve, reject) => {
-        const child = spawn(command, args, { stdio: 'inherit' });
+        const child = spawn(command, args, { stdio: 'inherit', ...options });
         child.on('error', reject);
         child.on('exit', (code, signal) => {
             if (signal) return reject(new Error(`${command}: убит сигналом ${signal}`));
