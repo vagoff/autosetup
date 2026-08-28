@@ -8,7 +8,7 @@ import JSON5 from 'json5';
 // Если апстрим уедет вперёд незамеченным, мерж потеряет чужие правки -- то есть
 // получится форк. Поэтому рядом с каждой копией лежит pristine-снимок оригинала,
 // и этот тест падает, как только оригинал изменился.
-const projectDirectory = path.resolve(import.meta.dirname, '../../features/php-odata-demo');
+const projectDirectory = path.resolve(import.meta.dirname, '../..');
 const config = JSON5.parse(await readFile(path.join(projectDirectory, 'data/gen-config.json5'), 'utf8')).dobaerp;
 
 for (const [upstreamPath, entry] of Object.entries(config.overlay)) {
