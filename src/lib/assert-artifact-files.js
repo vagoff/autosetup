@@ -1,14 +1,6 @@
-import { createHash } from 'node:crypto';
-import { createReadStream, existsSync, statSync } from 'node:fs';
+import { existsSync, statSync } from 'node:fs';
 import path from 'node:path';
-
-// Потоком, а не readFileSync: артефакты 1С -- сотни мегабайт, целиком в
-// память их класть незачем.
-async function sha256(filePath) {
-    const hash = createHash('sha256');
-    for await (const chunk of createReadStream(filePath)) hash.update(chunk);
-    return hash.digest('hex');
-}
+import { hashFileSha256 } from './hash-file-sha256.js';
 
 // Проверяет локальные, уже доставленные в проект бинарные артефакты до
 // любого действия над гостем. Это не доверяет ни имени файла, ни тому, что
@@ -27,7 +19,7 @@ export async function assertArtifactFiles(sourceDirectory, expectedFiles) {
         if (size !== expected.expectedBytes) {
             throw new Error(`artifact size mismatch: ${filePath}: got ${size}, expected ${expected.expectedBytes}`);
         }
-        const actualSha256 = await sha256(filePath);
+        const actualSha256 = await hashFileSha256(filePath);
         if (actualSha256 !== expected.expectedSha256) {
             throw new Error(`artifact SHA-256 mismatch: ${filePath}: got ${actualSha256}, expected ${expected.expectedSha256}`);
         }
