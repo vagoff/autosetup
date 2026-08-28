@@ -7,7 +7,6 @@
 
 - `/data/wd/aibox/autosetup/doc/INVARIANTS.md` -- локальные инварианты, читать до правок;
 - `/data/wd/aibox/autosetup/doc/architecture.md` -- из чего это собрано;
-- `/data/wd/aibox/autosetup/doc/requirements.md` -- требования;
 - `/data/wd/aibox/autosetup/doc/BUGS.md` -- известные дефекты;
 - `/data/wd/aibox/autosetup/doc/TODO.md` -- отложенное, с причинами отсрочки.
 

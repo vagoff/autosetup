@@ -1,0 +1,245 @@
+- generic [active] [ref=e1]:
+  - banner [ref=e2]:
+    - navigation [ref=e5]:
+      - text: 
+      - listitem [ref=e6]:
+        - generic [ref=e7]:
+          - link "" [ref=e8] [cursor=pointer]:
+            - /url: /index.php?mainmenu=home&leftmenu=home
+            - generic [ref=e9]: 
+          - link "Головна" [ref=e10] [cursor=pointer]:
+            - /url: /index.php?mainmenu=home&leftmenu=home
+      - listitem [ref=e11]:
+        - generic [ref=e12]:
+          - link "" [ref=e13] [cursor=pointer]:
+            - /url: /societe/index.php?mainmenu=companies&leftmenu=
+            - generic [ref=e14]: 
+          - link "Контрагенти" [ref=e15] [cursor=pointer]:
+            - /url: /societe/index.php?mainmenu=companies&leftmenu=
+      - listitem [ref=e16]:
+        - generic [ref=e17]:
+          - link "" [ref=e18] [cursor=pointer]:
+            - /url: /product/index.php?mainmenu=products&leftmenu=
+            - generic [ref=e19]: 
+          - link "Продукти | послуги" [ref=e20] [cursor=pointer]:
+            - /url: /product/index.php?mainmenu=products&leftmenu=
+      - listitem [ref=e21]:
+        - generic [ref=e22]:
+          - link "" [ref=e23] [cursor=pointer]:
+            - /url: /mrp/index.php?mainmenu=mrp&leftmenu=
+            - generic [ref=e24]: 
+          - link "MRP" [ref=e25] [cursor=pointer]:
+            - /url: /mrp/index.php?mainmenu=mrp&leftmenu=
+      - listitem [ref=e26]:
+        - generic [ref=e27]:
+          - link "" [ref=e28] [cursor=pointer]:
+            - /url: /fourn/commande/index.php?mainmenu=commercial&leftmenu=
+            - generic [ref=e29]: 
+          - link "комерція" [ref=e30] [cursor=pointer]:
+            - /url: /fourn/commande/index.php?mainmenu=commercial&leftmenu=
+      - listitem [ref=e31]:
+        - generic [ref=e32]:
+          - link "" [ref=e33] [cursor=pointer]:
+            - /url: /compta/index.php?mainmenu=billing&leftmenu=
+            - generic [ref=e34]: 
+          - link "Виставлення рахунків | оплата" [ref=e35] [cursor=pointer]:
+            - /url: /compta/index.php?mainmenu=billing&leftmenu=
+      - listitem [ref=e36]:
+        - generic [ref=e37]:
+          - link "" [ref=e38] [cursor=pointer]:
+            - /url: /core/tools.php?mainmenu=tools&leftmenu=
+            - generic [ref=e39]: 
+          - link "Tools" [ref=e40] [cursor=pointer]:
+            - /url: /core/tools.php?mainmenu=tools&leftmenu=
+      - listitem [ref=e41]:
+        - generic [ref=e42]:
+          - link "" [ref=e43] [cursor=pointer]:
+            - /url: /custom/tm/tmindex.php?idmenu=38&mainmenu=tm&leftmenu=
+            - generic [ref=e44]: 
+          - link "TM" [ref=e45] [cursor=pointer]:
+            - /url: /custom/tm/tmindex.php?idmenu=38&mainmenu=tm&leftmenu=
+      - listitem [ref=e46]:
+        - generic [ref=e47]:
+          - link "" [ref=e48] [cursor=pointer]:
+            - /url: /custom/wms/wms_index.php?idmenu=248&mainmenu=wms&leftmenu=
+            - generic [ref=e49]: 
+          - link "WMS" [ref=e50] [cursor=pointer]:
+            - /url: /custom/wms/wms_index.php?idmenu=248&mainmenu=wms&leftmenu=
+      - listitem [ref=e51]:
+        - generic [ref=e52]:
+          - link "" [ref=e53] [cursor=pointer]:
+            - /url: /custom/odatatest/zakaz-postavschiku-list.php?idmenu=291&mainmenu=odatatest&leftmenu=
+            - generic [ref=e54]: 
+          - link "OData" [ref=e55] [cursor=pointer]:
+            - /url: /custom/odatatest/zakaz-postavschiku-list.php?idmenu=291&mainmenu=odatatest&leftmenu=
+    - generic [ref=e56]:
+      - generic [ref=e57]:
+        - generic "Конструктор модулів і додатків" [ref=e59]:
+          - link "" [ref=e60] [cursor=pointer]:
+            - /url: /modulebuilder/index.php?mainmenu=home&leftmenu=admintools
+            - generic [ref=e61]: 
+        - generic "Показати сторінку для друку основної області вмісту" [ref=e63]:
+          - link "" [ref=e64] [cursor=pointer]:
+            - /url: /custom/odatatest/zakaz-postavschiku-card.php?ref=f7fd3b80-a643-11ea-1e9b-0800272f5ce8&action=edit&optioncss=print
+            - generic [ref=e65]: 
+        - generic "Прочитайте онлайн-довідку (потрібен доступ до Інтернету), <br><span class=\"fas fa-external-link-alt pictofixedwidth\" style=\"\"></span>Wiki сторінка \"User documentation\" <span class=\"opacitymedium\">(Домашня сторінка)</span>" [ref=e67]:
+          - link "" [ref=e68] [cursor=pointer]:
+            - /url: http://wiki.dolibarr.org/index.php/User_documentation
+            - generic [ref=e69]: 
+        - generic "Dolibarr 18.0.2" [ref=e71]:
+          - generic [ref=e72]: 18.0.2
+        - generic: 
+      - generic [ref=e76]:
+        - link "No photoautoma " [ref=e77] [cursor=pointer]:
+          - /url: /user/card.php?id=290
+          - img "No photo" [ref=e78]
+          - text: automa 
+        - text:        
+  - generic [ref=e79]:
+    - generic [ref=e82]:
+      - generic [ref=e83]:
+        - combobox [ref=e84]
+        - combobox "Пошук" [ref=e87] [cursor=pointer]:
+          - textbox [ref=e88]
+      - link " Моя інформаційна панель" [ref=e91] [cursor=pointer]:
+        - /url: /index.php?mainmenu=home&leftmenu=home
+        - generic [ref=e92]: 
+        - text: Моя інформаційна панель
+      - link " Встановлення" [ref=e95] [cursor=pointer]:
+        - /url: /admin/index.php?mainmenu=home&leftmenu=setup
+        - generic [ref=e96]: 
+        - text: Встановлення
+      - link " Інструменти адміністратора" [ref=e99] [cursor=pointer]:
+        - /url: /admin/tools/index.php?mainmenu=home&leftmenu=admintools
+        - generic [ref=e100]: 
+        - text: Інструменти адміністратора
+      - link " Користувачі та групи" [ref=e103] [cursor=pointer]:
+        - /url: /user/home.php?leftmenu=users
+        - generic [ref=e104]: 
+        - text: Користувачі та групи
+    - generic [ref=e108]:
+      - generic [ref=e109]:
+        - generic "Заказ поставщику" [ref=e111]: 
+        - link "Заказ поставщику" [ref=e114] [cursor=pointer]:
+          - /url: /custom/odatatest/zakaz-postavschiku-card.php?ref=f7fd3b80-a643-11ea-1e9b-0800272f5ce8
+      - generic [ref=e117]:
+        - table [ref=e118]:
+          - rowgroup [ref=e119]:
+            - row "Number ТП00-000001" [ref=e120]:
+              - cell "Number" [ref=e121]
+              - cell "ТП00-000001" [ref=e122]
+            - row "Date 21.02.2019 13:00" [ref=e123]:
+              - cell "Date" [ref=e124]
+              - cell "21.02.2019 13:00" [ref=e125]
+            - row "Организация —" [ref=e126]:
+              - cell "Организация" [ref=e127]
+              - cell "—" [ref=e128]:
+                - combobox [ref=e129]
+                - combobox "—" [ref=e132] [cursor=pointer]:
+                  - textbox "—" [ref=e133]
+            - row "Контрагент —" [ref=e134]:
+              - cell "Контрагент" [ref=e135]
+              - cell "—" [ref=e136]:
+                - combobox [ref=e137]
+                - combobox "—" [ref=e140] [cursor=pointer]:
+                  - textbox "—" [ref=e141]
+            - row "Склад —" [ref=e142]:
+              - cell "Склад" [ref=e143]
+              - cell "—" [ref=e144]:
+                - combobox [ref=e145]
+                - combobox "—" [ref=e148] [cursor=pointer]:
+                  - textbox "—" [ref=e149]
+            - row "СуммаДокумента 31592.4" [ref=e150]:
+              - cell "СуммаДокумента" [ref=e151]
+              - cell "31592.4" [ref=e152]:
+                - textbox [ref=e153]: "31592.4"
+            - row "Комментарий autosetup odata-demo live test" [ref=e154]:
+              - cell "Комментарий" [ref=e155]
+              - cell "autosetup odata-demo live test" [ref=e156]:
+                - textbox [ref=e157]: autosetup odata-demo live test
+            - row "Posted Ні" [ref=e158]:
+              - cell "Posted" [ref=e159]
+              - cell "Ні" [ref=e160]
+            - row "DeletionMark Ні" [ref=e161]:
+              - cell "DeletionMark" [ref=e162]
+              - cell "Ні" [ref=e163]
+        - table [ref=e164]:
+          - rowgroup [ref=e165]:
+            - row "Товары" [ref=e166]:
+              - cell "Товары" [ref=e167]:
+                - generic [ref=e168]: Товары
+        - table [ref=e170]:
+          - rowgroup [ref=e171]:
+            - row "# Номенклатура Количество Цена Сумма Видалити" [ref=e172]:
+              - cell "#" [ref=e173]
+              - cell "Номенклатура" [ref=e174]
+              - cell "Количество" [ref=e175]
+              - cell "Цена" [ref=e176]
+              - cell "Сумма" [ref=e177]
+              - cell "Видалити" [ref=e178]
+            - row "1 2030-805/A покровный лак 3200000 5.78 18496" [ref=e179]:
+              - cell "1" [ref=e180]
+              - cell "2030-805/A покровный лак" [ref=e181]:
+                - combobox [ref=e182]
+                - combobox "2030-805/A покровный лак" [ref=e185] [cursor=pointer]:
+                  - textbox "2030-805/A покровный лак" [ref=e186]
+              - cell "3200000" [ref=e187]:
+                - textbox [ref=e188]: "3200000"
+              - cell "5.78" [ref=e189]:
+                - textbox [ref=e190]: "5.78"
+              - cell "18496" [ref=e191]:
+                - textbox [ref=e192]: "18496"
+              - cell [ref=e193]:
+                - checkbox [ref=e194]
+            - row "2 2060-301/A внутренний лак 2600000 3.71 9646" [ref=e195]:
+              - cell "2" [ref=e196]
+              - cell "2060-301/A внутренний лак" [ref=e197]:
+                - combobox [ref=e198]
+                - combobox "2060-301/A внутренний лак" [ref=e201] [cursor=pointer]:
+                  - textbox "2060-301/A внутренний лак" [ref=e202]
+              - cell "2600000" [ref=e203]:
+                - textbox [ref=e204]: "2600000"
+              - cell "3.71" [ref=e205]:
+                - textbox [ref=e206]: "3.71"
+              - cell "9646" [ref=e207]:
+                - textbox [ref=e208]: "9646"
+              - cell [ref=e209]:
+                - checkbox [ref=e210]
+            - row "3 230 XG-VQ покровный лак 760000 4.54 3450.4" [ref=e211]:
+              - cell "3" [ref=e212]
+              - cell "230 XG-VQ покровный лак" [ref=e213]:
+                - combobox [ref=e214]
+                - combobox "230 XG-VQ покровный лак" [ref=e217] [cursor=pointer]:
+                  - textbox "230 XG-VQ покровный лак" [ref=e218]
+              - cell "760000" [ref=e219]:
+                - textbox [ref=e220]: "760000"
+              - cell "4.54" [ref=e221]:
+                - textbox [ref=e222]: "4.54"
+              - cell "3450.4" [ref=e223]:
+                - textbox [ref=e224]: "3450.4"
+              - cell [ref=e225]:
+                - checkbox [ref=e226]
+            - row "+ —" [ref=e227]:
+              - cell "+" [ref=e228]
+              - cell "—" [ref=e229]:
+                - combobox [ref=e230]
+                - combobox "—" [ref=e233] [cursor=pointer]:
+                  - textbox "—" [ref=e234]
+              - cell [ref=e235]:
+                - textbox [ref=e236]
+              - cell [ref=e237]:
+                - textbox [ref=e238]
+              - cell [ref=e239]:
+                - textbox [ref=e240]
+              - cell [ref=e241]
+        - generic [ref=e242]:
+          - button "Зберегти" [ref=e243] [cursor=pointer]
+          - button "Скасувати" [ref=e244] [cursor=pointer]
+  - log [ref=e245]
+  - log [ref=e246]
+  - log [ref=e247]
+  - log [ref=e248]
+  - log [ref=e249]
+  - log [ref=e250]
+  - log [ref=e251]
+  - log [ref=e252]
