@@ -1,6 +1,6 @@
-import { config } from './config.js';
-import { withGuestSession } from './lib/with-guest-session.js';
-import { isApacheHttpdInstalled, readApacheHttpdState } from './lib/read-apache-httpd-state.js';
+import { config } from '../configure.js';
+import { withGuestSession } from '../infrastructure/with-guest-session.js';
+import { isApacheHttpdInstalled, readApacheHttpdState } from '../infrastructure/read-apache-httpd-state.js';
 
 export async function checkApacheHttpdInstallation() {
     await withGuestSession(async ({ ssh }) => {

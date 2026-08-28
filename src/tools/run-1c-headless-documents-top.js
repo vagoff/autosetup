@@ -1,10 +1,10 @@
 import { mkdir, writeFile } from 'node:fs/promises';
 import path from 'node:path';
-import { config } from './config.js';
-import { countTopDocumentsFromDesignerMetadata, countTopDocumentsFromExistingDesignerMetadata } from './lib/dump-1c-configuration-metadata.js';
-import { parseHeadlessDocumentsTopArguments } from './lib/parse-headless-documents-top-arguments.js';
-import { assertOneCPlatformInstalled } from './lib/read-1c-platform-state.js';
-import { withGuestSession, withGuestStaging } from './lib/with-guest-session.js';
+import { config } from '../configure.js';
+import { countTopDocumentsFromDesignerMetadata, countTopDocumentsFromExistingDesignerMetadata } from '../infrastructure/dump-1c-configuration-metadata.js';
+import { parseHeadlessDocumentsTopArguments } from '../infrastructure/parse-headless-documents-top-arguments.js';
+import { assertOneCPlatformInstalled } from '../infrastructure/read-1c-platform-state.js';
+import { withGuestSession, withGuestStaging } from '../infrastructure/with-guest-session.js';
 
 export async function runOneCHeadlessDocumentsTop(argv = process.argv.slice(2)) {
     const { oneC, oneCConfiguration, oneCHeadlessQuery, paths } = config;

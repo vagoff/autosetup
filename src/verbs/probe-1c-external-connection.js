@@ -1,11 +1,11 @@
 import { randomUUID } from 'node:crypto';
 import path from 'node:path';
-import { config } from './config.js';
-import { buildComQueryScript, parseComResult } from './lib/build-1c-com-query-script.js';
-import { executeGuestPowerShell, quotePowerShell } from './lib/execute-guest-powershell.js';
-import { assertOneCPlatformInstalled } from './lib/read-1c-platform-state.js';
-import { removeGuestDirectory } from './lib/stage-guest-files.js';
-import { withGuestSession } from './lib/with-guest-session.js';
+import { config } from '../configure.js';
+import { buildComQueryScript, parseComResult } from '../infrastructure/build-1c-com-query-script.js';
+import { executeGuestPowerShell, quotePowerShell } from '../infrastructure/execute-guest-powershell.js';
+import { assertOneCPlatformInstalled } from '../infrastructure/read-1c-platform-state.js';
+import { removeGuestDirectory } from '../infrastructure/stage-guest-files.js';
+import { withGuestSession } from '../infrastructure/with-guest-session.js';
 
 // Одно проверяемое действие: внешнее соединение с ИБ через V83.COMConnector
 // живо и отвечает на тривиальный запрос. Сам запрос строится тем же

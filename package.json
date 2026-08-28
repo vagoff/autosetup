@@ -3,8 +3,8 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "test": "node --test test/*.test.js test/live/*.test.js",
-    "test:live": "AUTOSETUP_LIVE_TESTS=1 node --test test/live/*.test.js"
+    "test": "node --test src/tests/*.test.js src/tests/live/*.test.js",
+    "test:live": "AUTOSETUP_LIVE_TESTS=1 node --test src/tests/live/*.test.js"
   },
   "overrides": {
     "winrm-client": {

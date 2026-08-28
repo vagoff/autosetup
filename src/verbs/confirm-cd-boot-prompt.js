@@ -1,9 +1,9 @@
-import { connectQmp } from './lib/connect-qmp.js';
-import { sendGuestKey } from './lib/send-guest-key.js';
-import { queryCdromBytesRead } from './lib/query-cdrom-bytes-read.js';
-import { waitForStableState } from './wait-for-stable-state.js';
-import { waitForObservableChange } from './wait-for-observable-change.js';
-import { config } from './config.js';
+import { connectQmp } from '../infrastructure/connect-qmp.js';
+import { sendGuestKey } from '../infrastructure/send-guest-key.js';
+import { queryCdromBytesRead } from '../infrastructure/query-cdrom-bytes-read.js';
+import { waitForStableState } from '../infrastructure/wait-for-stable-state.js';
+import { waitForObservableChange } from '../infrastructure/wait-for-observable-change.js';
+import { config } from '../configure.js';
 
 // UEFI CD-загрузчик показывает "Press any key to boot from CD or DVD" с
 // собственным внутренним таймаутом; без нажатия клавиши он молча

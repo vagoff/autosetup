@@ -1,5 +1,5 @@
-import { requestGuestShutdown } from './request-guest-shutdown.js';
-import { waitForQemuExit } from './wait-for-qemu-exit.js';
+import { requestGuestShutdown } from '../request-guest-shutdown.js';
+import { waitForQemuExit } from '../wait-for-qemu-exit.js';
 
 // Тонкий оркестратор: попросить гостя штатно выключиться (ACPI) и
 // дождаться, пока qemu-процесс реально завершится. Никакой собственной

@@ -5,7 +5,7 @@
 инструменты для агента (в `scripts/`, не для человека):
 - `scripts/run-qmp-command.js <command> [argsJSON]` — разовая произвольная QMP-команда
   (query-status, query-block, query-blockstats, quit, send-key, ...) поверх уже
-  существующего `src/lib/connect-qmp.js`, JSON-ответ в stdout. Завёлся вместо
+  существующего `src/infrastructure/connect-qmp.js`, JSON-ответ в stdout. Завёлся вместо
   повторяющихся одноразовых `node -e "..."` в ручной диагностике по QMP.
   Пример: `node scripts/run-qmp-command.js query-status`.
 - `scripts/shutdown.sh` — только для человека на хосте: убивает qemu по
@@ -23,8 +23,8 @@
     `-rdp`): лестница `qmp-graceful → SIGTERM → SIGKILL`, ACPI-путь пробует
     выключить гостя штатно первым, подробности —
     `/data/wd/aibox/dev-env/tools/process-manager/doc/PROBES.md`.
-  - если VM поднята напрямую (`node src/run-vm.js`, в обход process-manager) —
-    `node src/shutdown-guest.js`: тот же принцип (ACPI `system_powerdown` +
+  - если VM поднята напрямую (`node src/services/run-vm.js`, в обход process-manager) —
+    `node src/verbs/orchestrators/shutdown-guest.js`: тот же принцип (ACPI `system_powerdown` +
     сетевое ожидание, без PID), самостоятельный скрипт на этот случай.
   - `scripts/run-qmp-command.js` остаётся тем, чем и был — разовый CLI для
     произвольных QMP-команд (`query-status`, `screendump`, `send-key`, ...),
@@ -33,17 +33,17 @@
 
 ## долг: профиль передаётся через переменную окружения
 
-`src/config.js` -- синглтон: он читает `data/`, выбирает профиль и валидирует его **в момент
+`src/configure.js` -- синглтон: он читает `data/`, выбирает профиль и валидирует его **в момент
 импорта**, а выбор берёт из `process.env.AUTOSETUP_PROFILE`. Все `src/*.js` импортируют уже
 готовый объект, поэтому передать выбор аргументом сегодня нельзя ни из чего.
 
-`src/run-vm-cli.js` -- временный мост: он разбирает `--profile <имя>` штатным `cli_main`
+`src/services/run-vm-cli.js` -- временный мост: он разбирает `--profile <имя>` штатным `cli_main`
 (`libs/json-args`), резолвит имя в путь (с проверкой существования и списком доступных имён в
 ошибке) и пишет `AUTOSETUP_PROFILE` **до** динамического импорта `run-vm.js`. Это передача
 аргумента через глобальную переменную процесса, то есть нарушение -- см `[!]`-комментарии в
 шапке файла.
 
-Как правильно: `config.js` становится `load_config({profile_path})`, значение течёт вниз
+Как правильно: `configure.js` становится `load_config({profile_path})`, значение течёт вниз
 аргументом, `run-vm.js` получает сигнатуру `runVm({config})`, переменная окружения исчезает
 совсем. До тех пор `run-vm-cli.js` -- единственное место во всей системе, где
 `AUTOSETUP_PROFILE` пишется, и второй такой переменной заводить нельзя.
@@ -88,9 +88,9 @@ restart по изменению boot time, затем staging собираетс
 Обычная последовательность для выбранного профиля:
 
 ```text
-AUTOSETUP_PROFILE=data/profiles/win11-1c.json5 node src/install-1c-platform.js
-AUTOSETUP_PROFILE=data/profiles/win11-1c.json5 node src/install-apache-httpd.js
-AUTOSETUP_PROFILE=data/profiles/win11-1c.json5 node src/configure-1c-apache-web-extension.js
+AUTOSETUP_PROFILE=data/profiles/win11-1c.json5 node src/verbs/install-1c-platform.js
+AUTOSETUP_PROFILE=data/profiles/win11-1c.json5 node src/verbs/install-apache-httpd.js
+AUTOSETUP_PROFILE=data/profiles/win11-1c.json5 node src/verbs/configure-1c-apache-web-extension.js
 ```
 
 `install-1c-web-environment.js` — только тонкий оркестратор этих трёх
@@ -111,7 +111,7 @@ AUTOSETUP_PROFILE=data/profiles/win11-1c.json5 node src/configure-1c-apache-web-
 Её отдельный, явно вызываемый модуль:
 
 ```text
-AUTOSETUP_PROFILE=data/profiles/win11-1c.json5 node src/install-1c-techsys-update.js
+AUTOSETUP_PROFILE=data/profiles/win11-1c.json5 node src/verbs/install-1c-techsys-update.js
 ```
 
 Конфиг `data/1c-techsys-update.json5` закрепляет хеши обновлённой DLL и
@@ -147,8 +147,8 @@ doc/1c-demo-requirements.md ссылается на несуществующее
 ## История завершений Windows
 
 ```text
-AUTOSETUP_PROFILE=data/profiles/win11-1c.json5 node src/read-guest-shutdown-history.js
-AUTOSETUP_PROFILE=data/profiles/win11-1c.json5 node src/read-guest-shutdown-history.js --limit 50
+AUTOSETUP_PROFILE=data/profiles/win11-1c.json5 node src/tools/read-guest-shutdown-history.js
+AUTOSETUP_PROFILE=data/profiles/win11-1c.json5 node src/tools/read-guest-shutdown-history.js --limit 50
 ```
 
 `read-guest-shutdown-history.js` только читает `System` Event Log гостя. Он

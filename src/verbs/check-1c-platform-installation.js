@@ -1,6 +1,6 @@
-import { config } from './config.js';
-import { withGuestSession } from './lib/with-guest-session.js';
-import { isOneCPlatformInstalled, readOneCPlatformState } from './lib/read-1c-platform-state.js';
+import { config } from '../configure.js';
+import { withGuestSession } from '../infrastructure/with-guest-session.js';
+import { isOneCPlatformInstalled, readOneCPlatformState } from '../infrastructure/read-1c-platform-state.js';
 
 export async function checkOneCPlatformInstallation() {
     await withGuestSession(async ({ ssh }) => {

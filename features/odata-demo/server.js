@@ -3,7 +3,7 @@ import { createServer } from 'node:http';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { BasicAuth, ODataV3Client } from '@1c-odata/client';
-import { config } from '../../src/config.js';
+import { config } from '../../src/configure.js';
 
 const directory = path.dirname(fileURLToPath(import.meta.url));
 const password = (await readFile(config.oneCOData.passwordStatePath, 'utf8')).trim();

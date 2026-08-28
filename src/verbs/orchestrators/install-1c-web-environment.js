@@ -1,6 +1,6 @@
-import { installOneCPlatform } from './install-1c-platform.js';
-import { installApacheHttpd } from './install-apache-httpd.js';
-import { configureOneCApacheWebExtension } from './configure-1c-apache-web-extension.js';
+import { installOneCPlatform } from '../install-1c-platform.js';
+import { installApacheHttpd } from '../install-apache-httpd.js';
+import { configureOneCApacheWebExtension } from '../configure-1c-apache-web-extension.js';
 
 // Тонкий оркестратор полного набора «платформа 1С + Apache + модуль
 // интеграции». В нём нет собственных условий или параметров: каждый шаг

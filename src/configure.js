@@ -107,8 +107,8 @@ const paths = {
     vendorDir: path.join(projectRoot, 'vendor'),
     featuresDir: path.join(projectRoot, 'features'),
     outputDir: path.join(projectRoot, 'output'),
-    // .ps1-исходники FirstLogonCommands (см. src/lib/build-first-logon-commands.js).
-    guestScriptsDir: path.join(projectRoot, 'src', 'guest-scripts'),
+    // .ps1-исходники FirstLogonCommands (см. src/infrastructure/build-first-logon-commands.js).
+    guestScriptsDir: path.join(projectRoot, 'src', 'infrastructure', 'guest-scripts'),
 };
 
 const apachePortForward = resolveGuestPortForward('apache-http', 'data/apache-httpd.json5');
@@ -121,12 +121,12 @@ if (apacheHttpd.listenPort !== apachePortForward.guestPort) {
 // Наблюдаемый факт "этот диск уже пережил один успешный install Windows",
 // не конфиг — в db/, потому что обязан пережить перезапуск процесса/хоста
 // (в отличие от cache/), и жить ровно столько же, сколько сам диск (см.
-// src/mark-windows-install-complete.js, src/lib/resolve-boot-from-installer.js,
-// src/destroy-windows-install-complete-marker.js).
+// src/verbs/mark-windows-install-complete.js, src/infrastructure/resolve-boot-from-installer.js,
+// src/verbs/destroy-windows-install-complete-marker.js).
 paths.installCompleteMarkerPath = path.join(paths.vmDbDir, 'install-complete.marker');
 
 // Один деривер на фичу: превращает "сырой" data/features/<id>.json5 в то,
-// что дальше потребляют src/*.js (добавляет вычисленные пути и
+// что дальше потребляют src/verbs, src/tools, src/services (добавляет вычисленные пути и
 // разрешённые из vars.json5 порты). Добавление новой фичи — это добавить
 // сюда одну запись, а не трогать чужие: та же логика, что уже была для
 // openSsh/winRm, просто явно поимённо привязана к id фичи вместо
@@ -159,13 +159,13 @@ const FEATURE_DERIVERS = {
 // config-ключ, под которым деривированные данные фичи видны потребителям
 // (config.openSsh/config.winRm/config.rdp/config.serialAgent) — имена
 // исторические (camelCase, а не kebab-case id файла), меняются с
-// одобрения по всему src/, а не молча.
+// одобрения по всему дереву src/ (verbs/tools/services/features), а не молча.
 const FEATURE_EXPORT_KEYS = { openssh: 'openSsh', winrm: 'winRm', rdp: 'rdp', 'serial-agent': 'serialAgent' };
 
 const derivedFeaturesById = {};
 for (const id of profile.features) {
     const derive = FEATURE_DERIVERS[id];
-    if (!derive) throw new Error(`${profilePath}: фича "${id}" — нет деривера в FEATURE_DERIVERS (src/config.js)`);
+    if (!derive) throw new Error(`${profilePath}: фича "${id}" — нет деривера в FEATURE_DERIVERS (src/configure.js)`);
     derivedFeaturesById[id] = derive(rawFeaturesById[id]);
 }
 
@@ -244,7 +244,7 @@ export const config = {
     // openSsh / winRm / serialAgent присутствуют только если
     // соответствующая фича включена в активном профиле (см.
     // data/profiles/*.json5) — обращение к отсутствующей фиче из
-    // src/*.js упадёт явной ошибкой доступа к undefined, что и есть
+    // потребителя (src/verbs, src/tools, src/services) упадёт явной ошибкой доступа к undefined, что и есть
     // fail-fast для "эта фича не выбрана в профиле, а код её требует".
     ...namedFeatureConfigs,
     unattend: {

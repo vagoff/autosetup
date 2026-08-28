@@ -2,17 +2,17 @@ import { randomUUID } from 'node:crypto';
 import { existsSync } from 'node:fs';
 import { mkdir, writeFile } from 'node:fs/promises';
 import path from 'node:path';
-import { config } from './config.js';
-import { buildComQueryScript, parseComResult } from './lib/build-1c-com-query-script.js';
-import { buildInfobasePresenceCheck } from './lib/execute-1c.js';
-import { executeGuestPowerShell, quotePowerShell } from './lib/execute-guest-powershell.js';
-import { removeGuestDirectory } from './lib/stage-guest-files.js';
-import { withGuestSession } from './lib/with-guest-session.js';
+import { config } from '../configure.js';
+import { buildComQueryScript, parseComResult } from '../infrastructure/build-1c-com-query-script.js';
+import { buildInfobasePresenceCheck } from '../infrastructure/execute-1c.js';
+import { executeGuestPowerShell, quotePowerShell } from '../infrastructure/execute-guest-powershell.js';
+import { removeGuestDirectory } from '../infrastructure/stage-guest-files.js';
+import { withGuestSession } from '../infrastructure/with-guest-session.js';
 
 // Запуск запроса к ИБ через внешнее соединение V83.COMConnector. В отличие от
-// src/run-1c-query.js не собирает EPF и не поднимает клиент 1С с формой --
+// src/tools/run-1c-query.js не собирает EPF и не поднимает клиент 1С с формой --
 // поэтому быстрее, но требует зарегистрированного COM-коннектора
-// (src/register-1c-com-connector.js).
+// (src/verbs/register-1c-com-connector.js).
 function parseArguments(argv, queryRunner) {
     const result = { queryPath: null, maxRows: queryRunner.defaultMaxRows, outputFilename: '1c-external-query-result.json' };
     for (let index = 0; index < argv.length; index += 1) {
@@ -39,7 +39,7 @@ function parseArguments(argv, queryRunner) {
         }
     }
     if (Boolean(result.queryPath) === Boolean(result.selectOne)) {
-        throw new Error('usage: node src/run-1c-external-query.js (--query <file> | --select-one) [--max-rows N] [--output file.json]');
+        throw new Error('usage: node src/tools/run-1c-external-query.js (--query <file> | --select-one) [--max-rows N] [--output file.json]');
     }
     if (result.queryPath && !existsSync(result.queryPath)) throw new Error(`query file is missing: ${result.queryPath}`);
     return result;

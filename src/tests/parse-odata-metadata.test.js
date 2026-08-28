@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { readFile } from 'node:fs/promises';
-import { parseODataMetadata } from '../features/odata-demo/scripts/parse-odata-metadata.js';
+import { parseODataMetadata } from '../../features/odata-demo/scripts/parse-odata-metadata.js';
 
 const xml = await readFile(new URL('./fixtures/odata-metadata.xml', import.meta.url), 'utf8');
 const parsed = parseODataMetadata(xml, { documentNames: ['ЗаказПоставщику'], catalogNames: ['Организации'] });

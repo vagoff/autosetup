@@ -1,8 +1,8 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { buildDocumentsTopScript } from '../../src/lib/dump-1c-configuration-metadata.js';
-import { extractDocumentsFromConfigurationXml } from '../../src/lib/parse-1c-configuration-metadata.js';
-import { parseHeadlessDocumentsTopArguments } from '../../src/lib/parse-headless-documents-top-arguments.js';
+import { buildDocumentsTopScript } from '../../infrastructure/dump-1c-configuration-metadata.js';
+import { extractDocumentsFromConfigurationXml } from '../../infrastructure/parse-1c-configuration-metadata.js';
+import { parseHeadlessDocumentsTopArguments } from '../../infrastructure/parse-headless-documents-top-arguments.js';
 
 test('Designer configuration dump yields a stable document list', () => {
     const xml = `<?xml version="1.0" encoding="UTF-8"?>

@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { encodeQmpTextKeys } from '../src/lib/encode-qmp-text-keys.js';
+import { encodeQmpTextKeys } from '../infrastructure/encode-qmp-text-keys.js';
 
 test('QMP text encoder maps Russian query text to physical keys', () => {
     assert.deepEqual(encodeQmpTextKeys('ВЫБРАТЬ\n'), [

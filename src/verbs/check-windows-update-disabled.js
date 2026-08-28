@@ -1,6 +1,6 @@
-import { config } from './config.js';
-import { withGuestSession } from './lib/with-guest-session.js';
-import { findWindowsUpdateDeviations, readWindowsUpdateState } from './lib/read-windows-update-state.js';
+import { config } from '../configure.js';
+import { withGuestSession } from '../infrastructure/with-guest-session.js';
+import { findWindowsUpdateDeviations, readWindowsUpdateState } from '../infrastructure/read-windows-update-state.js';
 
 // Проверяет ровно то, что объявлено в data/base.json5 -> windowsUpdate.
 // При disable: false проверять нечего — это не «проверка прошла», а

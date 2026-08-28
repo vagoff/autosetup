@@ -1,5 +1,5 @@
 import { NodeSSH } from 'node-ssh';
-import { config } from '../config.js';
+import { config } from '../configure.js';
 
 // Единственная точка создания SSH-клиента к работающему гостю. Все параметры
 // соединения уже принадлежат конфигу фичи OpenSSH и не дублируются в модулях

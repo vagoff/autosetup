@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { buildReadGuestVolumesScript } from '../src/lib/read-guest-volumes.js';
+import { buildReadGuestVolumesScript } from '../infrastructure/read-guest-volumes.js';
 
 test('guest df probe reads every fixed volume and reports used and free capacity', () => {
     const source = buildReadGuestVolumesScript();

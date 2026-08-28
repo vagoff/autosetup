@@ -1,10 +1,10 @@
 import path from 'node:path';
-import { config } from './config.js';
-import { withGuestSession } from './lib/with-guest-session.js';
-import { executeGuestPowerShell, quotePowerShell } from './lib/execute-guest-powershell.js';
-import { isApacheHttpdInstalled, readApacheHttpdState } from './lib/read-apache-httpd-state.js';
-import { assertOneCPlatformInstalled } from './lib/read-1c-platform-state.js';
-import { waitForHttp } from './lib/wait-for-http.js';
+import { config } from '../configure.js';
+import { withGuestSession } from '../infrastructure/with-guest-session.js';
+import { executeGuestPowerShell, quotePowerShell } from '../infrastructure/execute-guest-powershell.js';
+import { isApacheHttpdInstalled, readApacheHttpdState } from '../infrastructure/read-apache-httpd-state.js';
+import { assertOneCPlatformInstalled } from '../infrastructure/read-1c-platform-state.js';
+import { waitForHttp } from '../lib/wait-for-http.js';
 
 function buildConfigureScript(oneC, apacheHttpd) {
     const httpdPath = path.win32.join(apacheHttpd.installationDirectory, 'bin', 'httpd.exe');

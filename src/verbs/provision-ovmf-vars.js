@@ -1,7 +1,7 @@
 import { constants, copyFileSync, existsSync, mkdirSync } from 'node:fs';
 import path from 'node:path';
-import { config } from './config.js';
-import { resolveExistingPath } from './lib/resolve-existing-path.js';
+import { config } from '../configure.js';
+import { resolveExistingPath } from '../lib/resolve-existing-path.js';
 
 // Копирует read-write шаблон OVMF_VARS в db/ (один раз per-VM). Fail-fast
 // если копия уже существует — там живёт состояние UEFI/secure-boot,

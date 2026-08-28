@@ -1,6 +1,6 @@
-import { config } from './config.js';
-import { executeGuestPowerShell } from './lib/execute-guest-powershell.js';
-import { withGuestSession } from './lib/with-guest-session.js';
+import { config } from '../configure.js';
+import { executeGuestPowerShell } from '../infrastructure/execute-guest-powershell.js';
+import { withGuestSession } from '../infrastructure/with-guest-session.js';
 
 // GetSystemTimes возвращает накопленные 100-нс интервалы с последней загрузки
 // Windows. Busy = Kernel + User - Idle — суммарное процессорное время по всем

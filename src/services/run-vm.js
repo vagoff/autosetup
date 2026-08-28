@@ -1,14 +1,14 @@
 import { spawnSwtpmProcess } from './spawn-swtpm-process.js';
 import { spawnQemuProcess } from './spawn-qemu-process.js';
-import { confirmCdBootPrompt } from './confirm-cd-boot-prompt.js';
-import { buildAnswerFileImage } from './build-answer-file-image.js';
-import { captureSerialLog } from './capture-serial-log.js';
-import { resolveBootFromInstaller } from './lib/resolve-boot-from-installer.js';
-import { spawnOrphanWatchdog } from './lib/spawn-orphan-watchdog.js';
-import { restartInstallIfInterrupted } from './restart-install-if-interrupted.js';
-import { waitForWindowsInstallComplete } from './wait-for-windows-install-complete.js';
-import { markWindowsInstallComplete } from './mark-windows-install-complete.js';
-import { config } from './config.js';
+import { confirmCdBootPrompt } from '../verbs/confirm-cd-boot-prompt.js';
+import { buildAnswerFileImage } from '../verbs/build-answer-file-image.js';
+import { captureSerialLog } from '../verbs/capture-serial-log.js';
+import { resolveBootFromInstaller } from '../infrastructure/resolve-boot-from-installer.js';
+import { spawnOrphanWatchdog } from '../lib/spawn-orphan-watchdog.js';
+import { restartInstallIfInterrupted } from '../verbs/orchestrators/restart-install-if-interrupted.js';
+import { waitForWindowsInstallComplete } from '../verbs/wait-for-windows-install-complete.js';
+import { markWindowsInstallComplete } from '../verbs/mark-windows-install-complete.js';
+import { config } from '../configure.js';
 
 // Тонкий оркестратор: поднимает swtpm, дожидается сокета, при установке —
 // собирает свежий образ файла ответов и потом детерминированно проходит

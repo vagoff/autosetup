@@ -1,8 +1,8 @@
 import { writeFileSync } from 'node:fs';
-import { connectQmp } from './lib/connect-qmp.js';
-import { captureScreendump } from './lib/capture-screendump.js';
-import { ppmToPng } from './lib/ppm-to-png.js';
-import { config } from './config.js';
+import { connectQmp } from '../infrastructure/connect-qmp.js';
+import { captureScreendump } from '../infrastructure/capture-screendump.js';
+import { ppmToPng } from '../lib/ppm-to-png.js';
+import { config } from '../configure.js';
 
 // Одно действие: снять текущий кадр экрана VM и сохранить его как PNG по
 // заданному пути — для человека/агента, независимо от того, каким

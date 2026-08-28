@@ -17,19 +17,19 @@
   пути/порты) + `data/base.json5` (ядро VM, не зависит от выбора фич) +
   `data/features/<id>.json5` (одна опциональная фича — один файл: сейчас
   `winrm`/`openssh`/`serial-agent`/`rdp`) + `data/profiles/<vmName>.json5`
-  (какая VM и какой набор фич). `src/config.js` их собирает в один
+  (какая VM и какой набор фич). `src/configure.js` их собирает в один
   плоский объект прежней формы — потребители (`src/*.js`) этого
   разделения не видят. Выбор профиля — явный (`AUTOSETUP_PROFILE`/
   `--profile`, см. "долг" в `notes.md`), fail-fast при неоднозначности.
 - `qemu.bootFromInstaller` — не конфиг, а вычисляемый факт
-  (`src/lib/resolve-boot-from-installer.js` по наличию
+  (`src/infrastructure/resolve-boot-from-installer.js` по наличию
   `db/<vmName>/install-complete.marker`, который создаёт один раз
-  `src/mark-windows-install-complete.js` по строке "ALL DONE" в
+  `src/verbs/mark-windows-install-complete.js` по строке "ALL DONE" в
   `com1.log`). Конфиг не мутирует в штатной работе.
 - выключение гостя — ACPI `system_powerdown`, не `quit`/kill: через
   process-manager (`a pm stop --name qemu-<vmName>`, лестница
   `qmp-graceful → SIGTERM → SIGKILL`, обычный путь) или напрямую
-  (`node src/shutdown-guest.js`, если VM поднята в обход
+  (`node src/verbs/orchestrators/shutdown-guest.js`, если VM поднята в обход
   process-manager). Осиротевшие qemu/swtpm при SIGKILL самого
   `run-vm.js` подчищает `src/lib/spawn-orphan-watchdog.js` (детач-процесс,
   переживает родителя по построению).
@@ -58,15 +58,15 @@
   первого входа), остановка и отключение служб гостевым скриптом
   `disable-windows-updates.ps1` на первом входе, подтверждение —
   `check-windows-update-disabled.js`. Один рендерер командной строки
-  (`src/lib/build-registry-policy-commands.js`) обслуживает и specialize, и
+  (`src/infrastructure/build-registry-policy-commands.js`) обслуживает и specialize, и
   guest-скрипт, поэтому таблица значений политик существует ровно в одном
   месте — в конфиге.
-- `src/execute-guest-script.js` выполняет объявленный guest-скрипт активного
+- `src/tools/execute-guest-script.js` выполняет объявленный guest-скрипт активного
   профиля на уже работающей VM по SSH, переиспользуя тот же
   `build-first-logon-commands.js`, что собирает USB-образ: на живой диск
   попадает байт в байт то же содержимое, что получила бы свежая установка, и
   второй реализации того же действия не существует.
 - Жизненный цикл SSH-сессии и staging-каталога вынесен в
-  `src/lib/with-guest-session.js` (`withGuestSession` / `withGuestStaging`):
+  `src/infrastructure/with-guest-session.js` (`withGuestSession` / `withGuestStaging`):
   staging удаляется только при успехе (при ошибке остаётся для разбора), а
   сессия переживает перезагрузку гостя через мутируемый `session.ssh`.

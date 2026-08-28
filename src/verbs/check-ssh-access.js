@@ -1,6 +1,6 @@
 import { existsSync } from 'node:fs';
 import { NodeSSH } from 'node-ssh';
-import { config } from './config.js';
+import { config } from '../configure.js';
 
 // Проверяет настоящий login SSH с хоста в гостя по ключу, а не только
 // открытый TCP-порт. Использует уже установленный node-ssh, поэтому

@@ -1,5 +1,5 @@
-import { config } from './config.js';
-import { downloadArtifact } from './lib/download-artifact.js';
+import { config } from '../configure.js';
+import { downloadArtifact } from '../lib/download-artifact.js';
 
 // Скачивает ровно закреплённый в JSON5 архив Win32-OpenSSH. Проверка
 // SHA-256 нужна до того, как ZIP попадёт на установочный USB-образ.

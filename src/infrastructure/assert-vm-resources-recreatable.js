@@ -1,7 +1,7 @@
 import { accessSync, constants } from 'node:fs';
 import path from 'node:path';
-import { config } from '../config.js';
-import { resolveExistingPath } from './resolve-existing-path.js';
+import { config } from '../configure.js';
+import { resolveExistingPath } from '../lib/resolve-existing-path.js';
 
 function findExecutable(binary) {
     if (binary.includes(path.sep)) return binary;

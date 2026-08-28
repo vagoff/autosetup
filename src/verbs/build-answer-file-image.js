@@ -1,8 +1,8 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { mkfsvfat, mount } from 'libmount';
-import { renderAutounattendXml } from './lib/render-autounattend-xml.js';
-import { buildFirstLogonCommands } from './lib/build-first-logon-commands.js';
-import { config } from './config.js';
+import { renderAutounattendXml } from '../infrastructure/render-autounattend-xml.js';
+import { buildFirstLogonCommands } from '../infrastructure/build-first-logon-commands.js';
+import { config } from '../configure.js';
 
 // Собирает маленький FAT12-образ диска с единственным файлом
 // autounattend.xml в корне — Windows Setup сам находит его на любом

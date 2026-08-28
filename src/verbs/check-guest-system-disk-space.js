@@ -1,6 +1,6 @@
-import { config } from './config.js';
-import { readGuestVolumes } from './lib/read-guest-volumes.js';
-import { withGuestSession } from './lib/with-guest-session.js';
+import { config } from '../configure.js';
+import { readGuestVolumes } from '../infrastructure/read-guest-volumes.js';
+import { withGuestSession } from '../infrastructure/with-guest-session.js';
 
 export async function checkGuestSystemDiskSpace() {
     const guestSystemDisk = config.diagnostics.guestSystemDisk;

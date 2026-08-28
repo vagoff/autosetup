@@ -1,11 +1,11 @@
 import { randomUUID } from 'node:crypto';
 import { stat } from 'node:fs/promises';
 import path from 'node:path';
-import { config } from './config.js';
-import { executeGuestPowerShell, quotePowerShell } from './lib/execute-guest-powershell.js';
-import { hashFileSha256 } from './lib/hash-file-sha256.js';
-import { parseSendGuestTextFileArguments } from './lib/parse-send-guest-text-file-arguments.js';
-import { withGuestSession, withGuestStaging } from './lib/with-guest-session.js';
+import { config } from '../configure.js';
+import { executeGuestPowerShell, quotePowerShell } from '../infrastructure/execute-guest-powershell.js';
+import { hashFileSha256 } from '../lib/hash-file-sha256.js';
+import { parseSendGuestTextFileArguments } from '../lib/parse-send-guest-text-file-arguments.js';
+import { withGuestSession, withGuestStaging } from '../infrastructure/with-guest-session.js';
 
 async function stageFile(filePath, filename) {
     const source = await stat(filePath);

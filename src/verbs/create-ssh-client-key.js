@@ -1,8 +1,8 @@
 import { generateKeyPairSync } from 'node:crypto';
 import { existsSync, mkdirSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
-import { config } from './config.js';
-import { formatRsaPublicKey } from './lib/format-rsa-public-key.js';
+import { config } from '../configure.js';
+import { formatRsaPublicKey } from '../lib/format-rsa-public-key.js';
 
 // Создаёт постоянный ключ именно для автоматического входа host → guest.
 // Это stateful-ресурс VM, поэтому существующий ключ — ошибка, а не повод

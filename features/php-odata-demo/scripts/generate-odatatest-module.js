@@ -233,10 +233,10 @@ async function generate_module_descriptor({config, output_root}) {
 // сменится порт, публикация или пароль -- перегенерация подхватит.
 async function load_odata_connection() {
     // Путь профиля именно абсолютный: генератор работает из каталога dobaerp
-    // (так требуют его модули), а config.js автосетапа резолвит профиль
+    // (так требуют его модули), а configure.js автосетапа резолвит профиль
     // относительно текущего каталога.
     process.env.AUTOSETUP_PROFILE = pth.join(AUTOSETUP, 'data/profiles/win11-1c.json5');
-    const {config: autosetup} = await import(pth.join(AUTOSETUP, 'src/config.js'));
+    const {config: autosetup} = await import(pth.join(AUTOSETUP, 'src/configure.js'));
     const odata = autosetup.oneCOData;
     const password = (await afs.readFile(odata.passwordStatePath, 'utf8')).trim();
     return {

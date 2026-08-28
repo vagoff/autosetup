@@ -1,24 +1,24 @@
 // Command line entry point for run-vm.js: turns `--profile <name>` into the profile
-// src/config.js will pick up. Everything a human or an agent starts (including the
+// src/configure.js will pick up. Everything a human or an agent starts (including the
 // process-manager service, see scripts/services.def) goes through here, not through
 // run-vm.js directly.
 //
-// [!] VIOLATION, temporary bridge, remove together with the env var itself: config.js
+// [!] VIOLATION, temporary bridge, remove together with the env var itself: configure.js
 // [!] resolves its profile from process.env.AUTOSETUP_PROFILE at *import* time, so the
 // [!] only way to pass a choice into it without touching it is to write that variable
 // [!] before it is imported. Passing an argument through the process environment is a
-// [!] global variable by another name; the honest fix is config.js becoming a function
+// [!] global variable by another name; the honest fix is configure.js becoming a function
 // [!] load_config({profile_path}) whose value is passed down to its consumers. Until
 // [!] then: this file is the ONLY place in the whole system allowed to write
 // [!] AUTOSETUP_PROFILE, and adding a second such variable is not an option.
 //
 // [!] JSONCFG violation: these paths are constants here, exactly as they are in
-// [!] config.js -- they belong in data/vars.json5, which config.js itself cannot read
+// [!] configure.js -- they belong in data/vars.json5, which configure.js itself cannot read
 // [!] before it knows the profile. Fixed by the same refactoring as above.
 //
 // [!] The import below is dynamic on purpose and MUST stay inside main(): static ESM
 // [!] imports are evaluated before any statement of this module's body, so a static
-// [!] `import` of run-vm.js would run config.js -- and read the variable -- before the
+// [!] `import` of run-vm.js would run configure.js -- and read the variable -- before the
 // [!] line that sets it. run-vm.js has no export and starts the VM as a side effect of
 // [!] being imported ([!] unwrapped main, see its own tail), so importing it IS running it.
 import {readdirSync} from 'node:fs';
@@ -26,7 +26,7 @@ import path from 'node:path';
 import cli from '/data/wd/aibox/dev-env/libs/json-args/src/cli_main.js';
 
 const PROFILES_DIR = '/data/wd/aibox/autosetup/data/profiles'; // [!] JSONCFG violation
-const RUN_VM = '/data/wd/aibox/autosetup/src/run-vm.js'; // [!] JSONCFG violation
+const RUN_VM = '/data/wd/aibox/autosetup/src/services/run-vm.js'; // [!] JSONCFG violation
 const PROFILE_SUFFIX = '.json5'; // [!] JSONCFG violation
 
 function available_profiles() {
@@ -34,7 +34,7 @@ function available_profiles() {
 }
 
 // Resolved here, in the process that has a command line and a user to complain to -- not
-// inside config.js in a service whose stderr one first has to go find.
+// inside configure.js in a service whose stderr one first has to go find.
 function resolve_profile_path(name) {
     const known = available_profiles();
     if (!known.includes(name)) {

@@ -1,10 +1,10 @@
 import path from 'node:path';
-import { config } from './config.js';
-import { assertArtifactFiles } from './lib/assert-artifact-files.js';
-import { executeGuestPowerShell, quotePowerShell } from './lib/execute-guest-powershell.js';
-import { isOneCPlatformInstalled, readOneCPlatformState } from './lib/read-1c-platform-state.js';
-import { restartGuestAndWait } from './lib/wait-for-guest-reboot.js';
-import { withGuestSession, withGuestStaging } from './lib/with-guest-session.js';
+import { config } from '../configure.js';
+import { assertArtifactFiles } from '../lib/assert-artifact-files.js';
+import { executeGuestPowerShell, quotePowerShell } from '../infrastructure/execute-guest-powershell.js';
+import { isOneCPlatformInstalled, readOneCPlatformState } from '../infrastructure/read-1c-platform-state.js';
+import { restartGuestAndWait } from '../infrastructure/wait-for-guest-reboot.js';
+import { withGuestSession, withGuestStaging } from '../infrastructure/with-guest-session.js';
 
 function buildInstallScript(oneC, remoteDirectory) {
     const msi = oneC.expectedFiles.find((file) => file.filename.endsWith('.msi'));

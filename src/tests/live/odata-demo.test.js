@@ -3,7 +3,7 @@ import { spawn } from 'node:child_process';
 import path from 'node:path';
 import test from 'node:test';
 
-const projectRoot = path.resolve(import.meta.dirname, '../..');
+const projectRoot = path.resolve(import.meta.dirname, '../../..');
 const port = 8099; // отдельный от data/1c-odata.json5#demo.port, чтобы не драться за него с человеком.
 const env = { ...process.env, AUTOSETUP_PROFILE: 'data/profiles/win11-1c.json5', ODATA_DEMO_PORT: String(port) };
 

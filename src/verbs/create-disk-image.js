@@ -1,7 +1,7 @@
 import { existsSync, mkdirSync } from 'node:fs';
 import path from 'node:path';
-import { config } from './config.js';
-import { runProcess } from './lib/run-process.js';
+import { config } from '../configure.js';
+import { runProcess } from '../lib/run-process.js';
 
 // Создаёт пустой qcow2-диск для VM. Fail-fast если диск уже существует —
 // это R/W-состояние (db/), его случайная перезапись недопустима.

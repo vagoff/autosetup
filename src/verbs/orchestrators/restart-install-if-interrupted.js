@@ -1,6 +1,6 @@
 import { existsSync } from 'node:fs';
-import { config } from './config.js';
-import { resolveBootFromInstaller } from './lib/resolve-boot-from-installer.js';
+import { config } from '../../configure.js';
+import { resolveBootFromInstaller } from '../../infrastructure/resolve-boot-from-installer.js';
 import { destroyVmResources } from './destroy-vm-resources.js';
 import { createVmResources } from './create-vm-resources.js';
 

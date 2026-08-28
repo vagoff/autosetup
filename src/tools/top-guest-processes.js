@@ -1,10 +1,10 @@
-import { withGuestSession } from './lib/with-guest-session.js';
-import { executeGuestPowerShell } from './lib/execute-guest-powershell.js';
+import { withGuestSession } from '../infrastructure/with-guest-session.js';
+import { executeGuestPowerShell } from '../infrastructure/execute-guest-powershell.js';
 
 function parseLimit(argv) {
     if (argv.length === 0) return 10;
     if (argv.length !== 2 || argv[0] !== '--limit' || !/^\d+$/u.test(argv[1])) {
-        throw new Error('usage: node src/top-guest-processes.js [--limit N]');
+        throw new Error('usage: node src/tools/top-guest-processes.js [--limit N]');
     }
     const limit = Number(argv[1]);
     if (!Number.isSafeInteger(limit) || limit < 1 || limit > 100) throw new Error('--limit must be between 1 and 100');

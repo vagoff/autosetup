@@ -1,5 +1,5 @@
-import { config } from './config.js';
-import { probeTcpPort } from './lib/probe-tcp-port.js';
+import { config } from '../configure.js';
+import { probeTcpPort } from '../lib/probe-tcp-port.js';
 
 // Ждёт, пока QMP-порт перестанет принимать соединения — то есть пока сам
 // процесс qemu реально не завершится. Сетевая, а не PID-based проверка:

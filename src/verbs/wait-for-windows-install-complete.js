@@ -1,6 +1,6 @@
 import { existsSync, readFileSync, watch } from 'node:fs';
 import path from 'node:path';
-import { config } from './config.js';
+import { config } from '../configure.js';
 
 function logContainsCompletionLine(serialLogPath, completionLine) {
     return existsSync(serialLogPath) && readFileSync(serialLogPath, 'utf8').includes(completionLine);

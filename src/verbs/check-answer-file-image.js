@@ -1,7 +1,7 @@
 import { createHash } from 'node:crypto';
 import { existsSync, readFileSync } from 'node:fs';
 import { mount } from 'libmount';
-import { config } from './config.js';
+import { config } from '../configure.js';
 
 function sha256(data) {
     return createHash('sha256').update(data).digest('hex');

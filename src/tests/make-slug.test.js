@@ -4,7 +4,7 @@ import { createRequire } from 'node:module';
 
 // Генератор PHP пишется в стиле dobaerp (CommonJS), тесты проекта -- ESM.
 const require = createRequire(import.meta.url);
-const { make_slug, make_unique_slugs } = require('../features/php-odata-demo/src/slug/make_slug.js');
+const { make_slug, make_unique_slugs } = require('../../features/php-odata-demo/src/slug/make_slug.js');
 
 test('splits camel case before transliteration', () => {
     assert.equal(make_slug('ЗаказПоставщику'), 'zakaz-postavschiku');

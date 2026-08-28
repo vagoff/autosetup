@@ -49,7 +49,7 @@
 - **Secure Boot — была причина блокировки "doesn't meet system requirements"**. Две находки:
   1. `OVMF_CODE.4m.fd` (был первым кандидатом в конфиге) вообще не собран с поддержкой Secure Boot — нужен `OVMF_CODE.secboot.4m.fd` (есть в пакете `edk2-ovmf 202605-1` на этом obarun).
   2. Свежий `OVMF_VARS.4m.fd` — **совсем пустой** (0 переменных, проверено `virt-fw-vars --print --verbose`), ни ключей, ни состояния.
-  Фикс: новый `src/enroll-secure-boot-keys.js`, вызывается из `create-vm-resources.js` сразу после `provisionOvmfVars()`, гоняет `virt-fw-vars --inplace <db/.../OVMF_VARS.fd> --enroll-microsoft --secure-boot` —
+  Фикс: новый `src/verbs/enroll-secure-boot-keys.js`, вызывается из `create-vm-resources.js` сразу после `provisionOvmfVars()`, гоняет `virt-fw-vars --inplace <db/.../OVMF_VARS.fd> --enroll-microsoft --secure-boot` —
 только на **нашу** per-VM копию в `db/`, хостовый `/usr/share/edk2/...` не трогается. Требует `pip install --user virt-firmware` на obarun (уже поставлено).
   После фикса: прошли блокировку, дошли до реальной установки, партиционирование по unattend отработало, дошли до 94%, потом до рабочего стола с автологином.
 - **Unattended install через `autounattend.xml`** работает: язык/диск/учётка/автологин — всё как задумано. Файл доставляется отдельной USB-флешкой (не тот же носитель что ISO), собирается `src/build-answer-file-

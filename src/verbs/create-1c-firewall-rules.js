@@ -1,7 +1,7 @@
 import path from 'node:path';
-import { config } from './config.js';
-import { executeGuestPowerShell, quotePowerShell } from './lib/execute-guest-powershell.js';
-import { withGuestSession } from './lib/with-guest-session.js';
+import { config } from '../configure.js';
+import { executeGuestPowerShell, quotePowerShell } from '../infrastructure/execute-guest-powershell.js';
+import { withGuestSession } from '../infrastructure/with-guest-session.js';
 
 // Одно проверяемое действие: сделать поведение firewall гостя по отношению к
 // 1С детерминированным, чтобы Windows никогда не показывала модальный запрос

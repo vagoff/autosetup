@@ -1,7 +1,7 @@
-import { connectQmp } from '../src/lib/connect-qmp.js';
-import { config } from '../src/config.js';
+import { connectQmp } from '../src/infrastructure/connect-qmp.js';
+import { config } from '../src/configure.js';
 
-// Разовый CLI поверх src/lib/connect-qmp.js: одна QMP-команда, JSON-ответ
+// Разовый CLI поверх src/infrastructure/connect-qmp.js: одна QMP-команда, JSON-ответ
 // в stdout. Ничего не знает про смысл конкретных команд (SRP) — замена
 // разовым `node -e "..."` в ручной диагностике (query-status, query-block,
 // quit, send-key и т.п.), не отдельный режим на каждую команду.

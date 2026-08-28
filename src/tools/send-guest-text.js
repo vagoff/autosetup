@@ -1,8 +1,8 @@
 import { readFile } from 'node:fs/promises';
 import process from 'node:process';
-import { config } from './config.js';
-import { connectQmp } from './lib/connect-qmp.js';
-import { encodeQmpTextKeys } from './lib/encode-qmp-text-keys.js';
+import { config } from '../configure.js';
+import { connectQmp } from '../infrastructure/connect-qmp.js';
+import { encodeQmpTextKeys } from '../infrastructure/encode-qmp-text-keys.js';
 
 async function readText(argv) {
     if (argv.length === 2 && argv[0] === '--text') return argv[1];
@@ -13,7 +13,7 @@ async function readText(argv) {
         for await (const chunk of process.stdin) text += chunk;
         return text;
     }
-    throw new Error('usage: node src/send-guest-text.js --text <text> | --file <utf8-file> | --stdin');
+    throw new Error('usage: node src/tools/send-guest-text.js --text <text> | --file <utf8-file> | --stdin');
 }
 
 export async function sendGuestText(argv = process.argv.slice(2)) {

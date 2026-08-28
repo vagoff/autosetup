@@ -1,6 +1,6 @@
 import { NodeSSH } from 'node-ssh';
-import { config } from './config.js';
-import { probeTcpPort } from './lib/probe-tcp-port.js';
+import { config } from '../configure.js';
+import { probeTcpPort } from '../lib/probe-tcp-port.js';
 
 // Функциональная проверка: не просто "открыт ли TCP-порт 3389" (это
 // могло бы быть случайностью/посторонним сервисом), а действительно ли

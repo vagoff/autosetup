@@ -24,7 +24,7 @@ export function buildComConnectionScript(oneCConfiguration) {
 // stdout с кириллицей приходит в 866, тогда как node-ssh читает его как UTF-8.
 // Любое имя колонки, синоним или текст ошибки по-русски превращались бы в
 // мусор. base64 выносит данные из-под кодовой страницы целиком -- тем же
-// приёмом, что уже применён в src/guest-scripts/run-1c-query.ps1.
+// приёмом, что уже применён в src/infrastructure/guest-scripts/run-1c-query.ps1.
 export function buildComResultEpilogue(objectExpression) {
     return [
         `$payload = ${objectExpression} | ConvertTo-Json -Depth 6 -Compress`,

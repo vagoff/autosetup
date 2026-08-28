@@ -5,7 +5,7 @@
 // когда меняется конфигурация 1С или состав публикуемых типов.
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
-import { config } from '../../../src/config.js';
+import { config } from '../../../src/configure.js';
 import { parseODataMetadata } from './parse-odata-metadata.js';
 
 const password = (await readFile(config.oneCOData.passwordStatePath, 'utf8')).trim();

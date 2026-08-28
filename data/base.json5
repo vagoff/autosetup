@@ -37,7 +37,7 @@
     // одной переменной (проверено эмпирически через virt-fw-vars
     // --print на этом ISO/пакете edk2-ovmf 202605-1). Значит ни PK/KEK/db,
     // ни состояния SecureBoot там нет вообще — заводим сами сразу после
-    // копирования (см. src/enroll-secure-boot-keys.js).
+    // копирования (см. src/verbs/enroll-secure-boot-keys.js).
     secureBoot: {
       binary: 'virt-fw-vars',
     },
@@ -59,7 +59,7 @@
   // Автоматизация установки Windows через autounattend.xml — Setup сам
   // ищет этот файл на подключённом removable-носителе, никакого выбора
   // руками. Один источник всех ответов; шаблон в
-  // src/lib/render-autounattend-xml.js только подставляет эти значения.
+  // src/infrastructure/render-autounattend-xml.js только подставляет эти значения.
   unattend: {
     // Локали разведены намеренно: это ТРИ независимых решения, а не одно.
     //  - uiLanguage — язык интерфейса Setup и Windows. Обязан быть реально
@@ -135,7 +135,7 @@
     disable: true,
     // Документированные политики WindowsUpdate. reg.exe одинаково
     // применяет их и из specialize, и из guest-скрипта -- см.
-    // src/lib/build-registry-policy-commands.js.
+    // src/infrastructure/build-registry-policy-commands.js.
     policyValues: [
       // "не проверять обновления автоматически"
       { path: 'HKLM\\SOFTWARE\\Policies\\Microsoft\\Windows\\WindowsUpdate\\AU', name: 'NoAutoUpdate', type: 'REG_DWORD', data: 1 },
@@ -286,7 +286,7 @@
     // Грузиться ли с CD (первая установка) или с диска — это НЕ конфиг:
     // наблюдаемый факт про конкретный db/<vmName>/disk.qcow2 (пережил он
     // уже один успешный install или нет), вычисляется динамически через
-    // src/lib/resolve-boot-from-installer.js по наличию db/<vmName>/
+    // src/infrastructure/resolve-boot-from-installer.js по наличию db/<vmName>/
     // install-complete.marker. Здесь его сознательно нет — если бы это
     // поле осталось конфигом, его пришлось бы вручную мутировать после
     // каждой установки, а конфиг обязан оставаться декларативным.
@@ -301,7 +301,7 @@
     // поведении гостя внутри VM (тот же класс, что ctrl-сокет swtpm).
     qmpConnectTimeoutMs: 10000,
 
-    // Верхний предохранитель для src/wait-for-qemu-exit.js: сколько ждать
+    // Верхний предохранитель для src/verbs/wait-for-qemu-exit.js: сколько ждать
     // штатного ACPI-выключения гостя (system_powerdown), прежде чем
     // считать это зависанием/отказом, а не расчёт SLA — точное типичное
     // время появится после первого живого прогона (см. план
@@ -320,7 +320,7 @@
     orphanWatchdogPollIntervalMs: 2000,
 
     // Файл, в который QMP screendump сохраняет текущий кадр экрана VM —
-    // рантайм-артефакт, живёт в cache/<vm>/ (см. config.js).
+    // рантайм-артефакт, живёт в cache/<vm>/ (см. configure.js).
     screendumpFilename: 'screendump.ppm',
 
     // Файл, в который capture-serial-log.js дописывает поток COM1 —

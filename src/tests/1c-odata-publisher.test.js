@@ -2,8 +2,8 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import test from 'node:test';
 process.env.AUTOSETUP_PROFILE = 'data/profiles/win11-1c.json5';
-const { assertODataConfiguration, getPublishedMetadataNames, getPublishedRights, renderODataVrd } = await import('../src/publish-1c-odata.js');
-const { buildODataPublisherDiagnosticsScript } = await import('../src/read-1c-odata-publisher-diagnostics.js');
+const { assertODataConfiguration, getPublishedMetadataNames, getPublishedRights, renderODataVrd } = await import('../verbs/publish-1c-odata.js');
+const { buildODataPublisherDiagnosticsScript } = await import('../tools/read-1c-odata-publisher-diagnostics.js');
 
 test('OData publisher maps explicit document and catalog rights to metadata types', () => {
     const names = getPublishedMetadataNames({ rights: { Заказ: ['read', 'update'] }, catalogRights: { Номенклатура: ['read'] } });
@@ -27,7 +27,7 @@ test('OData publisher rejects FullAccess and renders only standard OData in VRD'
 });
 
 test('OData publisher EPF calls only the standard composition API and the infobase user manager', async () => {
-    const module = await readFile(new URL('../features/1c-odata-publisher/src/epf/ПубликаторOData/Forms/Форма/Ext/Form/Module.bsl', import.meta.url), 'utf8');
+    const module = await readFile(new URL('../../features/1c-odata-publisher/src/epf/ПубликаторOData/Forms/Форма/Ext/Form/Module.bsl', import.meta.url), 'utf8');
     assert.match(module, /УстановитьСоставСтандартногоИнтерфейсаOData/u);
     assert.match(module, /ПользователиИнформационнойБазы\.СоздатьПользователя/u);
     assert.match(module, /Пользователь\.Роли\.Очистить/u);
@@ -41,7 +41,7 @@ test('OData publisher EPF calls only the standard composition API and the infoba
 });
 
 test('OData publisher EPF verifies declared rights against real role grants via the global AccessRight function, not just composition', async () => {
-    const module = await readFile(new URL('../features/1c-odata-publisher/src/epf/ПубликаторOData/Forms/Форма/Ext/Form/Module.bsl', import.meta.url), 'utf8');
+    const module = await readFile(new URL('../../features/1c-odata-publisher/src/epf/ПубликаторOData/Forms/Форма/Ext/Form/Module.bsl', import.meta.url), 'utf8');
     // ПравоДоступа() -- ГЛОБАЛЬНАЯ функция платформы, не метод объекта роли
     // (первая попытка звала её как РольМетаданных.ПравоДоступа(...) и падала
     // с "метод не обнаружен" -- см. doc/1c-notes.md).
@@ -63,7 +63,7 @@ test('OData publisher diagnostics only reads staging and logs', () => {
 });
 
 test('OData publisher runs the native EPF and exposes a non-mutating probe mode', async () => {
-    const script = await readFile(new URL('../src/publish-1c-odata.js', import.meta.url), 'utf8');
+    const script = await readFile(new URL('../verbs/publish-1c-odata.js', import.meta.url), 'utf8');
     assert.match(script, /run native 1C OData publisher/u);
     assert.match(script, /Mode=\$\{mode\};Manifest=/u);
     assert.match(script, /mode === 'probe'/u);
@@ -71,6 +71,6 @@ test('OData publisher runs the native EPF and exposes a non-mutating probe mode'
 });
 
 test('OData publisher carries source hashes to the guest before compiling the EPF', async () => {
-    const source = await readFile(new URL('../src/publish-1c-odata.js', import.meta.url), 'utf8');
+    const source = await readFile(new URL('../verbs/publish-1c-odata.js', import.meta.url), 'utf8');
     assert.match(source, /staged OData publisher file SHA-256 mismatch/u);
 });

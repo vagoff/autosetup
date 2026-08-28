@@ -1,8 +1,8 @@
 import { writeFileSync } from 'node:fs';
 import path from 'node:path';
 import { NodeSSH } from 'node-ssh';
-import { config } from './config.js';
-import { renderGuestScriptTemplate } from './lib/render-guest-script-template.js';
+import { config } from '../configure.js';
+import { renderGuestScriptTemplate } from '../lib/render-guest-script-template.js';
 
 // Обновляет только serial-agent уже работающей Windows через проверенный
 // SSH. Сначала кладёт новый файл в уникальный временный путь, затем одной

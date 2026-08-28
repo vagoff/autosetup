@@ -3,10 +3,10 @@
 // входе (после core-скриптов, которые не зависят от выбора фич).
 //
 // Выбирается автоматически, пока это единственный файл в
-// data/profiles/ (см. resolveActiveProfilePath в src/config.js). Как
+// data/profiles/ (см. resolveActiveProfilePath в src/configure.js). Как
 // только появится второй профиль (например win11-1c-rdp.json5) —
 // выбор надо будет делать явно через переменную окружения
-// AUTOSETUP_PROFILE=data/profiles/<имя>.json5, иначе config.js
+// AUTOSETUP_PROFILE=data/profiles/<имя>.json5, иначе configure.js
 // откажется грузиться (fail-fast на неоднозначность).
 {
   vmName: 'win11-1c',
@@ -24,6 +24,6 @@
   // отсутствия фичи. Весь доступ к гостю идёт по SSH (features/openssh).
   //
   // Чтобы вернуть: добавить 'winrm' обратно в список -- data/features/winrm.json5
-  // и src/check-winrm-access.js остаются на месте и никуда не делись.
+  // и src/verbs/check-winrm-access.js остаются на месте и никуда не делись.
   features: ['openssh', 'serial-agent'],
 }

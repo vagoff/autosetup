@@ -1,10 +1,10 @@
 import { mkdirSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import { randomUUID } from 'node:crypto';
-import { config } from './config.js';
-import { buildFirstLogonCommands } from './lib/build-first-logon-commands.js';
-import { connectGuestSsh } from './lib/connect-guest-ssh.js';
-import { executeGuestPowerShell, quotePowerShell } from './lib/execute-guest-powershell.js';
+import { config } from '../configure.js';
+import { buildFirstLogonCommands } from '../infrastructure/build-first-logon-commands.js';
+import { connectGuestSsh } from '../infrastructure/connect-guest-ssh.js';
+import { executeGuestPowerShell, quotePowerShell } from '../infrastructure/execute-guest-powershell.js';
 
 // Выполняет ОДИН уже объявленный guest-скрипт активного профиля на
 // работающей VM по SSH. Существует ради ровно одного случая: диск уже

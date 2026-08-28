@@ -1,11 +1,11 @@
 import { mkdirSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
-import { config } from './config.js';
-import { assertArtifactFiles } from './lib/assert-artifact-files.js';
-import { quotePowerShell } from './lib/execute-guest-powershell.js';
-import { executeGuestPowerShellFile } from './lib/execute-guest-powershell-file.js';
-import { isOneCTechsysUpdateInstalled, readOneCTechsysUpdateState } from './lib/read-1c-techsys-update-state.js';
-import { withGuestSession, withGuestStaging } from './lib/with-guest-session.js';
+import { config } from '../configure.js';
+import { assertArtifactFiles } from '../lib/assert-artifact-files.js';
+import { quotePowerShell } from '../infrastructure/execute-guest-powershell.js';
+import { executeGuestPowerShellFile } from '../infrastructure/execute-guest-powershell-file.js';
+import { isOneCTechsysUpdateInstalled, readOneCTechsysUpdateState } from '../infrastructure/read-1c-techsys-update-state.js';
+import { withGuestSession, withGuestStaging } from '../infrastructure/with-guest-session.js';
 
 const TECHSYS_SCRIPT_FILENAME = 'install-1c-techsys-update.ps1';
 

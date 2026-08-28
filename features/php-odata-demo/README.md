@@ -18,7 +18,7 @@ features/php-odata-demo/scripts/generate-odatatest-module.js  # генераци
 права (`read`/`write`/`delete`) заводятся только при активации.
 
 Предпосылки: поднят стенд (`a pm start --name qemu-win11-1c`), выполнен
-`src/publish-1c-odata.js`, OData отвечает.
+`src/verbs/publish-1c-odata.js`, OData отвечает.
 
 ## Что где
 
@@ -39,11 +39,11 @@ scripts/                оркестратор генерации и приём�
 
 ```
 node features/php-odata-demo/scripts/check-dobaerp-sql-parity.js   # выход WMS не изменился
-node --test test/php-odata-demo-generation.test.js                 # манифест + php -l
-node --test test/dobaerp-upstream.test.js                          # апстрим не уехал
+node --test src/tests/php-odata-demo-generation.test.js                 # манифест + php -l
+node --test src/tests/dobaerp-upstream.test.js                          # апстрим не уехал
 ```
 
-Манифест обновляется осознанно: `ODATATEST_APPROVE=1 node --test test/php-odata-demo-generation.test.js`.
+Манифест обновляется осознанно: `ODATATEST_APPROVE=1 node --test src/tests/php-odata-demo-generation.test.js`.
 
 ## Ограничения
 

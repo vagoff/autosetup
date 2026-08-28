@@ -13,7 +13,7 @@ import { promisify } from 'node:util';
 // какой именно файл поехал, после чего его смотрят глазами.
 
 const run = promisify(execFile);
-const projectRoot = path.resolve(import.meta.dirname, '..');
+const projectRoot = path.resolve(import.meta.dirname, '../..');
 const generator = path.join(projectRoot, 'features/php-odata-demo/scripts/generate-odatatest-module.js');
 const manifestPath = path.join(projectRoot, 'features/php-odata-demo/data/generated-manifest.json');
 
@@ -60,7 +60,7 @@ test('generated module matches the approved manifest', async () => {
         assert.deepEqual(
             manifest,
             approved,
-            'сгенерированный модуль отличается от утверждённого; проверьте изменения и обновите манифест: ODATATEST_APPROVE=1 node --test test/php-odata-demo-generation.test.js',
+            'сгенерированный модуль отличается от утверждённого; проверьте изменения и обновите манифест: ODATATEST_APPROVE=1 node --test src/tests/php-odata-demo-generation.test.js',
         );
     } finally {
         await rm(directory, { recursive: true, force: true });

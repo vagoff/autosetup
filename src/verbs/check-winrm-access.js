@@ -1,5 +1,5 @@
-import { config } from './config.js';
-import { runWinrmPowershell } from './lib/run-winrm-powershell.js';
+import { config } from '../configure.js';
+import { runWinrmPowershell } from '../infrastructure/run-winrm-powershell.js';
 
 // Проверяет не просто TCP-port, а запуск безопасной read-only команды
 // PowerShell через Negotiate/NTLM под локальной администраторской учёткой.

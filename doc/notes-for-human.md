@@ -3,8 +3,8 @@
 ---
 
 ```
-node src/send-guest-text.js --text 'hello'
-printf 'hello' | node src/send-guest-text.js --stdin
-AUTOSETUP_PROFILE=data/profiles/win11-1c.json5 node src/send-guest-text.js --file a
+node src/tools/send-guest-text.js --text 'hello'
+printf 'hello' | node src/tools/send-guest-text.js --stdin
+AUTOSETUP_PROFILE=data/profiles/win11-1c.json5 node src/tools/send-guest-text.js --file a
 ```
 

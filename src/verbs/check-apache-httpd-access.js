@@ -1,5 +1,5 @@
-import { config } from './config.js';
-import { waitForHttp } from './lib/wait-for-http.js';
+import { config } from '../configure.js';
+import { waitForHttp } from '../lib/wait-for-http.js';
 
 export async function checkApacheHttpdAccess() {
     const { apacheHttpd } = config;

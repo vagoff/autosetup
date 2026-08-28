@@ -2,14 +2,14 @@ import { randomBytes, randomUUID } from 'node:crypto';
 import { existsSync } from 'node:fs';
 import { chmod, mkdir, readdir, readFile, stat, writeFile } from 'node:fs/promises';
 import path from 'node:path';
-import { config } from './config.js';
-import { buildEnterpriseArguments, buildInfobasePresenceCheck, buildWindowsArgumentLine } from './lib/execute-1c.js';
-import { executeGuestPowerShell, quotePowerShell } from './lib/execute-guest-powershell.js';
-import { executeGuestPowerShellFile } from './lib/execute-guest-powershell-file.js';
-import { hashFileSha256 } from './lib/hash-file-sha256.js';
-import { assertOneCPlatformInstalled } from './lib/read-1c-platform-state.js';
-import { removeGuestDirectory } from './lib/stage-guest-files.js';
-import { withGuestSession } from './lib/with-guest-session.js';
+import { config } from '../configure.js';
+import { buildEnterpriseArguments, buildInfobasePresenceCheck, buildWindowsArgumentLine } from '../infrastructure/execute-1c.js';
+import { executeGuestPowerShell, quotePowerShell } from '../infrastructure/execute-guest-powershell.js';
+import { executeGuestPowerShellFile } from '../infrastructure/execute-guest-powershell-file.js';
+import { hashFileSha256 } from '../lib/hash-file-sha256.js';
+import { assertOneCPlatformInstalled } from '../infrastructure/read-1c-platform-state.js';
+import { removeGuestDirectory } from '../infrastructure/stage-guest-files.js';
+import { withGuestSession } from '../infrastructure/with-guest-session.js';
 
 const forbiddenRoleNames = new Set(['ПолныеПрава', 'FullAccess']);
 const allowedOperations = new Set(['read', 'create', 'update', 'delete']);
@@ -234,7 +234,7 @@ export async function publishOneCOData({ mode = 'apply' } = {}) {
 if (import.meta.url === `file://${process.argv[1]}`) {
     const mode = process.argv.slice(2).length === 0 ? 'apply' : process.argv[2] === '--probe' ? 'probe' : null;
     if (!mode) {
-        console.error('usage: node src/publish-1c-odata.js [--probe]');
+        console.error('usage: node src/verbs/publish-1c-odata.js [--probe]');
         process.exit(1);
     }
     publishOneCOData({ mode }).catch((error) => { console.error(error.message); process.exit(1); });

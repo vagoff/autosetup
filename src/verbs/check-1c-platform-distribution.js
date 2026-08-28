@@ -1,5 +1,5 @@
-import { config } from './config.js';
-import { assertArtifactFiles } from './lib/assert-artifact-files.js';
+import { config } from '../configure.js';
+import { assertArtifactFiles } from '../lib/assert-artifact-files.js';
 
 export async function checkOneCPlatformDistribution() {
     const { oneC } = config;

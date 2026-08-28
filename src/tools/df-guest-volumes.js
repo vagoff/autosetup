@@ -1,5 +1,5 @@
-import { readGuestVolumes } from './lib/read-guest-volumes.js';
-import { withGuestSession } from './lib/with-guest-session.js';
+import { readGuestVolumes } from '../infrastructure/read-guest-volumes.js';
+import { withGuestSession } from '../infrastructure/with-guest-session.js';
 
 export async function dfGuestVolumes() {
     const volumes = await withGuestSession(({ ssh }) => readGuestVolumes(ssh));

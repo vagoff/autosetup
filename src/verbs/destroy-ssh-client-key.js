@@ -1,5 +1,5 @@
 import { existsSync, rmSync } from 'node:fs';
-import { config } from './config.js';
+import { config } from '../configure.js';
 
 // Явно удаляет обе части SSH client key вместе. Это часть полного сброса
 // VM: новый диск не должен наследовать ключ авторизации старой VM.

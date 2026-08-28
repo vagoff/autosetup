@@ -1,6 +1,6 @@
 import path from 'node:path';
-import { renderGuestScriptTemplate } from './render-guest-script-template.js';
-import { encodePowerShellCommand } from './encode-powershell-command.js';
+import { renderGuestScriptTemplate } from '../lib/render-guest-script-template.js';
+import { encodePowerShellCommand } from '../lib/encode-powershell-command.js';
 import { GUEST_FEATURE_TOKEN_BUILDERS } from './guest-feature-token-builders.js';
 import { buildRegistryPolicyArgumentLine } from './build-registry-policy-commands.js';
 
@@ -76,7 +76,7 @@ export function buildFirstLogonCommands({ guestScriptsDir, diagnostics, guestFea
     const tokensByFeatureId = new Map();
     for (const feature of guestFeatures) {
         const buildTokens = GUEST_FEATURE_TOKEN_BUILDERS[feature.id];
-        if (!buildTokens) throw new Error(`фича "${feature.id}": нет token-builder в src/lib/guest-feature-token-builders.js`);
+        if (!buildTokens) throw new Error(`фича "${feature.id}": нет token-builder в src/infrastructure/guest-feature-token-builders.js`);
         tokensByFeatureId.set(feature.id, { ...preludeTokens, ...buildTokens(feature.config) });
     }
 

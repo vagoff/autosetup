@@ -1,7 +1,7 @@
-import { config } from './config.js';
-import { executeGuestPowerShell, quotePowerShell } from './lib/execute-guest-powershell.js';
-import { assertOneCPlatformInstalled } from './lib/read-1c-platform-state.js';
-import { withGuestSession } from './lib/with-guest-session.js';
+import { config } from '../configure.js';
+import { executeGuestPowerShell, quotePowerShell } from '../infrastructure/execute-guest-powershell.js';
+import { assertOneCPlatformInstalled } from '../infrastructure/read-1c-platform-state.js';
+import { withGuestSession } from '../infrastructure/with-guest-session.js';
 
 function buildRegisterScript(comConnectorPath) {
     return [

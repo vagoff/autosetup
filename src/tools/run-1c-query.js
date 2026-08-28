@@ -2,15 +2,15 @@ import { randomUUID } from 'node:crypto';
 import { existsSync } from 'node:fs';
 import { mkdir, stat, writeFile } from 'node:fs/promises';
 import path from 'node:path';
-import { config } from './config.js';
-import { buildQueryRunnerLaunchParameter, buildQueryRunnerStagedFiles, parseQueryRunnerResult } from './lib/build-1c-query-runner.js';
-import { buildEnterpriseArguments, buildInfobasePresenceCheck, buildWindowsArgumentLine } from './lib/execute-1c.js';
-import { executeGuestPowerShell, quotePowerShell } from './lib/execute-guest-powershell.js';
-import { executeGuestPowerShellFile } from './lib/execute-guest-powershell-file.js';
-import { hashFileSha256 } from './lib/hash-file-sha256.js';
-import { assertOneCPlatformInstalled } from './lib/read-1c-platform-state.js';
-import { removeGuestDirectory } from './lib/stage-guest-files.js';
-import { withGuestSession } from './lib/with-guest-session.js';
+import { config } from '../configure.js';
+import { buildQueryRunnerLaunchParameter, buildQueryRunnerStagedFiles, parseQueryRunnerResult } from '../infrastructure/build-1c-query-runner.js';
+import { buildEnterpriseArguments, buildInfobasePresenceCheck, buildWindowsArgumentLine } from '../infrastructure/execute-1c.js';
+import { executeGuestPowerShell, quotePowerShell } from '../infrastructure/execute-guest-powershell.js';
+import { executeGuestPowerShellFile } from '../infrastructure/execute-guest-powershell-file.js';
+import { hashFileSha256 } from '../lib/hash-file-sha256.js';
+import { assertOneCPlatformInstalled } from '../infrastructure/read-1c-platform-state.js';
+import { removeGuestDirectory } from '../infrastructure/stage-guest-files.js';
+import { withGuestSession } from '../infrastructure/with-guest-session.js';
 
 function resolveTimeoutSeconds(args, queryRunner) {
     if (args.mode === 'documents-top') return queryRunner.documentsTopTimeoutSeconds;
@@ -153,7 +153,7 @@ function parseArguments(argv, queryRunner) {
             throw new Error(`unknown argument: ${argument}`);
         }
     }
-    if (!result.mode) throw new Error('usage: node src/run-1c-query.js --query <file> [--max-rows N] [--output file.json] | --select-one [--output file.json] | --infobase-probe [--output file.json] | --table-probe [--output file.json] | --documents-top <N> [--output file.json]');
+    if (!result.mode) throw new Error('usage: node src/tools/run-1c-query.js --query <file> [--max-rows N] [--output file.json] | --select-one [--output file.json] | --infobase-probe [--output file.json] | --table-probe [--output file.json] | --documents-top <N> [--output file.json]');
     if (result.mode === 'query' && !existsSync(result.queryPath)) throw new Error(`query file is missing: ${result.queryPath}`);
     return result;
 }

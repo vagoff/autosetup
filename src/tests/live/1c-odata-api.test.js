@@ -6,13 +6,13 @@ import { promisify } from 'node:util';
 import test from 'node:test';
 
 const execFileAsync = promisify(execFile);
-const projectRoot = path.resolve(import.meta.dirname, '../..');
+const projectRoot = path.resolve(import.meta.dirname, '../../..');
 
 test('live 1C exposes the OData composition and infobase-user APIs required by the publisher', {
     skip: process.env.AUTOSETUP_LIVE_TESTS !== '1',
     timeout: 60_000,
 }, async () => {
-    const { stdout } = await execFileAsync(process.execPath, ['src/probe-1c-odata-api.js'], {
+    const { stdout } = await execFileAsync(process.execPath, ['src/verbs/probe-1c-odata-api.js'], {
         cwd: projectRoot,
         env: { ...process.env, AUTOSETUP_PROFILE: 'data/profiles/win11-1c.json5' },
     });

@@ -6,13 +6,13 @@
 // /data/wd/aibox/dev-env/tools/process-manager/doc/PROBES.md):
 //   1. tcp-probe    -- is anything listening on the QMP port at all;
 //   2. qmp-probe    -- is it a qemu whose machine is `running` and whose `-name` is *this*
-//                      VM (qemu.vmName = the profile's vmName, see src/config.js);
+//                      VM (qemu.vmName = the profile's vmName, see src/configure.js);
 //   3. qmp-graceful -- ACPI `system_powerdown`: the guest shuts itself down, services
 //                      stopped and disk flushed, instead of having its plug pulled.
 // `stop_timeout_sec` is what makes rung 3 real: the manager's global sleep_before_kill_sec
 // is a fraction of a second, and Windows needs tens of seconds -- see the same PROBES.md.
 // It matches qemu.guestShutdownTimeoutMs (180000) in data/base.json5, which is the same
-// number for the same reason on the src/shutdown-guest.js path.
+// number for the same reason on the src/verbs/orchestrators/shutdown-guest.js path.
 //
 // [!] Both services probe port 4000 because both VMs *use* port 4000 -- data/vars.json5
 // [!] has one set of ports for all profiles, so the two are mutually exclusive and rung 2
@@ -32,7 +32,7 @@
 
 {service:
     name = "qemu-win11-1c"
-    command = "node /data/wd/aibox/autosetup/src/run-vm-cli.js --profile win11-1c"
+    command = "node /data/wd/aibox/autosetup/src/services/run-vm-cli.js --profile win11-1c"
     // [!] add class = nodejs_foreground_server so no "node" need to be mentioned in "command"
     profile = qemu_win11_1c // [!] separate class, subclass and instance
     // no minimum: rung 2 proves the VM is up, and anything that fails before qemu even
@@ -43,7 +43,7 @@
 
 {service:
     name = "qemu-win11-1c-rdp"
-    command = "/usr/bin/node /data/wd/aibox/autosetup/src/run-vm-cli.js --profile win11-1c-rdp"
+    command = "/usr/bin/node /data/wd/aibox/autosetup/src/services/run-vm-cli.js --profile win11-1c-rdp"
     profile = qemu_win11_1c_rdp // [!] separate class, subclass and instance
     min_uptime_sec = 0.4
     stop_timeout_sec = 180

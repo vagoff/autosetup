@@ -1,6 +1,6 @@
-import { config } from './config.js';
-import { executeGuestPowerShell } from './lib/execute-guest-powershell.js';
-import { withGuestSession } from './lib/with-guest-session.js';
+import { config } from '../configure.js';
+import { executeGuestPowerShell } from '../infrastructure/execute-guest-powershell.js';
+import { withGuestSession } from '../infrastructure/with-guest-session.js';
 
 const EVENT_KINDS = new Map([
     ['microsoft-windows-kernel-general:12', 'boot'],
@@ -21,7 +21,7 @@ function parsePositiveInteger(value, option, maximum) {
 function parseArguments(argv, guestShutdownHistory) {
     if (argv.length === 0) return { limit: guestShutdownHistory.defaultShutdownLimit };
     if (argv.length !== 2 || argv[0] !== '--limit') {
-        throw new Error('usage: node src/read-guest-shutdown-history.js [--limit N]');
+        throw new Error('usage: node src/tools/read-guest-shutdown-history.js [--limit N]');
     }
     return { limit: parsePositiveInteger(argv[1], '--limit', guestShutdownHistory.maxShutdownLimit) };
 }

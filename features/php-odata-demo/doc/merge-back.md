@@ -17,7 +17,7 @@
 
 ## Порядок
 
-1. Убедиться, что апстрим не уехал: `node --test test/dobaerp-upstream.test.js`.
+1. Убедиться, что апстрим не уехал: `node --test src/tests/dobaerp-upstream.test.js`.
    Тест сверяет pristine-копии в `upstream/*.orig` с текущими файлами dobaerp.
    Если он красный — сначала перенести наши правки на новый апстрим и обновить
    pristine-копии, и только потом вливать.

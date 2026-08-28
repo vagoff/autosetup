@@ -1,6 +1,6 @@
 import path from 'node:path';
-import { config } from './config.js';
-import { downloadArtifact } from './lib/download-artifact.js';
+import { config } from '../configure.js';
+import { downloadArtifact } from '../lib/download-artifact.js';
 
 // Скачивает Windows ISO по зафиксированному в конфиге URL. Никогда не
 // перезаписывает существующий файл молча — если нужно перекачать,

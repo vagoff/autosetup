@@ -1,5 +1,5 @@
 import { existsSync, rmSync } from 'node:fs';
-import { config } from './config.js';
+import { config } from '../configure.js';
 
 // Убирает install-complete.marker, если он есть. Идемпотентно — см.
 // destroy-disk-image.js/destroy-tpm-state-dir.js. Обязательная пара к

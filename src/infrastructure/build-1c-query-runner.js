@@ -1,6 +1,6 @@
 import path from 'node:path';
 import { readdir, stat } from 'node:fs/promises';
-import { hashFileSha256 } from './hash-file-sha256.js';
+import { hashFileSha256 } from '../lib/hash-file-sha256.js';
 
 async function collectFiles(rootDirectory) {
     const files = [];

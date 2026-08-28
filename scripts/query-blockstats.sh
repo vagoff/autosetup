@@ -1,5 +1,5 @@
 node -e '
-import("./src/lib/connect-qmp.js").then(async ({ connectQmp }) => {
+import("./src/infrastructure/connect-qmp.js").then(async ({ connectQmp }) => {
   const qmp = await connectQmp("127.0.0.1", 4000, 5000);
   const status = await qmp.execute("query-status");
   console.log("status:", JSON.stringify(status));

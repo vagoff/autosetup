@@ -1,5 +1,5 @@
 import { existsSync, rmSync } from 'node:fs';
-import { config } from './config.js';
+import { config } from '../configure.js';
 
 // Удаляет qcow2-диск VM, если он есть. Идемпотентно (в отличие от
 // create-disk-image.js, здесь нет риска молча потерять данные —

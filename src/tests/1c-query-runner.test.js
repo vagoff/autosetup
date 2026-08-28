@@ -4,8 +4,8 @@ import os from 'node:os';
 import path from 'node:path';
 import test from 'node:test';
 import JSON5 from 'json5';
-import { buildQueryRunnerLaunchParameter, buildQueryRunnerStagedFiles, parseQueryRunnerResult } from '../src/lib/build-1c-query-runner.js';
-import { buildReadOneCQueryRunnerScript, buildStopOneCQueryRunnerScript } from '../src/lib/build-stop-1c-query-runner-script.js';
+import { buildQueryRunnerLaunchParameter, buildQueryRunnerStagedFiles, parseQueryRunnerResult } from '../infrastructure/build-1c-query-runner.js';
+import { buildReadOneCQueryRunnerScript, buildStopOneCQueryRunnerScript } from '../infrastructure/build-stop-1c-query-runner-script.js';
 
 test('query runner stages the EPF source tree verbatim and appends extra files under their filename', async () => {
     const root = await mkdtemp(path.join(os.tmpdir(), 'autosetup-query-runner-'));
@@ -60,13 +60,13 @@ test('table probe performs a bounded domain-table read', () => {
 });
 
 test('query runner uses the configured thin client for unattended EPF execution', async () => {
-    const source = await readFile(new URL('../src/run-1c-query.js', import.meta.url), 'utf8');
+    const source = await readFile(new URL('../tools/run-1c-query.js', import.meta.url), 'utf8');
     assert.match(source, /oneC\.thinClientExecutablePath,/u);
     assert.doesNotMatch(source, /oneCQueryRunner\.enterpriseExecutablePath/u);
 });
 
 test('query runner gives the document census and arbitrary queries more room than a bare probe', async () => {
-    const configPath = new URL('../data/1c-query-runner.json5', import.meta.url);
+    const configPath = new URL('../../data/1c-query-runner.json5', import.meta.url);
     const queryRunner = JSON5.parse(await readFile(configPath, 'utf8'));
     // probeTimeoutSeconds измерен живым запуском: холодный тонкий клиент на
     // production-копии ИБ стоит ~40с ещё до выполнения запроса -- не 10с.
@@ -76,7 +76,7 @@ test('query runner gives the document census and arbitrary queries more room tha
 });
 
 test('epf business logic dispatches every runner mode and returns data through the message envelope', async () => {
-    const modulePath = new URL('../features/1c-query-runner/src/epf/ШаблонОбработки/Forms/Форма/Ext/Form/Module.bsl', import.meta.url);
+    const modulePath = new URL('../../features/1c-query-runner/src/epf/ШаблонОбработки/Forms/Форма/Ext/Form/Module.bsl', import.meta.url);
     const source = await readFile(modulePath, 'utf8');
     assert.match(source, /Функция ВыполнитьОперацию/u);
     assert.match(source, /Результат\.Сообщения\.Добавить\(СериализоватьJSON\(Данные\)\)/u);
@@ -86,7 +86,7 @@ test('epf business logic dispatches every runner mode and returns data through t
 });
 
 test('epf business logic publishes the result file atomically using ASCII launch parameters', async () => {
-    const modulePath = new URL('../features/1c-query-runner/src/epf/ШаблонОбработки/Forms/Форма/Ext/Form/Module.bsl', import.meta.url);
+    const modulePath = new URL('../../features/1c-query-runner/src/epf/ШаблонОбработки/Forms/Форма/Ext/Form/Module.bsl', import.meta.url);
     const source = await readFile(modulePath, 'utf8');
     assert.match(source, /ВременныйФайл = ПутьФайла \+ "\.tmp"/u);
     assert.match(source, /ПереместитьФайл\(ВременныйФайл, ПутьФайла\)/u);
@@ -116,7 +116,7 @@ test('query-runner stop script is limited to its configured staging directory', 
 });
 
 test('guest runner precreates only the atomic temporary result file', async () => {
-    const scriptPath = new URL('../src/guest-scripts/run-1c-epf.ps1', import.meta.url);
+    const scriptPath = new URL('../infrastructure/guest-scripts/run-1c-epf.ps1', import.meta.url);
     const source = await readFile(scriptPath, 'utf8');
     assert.match(source, /New-Item -ItemType File -Path \(\$ResultPath \+ '\.tmp'\) -Force/u);
 });

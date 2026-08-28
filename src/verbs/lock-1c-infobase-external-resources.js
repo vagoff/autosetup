@@ -1,7 +1,7 @@
-import { config } from './config.js';
-import { buildComConnectionScript, buildComResultEpilogue, parseComResult } from './lib/build-1c-com-query-script.js';
-import { executeGuestPowerShell, quotePowerShell } from './lib/execute-guest-powershell.js';
-import { withGuestSession } from './lib/with-guest-session.js';
+import { config } from '../configure.js';
+import { buildComConnectionScript, buildComResultEpilogue, parseComResult } from '../infrastructure/build-1c-com-query-script.js';
+import { executeGuestPowerShell, quotePowerShell } from '../infrastructure/execute-guest-powershell.js';
+import { withGuestSession } from '../infrastructure/with-guest-session.js';
 
 // Одно проверяемое действие: пометить восстановленную ИБ как КОПИЮ, заблокировав
 // работу с внешними ресурсами. Это программный ответ на модальный вопрос БСП

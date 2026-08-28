@@ -1,6 +1,6 @@
 import net from 'node:net';
 import { randomUUID } from 'node:crypto';
-import { config } from './config.js';
+import { config } from '../configure.js';
 
 function connectSerialPort({ host, port, timeoutMs }) {
     return new Promise((resolve, reject) => {

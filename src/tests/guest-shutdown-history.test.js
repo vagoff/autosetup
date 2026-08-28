@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 process.env.AUTOSETUP_PROFILE = 'data/profiles/win11-1c.json5';
-const { buildGuestShutdownHistory, buildGuestShutdownHistoryScript } = await import('../src/read-guest-shutdown-history.js');
+const { buildGuestShutdownHistory, buildGuestShutdownHistoryScript } = await import('../tools/read-guest-shutdown-history.js');
 
 function event(recordId, timeCreated, provider, id, data = []) {
     return { recordId: String(recordId), timeCreated, provider, id, data };

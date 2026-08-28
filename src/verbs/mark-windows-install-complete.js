@@ -1,12 +1,12 @@
 import { existsSync, readFileSync, writeFileSync } from 'node:fs';
-import { config } from './config.js';
+import { config } from '../configure.js';
 
 // Единственный надёжный сигнал, что вся цепочка FirstLogonCommands
 // доехала до конца — строка "first-logon-commands: ALL DONE" от
 // log-first-logon-complete.ps1 в durable-копии COM1
 // (cache/<vmName>/com1.log, см. capture-serial-log.js). Этот модуль
 // переводит этот факт в постоянный маркер db/<vmName>/install-complete.marker
-// (см. src/lib/resolve-boot-from-installer.js — кто его читает).
+// (см. src/infrastructure/resolve-boot-from-installer.js — кто его читает).
 //
 // Stateful-ресурс: fail-fast, а не молча перезаписывает — как и
 // остальные create-*.js (диск/OVMF vars/tpm state). Вызывается один раз,

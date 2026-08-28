@@ -17,3 +17,4 @@ node_modules/
 !/features/1c-query-runner/
 /features/1c-query-runner/build/
 /node_modules/
+.playwright-cli/

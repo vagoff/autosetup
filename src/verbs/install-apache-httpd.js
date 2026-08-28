@@ -1,11 +1,11 @@
 import path from 'node:path';
-import { config } from './config.js';
-import { assertArtifactFiles } from './lib/assert-artifact-files.js';
-import { executeGuestPowerShell, quotePowerShell } from './lib/execute-guest-powershell.js';
-import { isApacheHttpdInstalled, readApacheHttpdState } from './lib/read-apache-httpd-state.js';
-import { waitForHttp } from './lib/wait-for-http.js';
-import { restartGuestAndWait } from './lib/wait-for-guest-reboot.js';
-import { withGuestSession, withGuestStaging } from './lib/with-guest-session.js';
+import { config } from '../configure.js';
+import { assertArtifactFiles } from '../lib/assert-artifact-files.js';
+import { executeGuestPowerShell, quotePowerShell } from '../infrastructure/execute-guest-powershell.js';
+import { isApacheHttpdInstalled, readApacheHttpdState } from '../infrastructure/read-apache-httpd-state.js';
+import { waitForHttp } from '../lib/wait-for-http.js';
+import { restartGuestAndWait } from '../infrastructure/wait-for-guest-reboot.js';
+import { withGuestSession, withGuestStaging } from '../infrastructure/with-guest-session.js';
 
 function buildEnsureServiceScript(apacheHttpd) {
     const httpdPath = path.win32.join(apacheHttpd.installationDirectory, 'bin', 'httpd.exe');

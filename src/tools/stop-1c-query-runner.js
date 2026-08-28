@@ -1,7 +1,7 @@
-import { config } from './config.js';
-import { buildReadOneCQueryRunnerScript, buildStopOneCQueryRunnerScript } from './lib/build-stop-1c-query-runner-script.js';
-import { executeGuestPowerShell } from './lib/execute-guest-powershell.js';
-import { withGuestSession } from './lib/with-guest-session.js';
+import { config } from '../configure.js';
+import { buildReadOneCQueryRunnerScript, buildStopOneCQueryRunnerScript } from '../infrastructure/build-stop-1c-query-runner-script.js';
+import { executeGuestPowerShell } from '../infrastructure/execute-guest-powershell.js';
+import { withGuestSession } from '../infrastructure/with-guest-session.js';
 
 export async function stopOneCQueryRunner() {
     const output = await withGuestSession(({ ssh }) => executeGuestPowerShell(

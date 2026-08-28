@@ -1,5 +1,5 @@
-import { config } from './config.js';
-import { downloadArtifact } from './lib/download-artifact.js';
+import { config } from '../configure.js';
+import { downloadArtifact } from '../lib/download-artifact.js';
 
 export async function downloadApacheVisualCppRuntime() {
     const runtime = config.apacheHttpd.visualCppRuntime;

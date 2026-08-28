@@ -1,5 +1,5 @@
 import { existsSync, rmSync } from 'node:fs';
-import { config } from './config.js';
+import { config } from '../configure.js';
 
 // Удаляет cache/<vmName>/com1.log, если он есть. Идемпотентно — см.
 // destroy-disk-image.js.

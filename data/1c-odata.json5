@@ -60,7 +60,7 @@
     rootXmlFilename: 'ПубликаторOData.xml',
     manifestFilename: 'publisher-manifest.txt',
     // Общий с 1c-query-runner раннер: "собери EPF Конфигуратором, выполни
-    // тонким клиентом" -- один и тот же сценарий, см. src/guest-scripts/run-1c-epf.ps1.
+    // тонким клиентом" -- один и тот же сценарий, см. src/infrastructure/guest-scripts/run-1c-epf.ps1.
     runnerScriptFilename: 'run-1c-epf.ps1',
     timeoutSeconds: 180,
   },

@@ -1,7 +1,7 @@
-import { config } from './config.js';
-import { buildComConnectionScript, buildComResultEpilogue, parseComResult } from './lib/build-1c-com-query-script.js';
-import { executeGuestPowerShell } from './lib/execute-guest-powershell.js';
-import { withGuestSession } from './lib/with-guest-session.js';
+import { config } from '../configure.js';
+import { buildComConnectionScript, buildComResultEpilogue, parseComResult } from '../infrastructure/build-1c-com-query-script.js';
+import { executeGuestPowerShell } from '../infrastructure/execute-guest-powershell.js';
+import { withGuestSession } from '../infrastructure/with-guest-session.js';
 
 // Проверяет ровно те API платформы, на которых строится отдельный модуль
 // публикации: состав стандартного OData, менеджер пользователей ИБ и роли

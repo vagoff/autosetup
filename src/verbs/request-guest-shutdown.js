@@ -1,5 +1,5 @@
-import { config } from './config.js';
-import { connectQmp } from './lib/connect-qmp.js';
+import { config } from '../configure.js';
+import { connectQmp } from '../infrastructure/connect-qmp.js';
 
 // Один QMP-вызов system_powerdown — программный аналог короткого нажатия
 // кнопки питания (ACPI power button event). Не ждёт результата: что

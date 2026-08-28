@@ -1,6 +1,6 @@
-import { config } from './config.js';
-import { withGuestSession } from './lib/with-guest-session.js';
-import { isOneCTechsysUpdateInstalled, readOneCTechsysUpdateState } from './lib/read-1c-techsys-update-state.js';
+import { config } from '../configure.js';
+import { withGuestSession } from '../infrastructure/with-guest-session.js';
+import { isOneCTechsysUpdateInstalled, readOneCTechsysUpdateState } from '../infrastructure/read-1c-techsys-update-state.js';
 
 export async function checkOneCTechsysUpdateInstallation() {
     await withGuestSession(async ({ ssh }) => {

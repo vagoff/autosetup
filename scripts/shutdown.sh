@@ -7,15 +7,15 @@
 #
 # Это ЖЁСТКАЯ остановка (SIGTERM/SIGKILL самому процессу qemu — для
 # гостя внутри это как выдернуть вилку из розетки, без штатного
-# завершения служб). Основной путь — src/shutdown-guest.js (ACPI
+# завершения служб). Основной путь — src/verbs/orchestrators/shutdown-guest.js (ACPI
 # system_powerdown, гость сам решает, как штатно выключиться); этот
 # скрипт — аварийный резерв на случай, если гость завис и не
 # выключается сам, и PID-based (работает только у человека на хосте —
-# см. src/wait-for-qemu-exit.js про то же самое для агента по сети).
+# см. src/verbs/wait-for-qemu-exit.js про то же самое для агента по сети).
 set -euo pipefail
 exec node --input-type=module - << 'NODE_EOF'
 import { existsSync, readFileSync, rmSync } from 'node:fs';
-import { config } from './src/config.js';
+import { config } from './src/configure.js';
 import { probeTcpPort } from './src/lib/probe-tcp-port.js';
 
 function isAlive(pid) {
@@ -60,7 +60,7 @@ if (!isAlive(pid)) {
 
 // SIGTERM только qemu-процессу — этого достаточно: run-vm.js (родительский
 // оркестратор) сам слушает qemu.on('exit', ...) и по нему каскадно гасит
-// swtpm и capture-serial-log.js (см. src/run-vm.js). Дублировать эту логику
+// swtpm и capture-serial-log.js (см. src/services/run-vm.js). Дублировать эту логику
 // здесь means MODULE-GRANULARITY/DRY нарушение — она уже есть в одном месте.
 console.log(`останавливаю qemu (pid ${pid}) через SIGTERM`);
 process.kill(pid, 'SIGTERM');

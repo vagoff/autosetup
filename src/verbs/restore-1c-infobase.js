@@ -1,10 +1,10 @@
 import path from 'node:path';
-import { config } from './config.js';
-import { assertArtifactFiles } from './lib/assert-artifact-files.js';
-import { buildDesignerArguments, buildOneCCommandScript } from './lib/execute-1c.js';
-import { executeGuestPowerShell, quotePowerShell } from './lib/execute-guest-powershell.js';
-import { assertOneCPlatformInstalled } from './lib/read-1c-platform-state.js';
-import { withGuestSession, withGuestStaging } from './lib/with-guest-session.js';
+import { config } from '../configure.js';
+import { assertArtifactFiles } from '../lib/assert-artifact-files.js';
+import { buildDesignerArguments, buildOneCCommandScript } from '../infrastructure/execute-1c.js';
+import { executeGuestPowerShell, quotePowerShell } from '../infrastructure/execute-guest-powershell.js';
+import { assertOneCPlatformInstalled } from '../infrastructure/read-1c-platform-state.js';
+import { withGuestSession, withGuestStaging } from '../infrastructure/with-guest-session.js';
 
 function buildRestoreScript(oneC, oneCConfiguration, remoteDtPath) {
     const { database, guest } = oneCConfiguration;

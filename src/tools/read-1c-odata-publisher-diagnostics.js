@@ -1,6 +1,6 @@
-import { config } from './config.js';
-import { executeGuestPowerShell, quotePowerShell } from './lib/execute-guest-powershell.js';
-import { withGuestSession } from './lib/with-guest-session.js';
+import { config } from '../configure.js';
+import { executeGuestPowerShell, quotePowerShell } from '../infrastructure/execute-guest-powershell.js';
+import { withGuestSession } from '../infrastructure/with-guest-session.js';
 
 // Читает только логи и staging неуспешного публикатора. Отдельный reader
 // нужен, чтобы NOHIDEBUG не превращался в ручное SSH-исследование.

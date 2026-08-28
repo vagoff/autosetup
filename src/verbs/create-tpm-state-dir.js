@@ -1,5 +1,5 @@
 import { mkdirSync } from 'node:fs';
-import { config } from './config.js';
+import { config } from '../configure.js';
 
 // Директория состояния swtpm. mkdir -p безопасно повторять (создание
 // директории не теряет и не портит уже накопленное в ней состояние TPM,

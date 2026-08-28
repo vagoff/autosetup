@@ -1,7 +1,7 @@
 import { spawn } from 'node:child_process';
 import { existsSync, rmSync } from 'node:fs';
 import net from 'node:net';
-import { config } from './config.js';
+import { config } from '../configure.js';
 
 function waitForUnixSocket(socketPath, timeoutMs) {
     const start = Date.now();

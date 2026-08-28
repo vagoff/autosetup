@@ -1,6 +1,6 @@
-import { config } from './config.js';
-import { executeGuestPowerShell } from './lib/execute-guest-powershell.js';
-import { withGuestSession } from './lib/with-guest-session.js';
+import { config } from '../configure.js';
+import { executeGuestPowerShell } from '../infrastructure/execute-guest-powershell.js';
+import { withGuestSession } from '../infrastructure/with-guest-session.js';
 
 function parsePositiveInteger(value, option, maximum) {
     if (!/^\d+$/u.test(value)) throw new Error(`${option} must be an integer between 1 and ${maximum}`);
@@ -17,7 +17,7 @@ function parseArguments(argv, guestDiskWriters) {
         if (index >= argv.length) throw new Error(`${option} requires a value`);
         if (option === '--limit') result.limit = parsePositiveInteger(argv[index], '--limit', guestDiskWriters.maxWriterLimit);
         else if (option === '--seconds') result.seconds = parsePositiveInteger(argv[index], '--seconds', guestDiskWriters.maxWriteSampleSeconds);
-        else throw new Error('usage: node src/top-guest-disk-writers.js [--limit N] [--seconds N]');
+        else throw new Error('usage: node src/tools/top-guest-disk-writers.js [--limit N] [--seconds N]');
     }
     return result;
 }

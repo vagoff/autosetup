@@ -4,7 +4,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { buildDesignerArguments, buildInfobasePresenceCheck, buildOneCCommandScript } from './execute-1c.js';
 import { executeGuestPowerShell, quotePowerShell } from './execute-guest-powershell.js';
-import { hashFileSha256 } from './hash-file-sha256.js';
+import { hashFileSha256 } from '../lib/hash-file-sha256.js';
 import { extractDocumentsFromConfigurationXml } from './parse-1c-configuration-metadata.js';
 import { removeGuestDirectory } from './stage-guest-files.js';
 

@@ -77,7 +77,7 @@ stageGuestFiles засирает папку назначения, не убир�
 одного 4625 -- то есть отказ происходит до проверки учётной записи. SSH тем же
 паролем/учёткой работает. Не связано с инцидентом выше (состояние WinRM переживает
 перезагрузку без изменений); нужен отдельный разбор со стороны клиента
-(`src/lib/run-winrm-powershell.js`).
+(`src/infrastructure/run-winrm-powershell.js`).
 
 ## wuauserv воскресает: задачи UpdateOrchestrator защищены TrustedInstaller
 

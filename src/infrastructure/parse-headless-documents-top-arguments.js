@@ -1,7 +1,7 @@
 import path from 'node:path';
 
 export function parseHeadlessDocumentsTopArguments(argv, maxTop) {
-    if (argv[0] !== '--documents-top') throw new Error('usage: node src/run-1c-headless-documents-top.js --documents-top <N> [--configuration-xml guest-file] [--output file.json]');
+    if (argv[0] !== '--documents-top') throw new Error('usage: node src/tools/run-1c-headless-documents-top.js --documents-top <N> [--configuration-xml guest-file] [--output file.json]');
     const top = Number(argv[1]);
     if (!Number.isSafeInteger(top) || top < 1 || top > maxTop) throw new Error(`--documents-top must be an integer between 1 and ${maxTop}`);
     let outputFilename = '1c-headless-documents-top.json';

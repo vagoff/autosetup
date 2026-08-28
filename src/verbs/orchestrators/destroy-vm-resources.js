@@ -1,10 +1,10 @@
-import { destroyDiskImage } from './destroy-disk-image.js';
-import { destroyOvmfVars } from './destroy-ovmf-vars.js';
-import { destroyTpmStateDir } from './destroy-tpm-state-dir.js';
-import { destroySshClientKey } from './destroy-ssh-client-key.js';
-import { destroyWindowsInstallCompleteMarker } from './destroy-windows-install-complete-marker.js';
-import { destroySerialLog } from './destroy-serial-log.js';
-import { assertVmResourcesRecreatable } from './lib/assert-vm-resources-recreatable.js';
+import { destroyDiskImage } from '../destroy-disk-image.js';
+import { destroyOvmfVars } from '../destroy-ovmf-vars.js';
+import { destroyTpmStateDir } from '../destroy-tpm-state-dir.js';
+import { destroySshClientKey } from '../destroy-ssh-client-key.js';
+import { destroyWindowsInstallCompleteMarker } from '../destroy-windows-install-complete-marker.js';
+import { destroySerialLog } from '../destroy-serial-log.js';
+import { assertVmResourcesRecreatable } from '../../infrastructure/assert-vm-resources-recreatable.js';
 
 // Тонкий оркестратор, обратный create-vm-resources.js: последовательно
 // сносит все R/W-ресурсы VM (диск, OVMF vars, tpm state) для чистого

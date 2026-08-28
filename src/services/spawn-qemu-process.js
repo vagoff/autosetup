@@ -1,9 +1,9 @@
 import { spawn } from 'node:child_process';
 import { existsSync } from 'node:fs';
 import path from 'node:path';
-import { config } from './config.js';
-import { resolveExistingPath } from './lib/resolve-existing-path.js';
-import { resolveBootFromInstaller } from './lib/resolve-boot-from-installer.js';
+import { config } from '../configure.js';
+import { resolveExistingPath } from '../lib/resolve-existing-path.js';
+import { resolveBootFromInstaller } from '../infrastructure/resolve-boot-from-installer.js';
 
 // Флаги показа экрана человеку — протокол выбирается конфигом
 // (qemu.displayProtocol), а не хардкодится. И spice, и vnc — tcp/loopback.
@@ -17,7 +17,7 @@ function buildDisplayTransportArgs(qemu, loopbackHost) {
     throw new Error(`неизвестный qemu.displayProtocol в конфиге: ${qemu.displayProtocol}`);
 }
 
-// Строит argv для qemu-system-x86_64 целиком из config.js — ни одной
+// Строит argv для qemu-system-x86_64 целиком из configure.js — ни одной
 // константы вне единого источника (CONFIG-SINGLE-SOURCE).
 export function buildQemuArgs() {
     const { disk, ovmf, qemu, windowsIso, paths, tpm, network, unattend } = config;
@@ -73,7 +73,7 @@ export function buildQemuArgs() {
         '-netdev', `user,id=net0${hostfwd}`,
         '-device', `${qemu.netDevice},netdev=net0`,
         // TPM: control-канал у swtpm — unix-сокет (см. tpm.ctrlSocketPath в
-        // config.js, почему именно unix — единственное исключение из общего
+        // configure.js, почему именно unix — единственное исключение из общего
         // tcp-правила). qemu подключается клиентом, swtpm уже слушает к этому
         // моменту — run-vm.js гарантирует порядок запуска.
         '-chardev', `socket,id=chrtpm,path=${tpm.ctrlSocketPath}`,

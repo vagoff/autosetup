@@ -1,7 +1,7 @@
 import net from 'node:net';
 import { createWriteStream, mkdirSync } from 'node:fs';
 import path from 'node:path';
-import { config } from './config.js';
+import { config } from '../configure.js';
 
 // Ждёт либо истечения задержки, либо сигнала остановки — не задерживает
 // выключение на лишние serialLogReconnectDelayMs при shutdown.

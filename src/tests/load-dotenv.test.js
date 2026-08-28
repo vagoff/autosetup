@@ -3,7 +3,7 @@ import { mkdtemp, writeFile } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import test from 'node:test';
-import { loadDotenv } from '../src/lib/load-dotenv.js';
+import { loadDotenv } from '../lib/load-dotenv.js';
 
 test('dotenv fills only missing values, so exported environment wins', async () => {
     const directory = await mkdtemp(path.join(os.tmpdir(), 'autosetup-dotenv-'));

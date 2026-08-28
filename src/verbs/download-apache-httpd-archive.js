@@ -1,5 +1,5 @@
-import { config } from './config.js';
-import { downloadArtifact } from './lib/download-artifact.js';
+import { config } from '../configure.js';
+import { downloadArtifact } from '../lib/download-artifact.js';
 
 // Скачивает ровно закреплённый в data/apache-httpd.json5 архив Apache.
 // В отличие от «скачай последнюю версию», это действие воспроизводимо:

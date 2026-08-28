@@ -78,7 +78,7 @@
 Вопрос снимается программно, до того как его успеют задать:
 
 ```
-node src/lock-1c-infobase-external-resources.js
+node src/verbs/lock-1c-infobase-external-resources.js
 ```
 
 Модуль подключается к ИБ через **внешнее соединение** (`V83.COMConnector`) и

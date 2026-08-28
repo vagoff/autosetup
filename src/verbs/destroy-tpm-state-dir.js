@@ -1,5 +1,5 @@
 import { existsSync, rmSync } from 'node:fs';
-import { config } from './config.js';
+import { config } from '../configure.js';
 
 // Удаляет состояние swtpm (директорию целиком), если она есть.
 // Идемпотентно — см. destroy-disk-image.js.

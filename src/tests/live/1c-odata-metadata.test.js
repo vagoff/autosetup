@@ -6,14 +6,14 @@ import path from 'node:path';
 import { promisify } from 'node:util';
 
 const run = promisify(execFile);
-const projectRoot = path.resolve(import.meta.dirname, '../..');
+const projectRoot = path.resolve(import.meta.dirname, '../../..');
 const env = { ...process.env, AUTOSETUP_PROFILE: 'data/profiles/win11-1c.json5' };
 const enabled = process.env.AUTOSETUP_LIVE_TESTS === '1';
 
 test('read-1c-odata-metadata dumps every published document with its tabular sections', { skip: !enabled && 'AUTOSETUP_LIVE_TESTS!=1' }, async () => {
     await run(process.execPath, ['features/odata-demo/scripts/read-1c-odata-metadata.js'], { cwd: projectRoot, env });
 
-    const { config } = await import('../../src/config.js');
+    const { config } = await import('../../configure.js');
     const dbinfo = JSON.parse(await readFile(config.oneCOData.metadata.dumpPath, 'utf8'));
 
     for (const name of Object.keys(config.oneCOData.rights)) {
@@ -39,7 +39,7 @@ test('read-1c-odata-metadata dumps every published document with its tabular sec
 });
 
 test('the dump is stable across runs', { skip: !enabled && 'AUTOSETUP_LIVE_TESTS!=1' }, async () => {
-    const { config } = await import('../../src/config.js');
+    const { config } = await import('../../configure.js');
     const first = await readFile(config.oneCOData.metadata.dumpPath, 'utf8');
     await run(process.execPath, ['features/odata-demo/scripts/read-1c-odata-metadata.js'], { cwd: projectRoot, env });
     assert.equal(await readFile(config.oneCOData.metadata.dumpPath, 'utf8'), first);

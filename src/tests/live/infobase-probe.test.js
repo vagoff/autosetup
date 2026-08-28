@@ -6,7 +6,7 @@ import { promisify } from 'node:util';
 import test from 'node:test';
 
 const execFileAsync = promisify(execFile);
-const projectRoot = path.resolve(import.meta.dirname, '../..');
+const projectRoot = path.resolve(import.meta.dirname, '../../..');
 const env = { ...process.env, AUTOSETUP_PROFILE: 'data/profiles/win11-1c.json5' };
 
 // Скрипты пишут результат в output/<файл> И печатают его в stdout вперемешку
@@ -25,7 +25,7 @@ test('live external connection executes SELECT 1 through V83.COMConnector', {
     timeout: 60_000,
 }, async () => {
     await execFileAsync(process.execPath, [
-        'src/run-1c-external-query.js', '--select-one', '--output', 'select-one.json',
+        'src/tools/run-1c-external-query.js', '--select-one', '--output', 'select-one.json',
     ], { cwd: projectRoot, env });
     assert.deepEqual(await readOutputJson('select-one.json'), {
         ok: true, columns: ['Значение'], rows: [{ Значение: 1 }], truncated: false, error: '',
@@ -43,7 +43,7 @@ test('live document census counts every document type on the server and ranks th
     timeout: 180_000,
 }, async () => {
     await execFileAsync(process.execPath, [
-        'src/run-1c-query.js', '--documents-top', '10', '--output', 'documents-top.json',
+        'src/tools/run-1c-query.js', '--documents-top', '10', '--output', 'documents-top.json',
     ], { cwd: projectRoot, env });
     const result = await readOutputJson('documents-top.json');
     assert.equal(result.ok, true);
