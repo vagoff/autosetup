@@ -1,4 +1,4 @@
-// Единый реестр путей и "голых" TCP-портов проекта — единственное место,
+// [!] JSONCFG violation// Единый реестр путей и "голых" TCP-портов проекта — единственное место,
 // где объявлены числа портов и корневой путь на диске (CONFIG-SINGLE-SOURCE
 // для этого конкретного класса значений). Что именно на этих портах
 // работает и почему — в data/base.json5 (и позже в data/features/*.json5),
@@ -8,7 +8,7 @@
 {
   // единственное место, где путь захардкожен буквально — всё остальное
   // выводится из него в src/configure.js
-  projectRoot: '/data/wd/aibox/autosetup',
+  //projectRoot: '/data/wd/aibox/autosetup',
 
   network: {
     // единственное место, где объявлен loopback-адрес для всей tcp-связи
@@ -47,7 +47,7 @@
       // которое "работало" лишь потому, что 0.0.0.0 включает loopback.
       { name: 'openssh', proto: 'tcp', hostAddress: '127.0.0.1', hostPort: 2222, guestPort: 22 },
       { name: 'winrm', proto: 'tcp', hostAddress: '127.0.0.1', hostPort: 5985, guestPort: 5985 },
-      { name: 'rdp', proto: 'tcp', hostAddress: '127.0.0.1', hostPort: 3389, guestPort: 3389 },
+      { name: 'rdp', proto: 'tcp', hostAddress: '0.0.0.0', hostPort: 3389, guestPort: 3389 },
       // Стандартный OData доступен внешним клиентам; периметр контролирует
       // host firewall, а не скрытый loopback-ограничитель QEMU.
       { name: 'apache-http', proto: 'tcp', hostAddress: '0.0.0.0', hostPort: 8080, guestPort: 80 },

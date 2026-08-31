@@ -16,7 +16,7 @@ import { loadDotenv } from './lib/load-dotenv.js';
 // Этот модуль только парсит, резолвит и сливает всё это в один
 // config-объект прежней плоской формы — никаких собственных констант
 // тут быть не должно.
-const DATA_DIR = '/data/wd/aibox/autosetup/data';
+const DATA_DIR = './data'; // [!] hack // [!] JSONCFG violation
 loadDotenv(path.join(DATA_DIR, '..', '.env'));
 // Секрет, не конфиг — отдельный файл, не коммитится (см. .gitignore),
 // заводится один раз src/verbs/ensure-admin-password-secret.js.
@@ -50,7 +50,7 @@ for (const key of Object.keys(vars.qemu)) {
 
 const raw = {
     ...base,
-    projectRoot: vars.projectRoot,
+    projectRoot: process.cwd(),//vars.projectRoot,
     network: vars.network,
     qemu: { ...base.qemu, ...vars.qemu },
 };

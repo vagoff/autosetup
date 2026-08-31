@@ -1,5 +1,5 @@
 import { randomInt } from 'node:crypto';
-import { ensure_lines } from '/data/wd/aibox/dev-env/libs/utils/src/ensure_lines.js';
+import { ensure_lines } from '../lib/ensure_lines.js';
 
 // Бутстрап-исключение: этот verb НЕ импортирует '../configure.js'. Он
 // существует именно чтобы у configure.js было что читать (unattend.
@@ -8,7 +8,7 @@ import { ensure_lines } from '/data/wd/aibox/dev-env/libs/utils/src/ensure_lines
 // собраться без результата этого скрипта, было бы порочным кругом.
 // Путь поэтому захардкожен буквально, как DATA_DIR в configure.js и
 // PROFILES_DIR в src/services/run-vm-cli.js.
-const SECRETS_PATH = '/data/wd/aibox/autosetup/.env.secrets';
+const SECRETS_PATH = '.env.secrets'; // [!] hack // [!] JSONCFG violation
 const KEY = 'AUTOSETUP_ADMIN_PASSWORD';
 
 // Пароль администратора Windows: единственный источник теперь — этот файл,

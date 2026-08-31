@@ -1,3 +1,4 @@
+#!/usr/bin/env bash
 set -euo pipefail
 
 # Пересобирает cache/.venv с нуля (как jsinit.sh — не идемпотентно само по
@@ -6,10 +7,12 @@ set -euo pipefail
 # pyasn1/pycryptodomex/pyOpenSSL/... транзитивно. Нужен для
 # src/tools/check-rdp-login.js (vendor/impacket/examples/rdp_check.py).
 
-cd /data/wd/aibox/autosetup
+#cd /data/wd/aibox/autosetup
 
+mkdir -p cache
 rm -rf cache/.venv
 python3 -m venv cache/.venv
 cache/.venv/bin/pip install --quiet ./vendor/impacket
+#cache/.venv/bin/pip install --quiet logger
 
 exit 0

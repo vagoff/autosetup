@@ -14,23 +14,6 @@
   только сеть), поэтому `process.kill(pid, 0)` внутри контейнера всегда "никого
   не находит", даже если на хосте процесс жив.
 
-  [УСТАРЕЛО] Раньше здесь было сказано, что агенту для остановки VM — только QMP
-  `quit` по сети. Это неверно и опасно: `quit` — жёсткий останов, для гостя
-  эквивалент выдернутой вилки (то же самое, чего мы избегаем через
-  `scripts/shutdown.sh`/жёсткий kill, просто с другой стороны). Актуально:
-  - если VM поднята через process-manager (обычный случай, см.
-    `scripts/services.def`) — `a pm stop --name qemu-win11-1c`: лестница
-    `qmp-graceful → SIGTERM → SIGKILL`, ACPI-путь пробует
-    выключить гостя штатно первым, подробности —
-    `/data/wd/aibox/dev-env/tools/process-manager/doc/PROBES.md`.
-  - если VM поднята напрямую (`node src/services/run-vm.js`, в обход process-manager) —
-    `node src/verbs/orchestrators/shutdown-guest.js`: тот же принцип (ACPI `system_powerdown` +
-    сетевое ожидание, без PID), самостоятельный скрипт на этот случай.
-  - `scripts/run-qmp-command.js` остаётся тем, чем и был — разовый CLI для
-    произвольных QMP-команд (`query-status`, `screendump`, `send-key`, ...),
-    не единственным способом остановки VM.
-
-
 ## долг: профиль передаётся через переменную окружения
 
 `src/configure.js` -- синглтон: он читает `data/`, выбирает профиль и валидирует его **в момент

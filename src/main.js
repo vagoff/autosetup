@@ -78,22 +78,22 @@ async function runFullPipeline() {
         await checkRdpAccess();
     }
 
-    console.log('\n=== 5/8: платформа 1С + Apache + модуль интеграции ===');
+    console.log('\n=== 5/8: платформа 1С + Apache + модуль интеграции ==='); // [!] convert to feature with dependencies
     await installOneCWebEnvironment();
     await createOneCFirewallRules();
     await installOneCTechsysUpdate();
 
-    console.log('\n=== 6/8: восстановление инфобазы (DT) + применение конфигурации (CF) + EPF ===');
+    console.log('\n=== 6/8: восстановление инфобазы (DT) + применение конфигурации (CF) + EPF ==='); // [!] convert to feature with dependencies
     await installOneCInfobase();
     await applyOneCConfiguration();
     await installOneCEpf();
     await registerOneCComConnector();
     await lockOneCInfobaseExternalResources();
 
-    console.log('\n=== 7/8: публикация стандартного OData ===');
+    console.log('\n=== 7/8: публикация стандартного OData ==='); // [!] convert to feature with dependencies
     await publishOneCOData();
 
-    console.log('\n=== 8/8: генерация модуля php-odata-demo ===');
+    console.log('\n=== 8/8: генерация модуля php-odata-demo ==='); // [!] convert to feature with dependencies
     await ensureFeatureDependenciesInstalled(path.join(paths.featuresDir, 'odata-demo'), 'node_modules');
     await runProcess('node', ['scripts/read-1c-odata-metadata.js'], { cwd: path.join(paths.featuresDir, 'odata-demo') });
     await ensureFeatureDependenciesInstalled(path.join(paths.featuresDir, 'php-odata-demo'), 'vendor/autoload.php');
