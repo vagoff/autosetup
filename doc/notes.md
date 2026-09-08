@@ -143,5 +143,6 @@ AUTOSETUP_PROFILE=data/profiles/win11-1c.json5 node src/tools/read-guest-shutdow
 `shutdown-request-recorded-unclean` — что запрос был, но следующая загрузка
 зафиксировала нештатный конец. Сам Windows-журнал не
 может доказать, что запрос пришёл именно от QMP ACPI, и не различает отключение
-питания от падения гостя: это намеренно остаётся в названиях статусов и raw
-evidence, а не скрывается под ложной точностью.
+питания от падения гостя. Штатный transport сейчас serial-agent +
+`shutdown.exe`, а не QMP ACPI; источник запроса всё равно не выводится из
+одного лишь Windows Event Log и остаётся в raw evidence.

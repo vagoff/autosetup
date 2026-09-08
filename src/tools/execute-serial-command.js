@@ -22,7 +22,7 @@ function connectSerialPort({ host, port, timeoutMs }) {
 
 // Выполняет одну CMD-команду через serial command agent. Аргумент командной
 // строки — явный ввод оператора, а все transport-параметры — из JSON5.
-export async function executeSerialCommand(commandText) {
+export async function executeSerialCommand(commandText, { detach = false } = {}) {
     if (!commandText) {
         throw new Error('нужен один аргумент: CMD-команда для serial command agent');
     }
@@ -36,6 +36,7 @@ export async function executeSerialCommand(commandText) {
     const request = {
         id: requestId,
         commandBase64: Buffer.from(commandText, 'utf8').toString('base64'),
+        detach,
     };
 
     try {
@@ -87,10 +88,10 @@ export async function executeSerialCommand(commandText) {
         if (!response.ok) {
             throw new Error(response.error || `serial command timed out after ${serialAgent.commandTimeoutMs}ms`);
         }
-        if (response.exitCode !== 0) {
+        if (!detach && response.exitCode !== 0) {
             throw new Error(`serial command exited with code ${response.exitCode}`);
         }
-        console.log('serial command: OK');
+        console.log(detach ? 'serial command: detached' : 'serial command: OK');
     } finally {
         socket.end();
     }

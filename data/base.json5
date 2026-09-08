@@ -102,6 +102,10 @@
     // localhost, см. data/vars.json5), но коммитить пароль в git всё равно
     // незачем.
     enableAutoLogon: true,
+    // Сколько последовательных загрузок Windows должна автоматически войти
+    // под admin. Это отдельная политика, а не скрытый литерал в XML-рендерере
+    // или в verb, синхронизирующем credentials уже установленной VM.
+    autoLogonCount: 999,
     // Файл ответов и guest-пакеты доставляются одним отдельным USB-диском
     // (removable media — только там Setup ищет autounattend.xml), не тем
     // же носителем, что ISO. 16 MiB достаточно для самого XML, PS1 и
@@ -218,6 +222,20 @@
   guestScriptStagingDirectory: 'C:\\ProgramData\\AutoSetup\\staging\\guest-scripts',
 
   diagnostics: {
+    // Диагностические инструменты не участвуют в provisioning: они лишь
+    // читают состояние уже работающего гостя. Но их staging-каталог всё
+    // равно объявлен в едином конфиге, чтобы путь не оказался скрытой
+    // константой в одном из debugger-скриптов.
+    debuggers: {
+      guestStagingDirectory: 'C:\\ProgramData\\AutoSetup\\staging\\debuggers',
+      powerButtonEvents: {
+        lookbackHours: 168,
+        maxRecordsPerLog: 100,
+      },
+      consoleSession: {
+        maxTerminalServiceEvents: 30,
+      },
+    },
     guestTextInput: {
       interactiveTaskTimeoutSeconds: 30,
       interactiveTaskPollMilliseconds: 100,
@@ -304,7 +322,7 @@
     qmpConnectTimeoutMs: 10000,
 
     // Верхний предохранитель для src/verbs/wait-for-qemu-exit.js: сколько ждать
-    // штатного ACPI-выключения гостя (system_powerdown), прежде чем
+    // штатного Windows shutdown.exe через COM2 serial-agent, прежде чем
     // считать это зависанием/отказом, а не расчёт SLA — точное типичное
     // время появится после первого живого прогона (см. план
     // тестирования). Сознательно с запасом: Windows под нагрузкой

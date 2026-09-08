@@ -34,6 +34,7 @@ try {
       $requestId = [string]$request.id
       if ([string]::IsNullOrWhiteSpace($requestId)) { throw 'request id is empty' }
       $commandText = $utf8.GetString([Convert]::FromBase64String([string]$request.commandBase64))
+      $detach = $request.detach -eq $true
 
       $runId = [guid]::NewGuid().ToString('N')
       $stdoutPath = Join-Path $env:TEMP "wintest-serial-$runId.stdout"
@@ -42,6 +43,24 @@ try {
       $wrapperPath = Join-Path $env:TEMP "wintest-serial-$runId.wrapper.cmd"
       $exitCodePath = Join-Path $env:TEMP "wintest-serial-$runId.exit-code"
       try {
+        if ($detach) {
+          # shutdown.exe waits until the shutdown itself finishes. The normal
+          # request path would hit commandTimeoutMs and kill that process,
+          # cancelling the very shutdown we asked for. A detached command is
+          # deliberately allowed only as an explicit protocol flag: reply
+          # after cmd.exe has been created, then let it finish independently.
+          [IO.File]::WriteAllText($commandPath, "@echo off`r`n$commandText`r`ndel `"%~f0`"`r`n", [Text.Encoding]::ASCII)
+          Start-Process -FilePath $env:ComSpec -ArgumentList @('/d', '/c', $commandPath) -WindowStyle Hidden -ErrorAction Stop
+          $commandPath = $null # the detached cmd.exe owns and deletes it
+          Write-Response ([ordered]@{
+            id = $requestId
+            ok = $true
+            detached = $true
+            stdoutBase64 = ''
+            stderrBase64 = ''
+          })
+          continue
+        }
         [IO.File]::WriteAllText($commandPath, "@echo off`r`n$commandText`r`n", [Text.Encoding]::ASCII)
         [IO.File]::WriteAllText($wrapperPath, "@echo off`r`ncmd /d /c $commandPath`r`necho %ERRORLEVEL% > $exitCodePath`r`nexit /b 0`r`n", [Text.Encoding]::ASCII)
         $process = Start-Process -FilePath $env:ComSpec -ArgumentList "/d /c $wrapperPath" -RedirectStandardOutput $stdoutPath -RedirectStandardError $stderrPath -PassThru -ErrorAction Stop
@@ -74,7 +93,7 @@ try {
           stderrBase64 = [Convert]::ToBase64String($stderrBytes)
         })
       } finally {
-        Remove-Item -LiteralPath $stdoutPath, $stderrPath, $commandPath, $wrapperPath, $exitCodePath -Force -ErrorAction SilentlyContinue
+        Remove-Item -LiteralPath @($stdoutPath, $stderrPath, $commandPath, $wrapperPath, $exitCodePath | Where-Object { $null -ne $_ }) -Force -ErrorAction SilentlyContinue
       }
     } catch {
       Write-AgentLog "request failed: $($_.Exception.Message)"

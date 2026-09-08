@@ -26,11 +26,14 @@
   `db/<vmName>/install-complete.marker`, который создаёт один раз
   `src/verbs/mark-windows-install-complete.js` по строке "ALL DONE" в
   `com1.log`). Конфиг не мутирует в штатной работе.
-- выключение гостя — ACPI `system_powerdown`, не `quit`/kill: через
+- выключение гостя — явная guest-команда `shutdown.exe /s /t 0` через
+  SYSTEM serial-agent на COM2, не `quit`/kill и не QMP ACPI-button: через
   process-manager (`a pm stop --name qemu-<vmName>`, лестница
-  `qmp-graceful → SIGTERM → SIGKILL`, обычный путь) или напрямую
+  `serial-shutdown → SIGTERM → SIGKILL`, обычный путь) или напрямую
   (`node src/verbs/orchestrators/shutdown-guest.js`, если VM поднята в обход
-  process-manager). Осиротевшие qemu/swtpm при SIGKILL самого
+  process-manager). QMP остаётся транспортной проверкой исчезновения qemu;
+  его `system_powerdown` сохранён, но исключён из active profile, так как на
+  этой Windows наблюдались hibernate и no-op при QMP `answered`. Осиротевшие qemu/swtpm при SIGKILL самого
   `run-vm.js` подчищает `src/lib/spawn-orphan-watchdog.js` (детач-процесс,
   переживает родителя по построению).
 - VM запускаются как сервисы process-manager (`scripts/services.def`,

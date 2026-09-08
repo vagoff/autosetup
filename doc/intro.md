@@ -11,4 +11,4 @@
 - `/data/wd/aibox/autosetup/doc/TODO.md` -- отложенное, с причинами отсрочки.
 
 VM запускаются как сервисы process-manager: `/data/wd/aibox/autosetup/scripts/services.def`
-(пробы и ACPI-останов -- `/data/wd/aibox/dev-env/tools/process-manager/doc/PROBES.md`).
+(пробы и штатный shutdown через COM2 -- `/data/wd/aibox/dev-env/tools/process-manager/doc/PROBES.md`).

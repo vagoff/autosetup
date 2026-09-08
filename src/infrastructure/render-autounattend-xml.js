@@ -29,7 +29,7 @@ function renderAutoLogon(unattend) {
           <PlainText>true</PlainText>
         </Password>
         <Enabled>true</Enabled>
-        <LogonCount>999</LogonCount>
+        <LogonCount>${unattend.autoLogonCount}</LogonCount>
         <Username>${escapeXml(unattend.adminUsername)}</Username>
       </AutoLogon>`;
 }

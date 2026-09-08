@@ -1,7 +1,7 @@
 import { requestGuestShutdown } from '../request-guest-shutdown.js';
 import { waitForQemuExit } from '../wait-for-qemu-exit.js';
 
-// Тонкий оркестратор: попросить гостя штатно выключиться (ACPI) и
+// Тонкий оркестратор: попросить Windows штатно выключиться через COM2 и
 // дождаться, пока qemu-процесс реально завершится. Никакой собственной
 // логики — она вся в request-guest-shutdown.js/wait-for-qemu-exit.js.
 // Единственный способ выключить VM, который агент может вызвать сам, по

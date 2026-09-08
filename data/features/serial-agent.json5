@@ -20,6 +20,10 @@
   taskStopTimeoutMs: 10000,
   commandTimeoutMs: 30000,
   maxResponseBytes: 1048576,
+  // Единственный штатный запрос выключения гостя. Исполняется agent'ом
+  // SYSTEM detached: shutdown.exe сам ждёт окончания shutdown, поэтому
+  // serial-agent не должен убить его по своему commandTimeoutMs.
+  shutdownCommand: 'shutdown.exe /s /t 0',
   guestScripts: {
     firstLogon: ['install-serial-command-agent.ps1'],
     supporting: ['serve-serial-command.ps1'],

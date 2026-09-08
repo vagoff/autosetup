@@ -23,7 +23,7 @@
 // [!] being imported ([!] unwrapped main, see its own tail), so importing it IS running it.
 import {readdirSync} from 'node:fs';
 import path from 'node:path';
-import cli from '/data/wd/aibox/dev-env/libs/json-args/src/cli_main.js';
+import {cli_main} from '/data/wd/aibox/dev-env/libs/json-args/src/cli_main.js';
 
 const PROFILES_DIR = '/data/wd/aibox/autosetup/data/profiles'; // [!] JSONCFG violation
 const RUN_VM = '/data/wd/aibox/autosetup/src/services/run-vm.js'; // [!] JSONCFG violation
@@ -43,23 +43,23 @@ function resolve_profile_path(name) {
     return path.join(PROFILES_DIR, name + PROFILE_SUFFIX);
 }
 
-function make_cli_options_schema(t) {
+function options_schema(t) {
     return t.record({
         profile: t.optional(t.describe(t.string1, `which VM to run: a file name (without ${PROFILE_SUFFIX}) from ${PROFILES_DIR}; omitted, the single profile there is used and ambiguity is an error`)),
     });
 }
 
-async function main(options) {
+async function run(options) {
     if (options.profile !== undefined) {
         process.env.AUTOSETUP_PROFILE = resolve_profile_path(options.profile); // [!] VIOLATION, see the header
     }
     await import(RUN_VM);
 }
 
-export {main};
+export {run, options_schema};
 
 if (import.meta.url === `file://${process.argv[1]}`) {
-    await cli.cli_main(main, make_cli_options_schema, process.argv, {
+    await cli_main(run, options_schema, process.argv, {
         description: 'run the Windows VM described by a data/profiles/<name>.json5 profile',
     });
 }

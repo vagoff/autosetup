@@ -2,6 +2,7 @@ import { createHash } from 'node:crypto';
 import { existsSync, readFileSync } from 'node:fs';
 import { mount } from 'libmount';
 import { config } from '../configure.js';
+import { buildFirstLogonCommands } from '../infrastructure/build-first-logon-commands.js';
 
 function sha256(data) {
     return createHash('sha256').update(data).digest('hex');
@@ -10,7 +11,7 @@ function sha256(data) {
 // Проверяет собранный FAT-образ независимо от QEMU: нужные файлы лежат в
 // корне, а ZIP внутри образа совпадает с закреплённой контрольной суммой.
 export function checkAnswerFileImage() {
-    const { unattend, openSsh, guestFeatures } = config;
+    const { unattend, openSsh } = config;
     if (!existsSync(unattend.answerFileImagePath)) {
         throw new Error(`нет USB-образа: ${unattend.answerFileImagePath}. Сначала запусти build-answer-file-image.js`);
     }
@@ -19,14 +20,16 @@ export function checkAnswerFileImage() {
     const fs = disk.getFileSystem();
     if (!fs) throw new Error('USB-образ не содержит распознаваемой FAT filesystem');
     const root = fs.getRoot();
-    // Имена guest-скриптов — из config.guestFeatures (собран из активного
-    // профиля/фич), а не из плоского unattend.firstLogonScripts — того
-    // поля больше нет, это состав определяется профилем.
-    const guestScriptNames = guestFeatures.flatMap((f) => [...f.guestScripts.firstLogon, ...f.guestScripts.supporting]);
+    const { scriptFiles } = buildFirstLogonCommands({
+        guestScriptsDir: config.paths.guestScriptsDir,
+        diagnostics: config.diagnostics,
+        guestFeatures: config.guestFeatures,
+        firstLogonCompletionLogLine: config.unattend.firstLogonCompletionLogLine,
+        windowsUpdate: config.windowsUpdate,
+    });
     const expectedNames = [
         unattend.answerFileFilename,
-        '_lib-guest-script-prelude.ps1',
-        ...guestScriptNames,
+        ...scriptFiles.map((file) => file.filename),
         openSsh.archiveFilename,
         openSsh.clientPublicKeyFilename,
     ];

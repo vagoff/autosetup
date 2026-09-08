@@ -7,8 +7,8 @@
 #
 # Это ЖЁСТКАЯ остановка (SIGTERM/SIGKILL самому процессу qemu — для
 # гостя внутри это как выдернуть вилку из розетки, без штатного
-# завершения служб). Основной путь — src/verbs/orchestrators/shutdown-guest.js (ACPI
-# system_powerdown, гость сам решает, как штатно выключиться); этот
+# завершения служб). Основной путь — src/verbs/orchestrators/shutdown-guest.js
+# (shutdown.exe через SYSTEM COM2 serial-agent); этот
 # скрипт — аварийный резерв на случай, если гость завис и не
 # выключается сам, и PID-based (работает только у человека на хосте —
 # см. src/verbs/wait-for-qemu-exit.js про то же самое для агента по сети).
