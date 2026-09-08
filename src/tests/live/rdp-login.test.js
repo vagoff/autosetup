@@ -40,15 +40,14 @@ test('live RDP login fails fast against an address nothing listens on', {
         attemptRdpLogin({
             pythonBinary: resolvePythonBinary(),
             scriptPath: resolveRdpCheckScript(),
-            // тот же loopback, но hostfwd на rdp привязан только к
-            // 127.0.0.1 (data/vars.json5) — на 127.0.0.2:3389 гарантированно
-            // никто не слушает.
-            hostAddress: '127.0.0.2',
+            // IETF TEST-NET-1: этот адрес не назначается реальным узлам и точно
+            // не является VM, чей hostfwd сейчас слушает 0.0.0.0:3389.
+            hostAddress: '192.0.2.1',
             username: config.unattend.adminUsername,
             password: config.unattend.adminPassword,
             timeoutMs: 5_000,
         }),
-        /не удалось выполнить логин/u,
+        /не удалось выполнить логин|таймаут/u,
     );
 });
 
