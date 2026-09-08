@@ -15,16 +15,18 @@
 // It matches qemu.guestShutdownTimeoutMs (180000) in data/base.json5, which is the same
 // number for the same reason on the src/verbs/orchestrators/shutdown-guest.js path.
 
+{_include: path = "../src/services/pm-plugins/plugins.def"}
+
 {profile: name = any_qemu
-    {plugin: name=tcp_probe require="/data/wd/aibox/dev-env/tools/process-manager/src/plugins/tcp-probe/tcp-probe.js" projection=TcpProbe options {port=4000}}
-    {plugin: name=qmp_probe require="/data/wd/aibox/dev-env/tools/process-manager/src/plugins/qmp-probe/qmp-probe.js" projection=QmpProbe options {port=4000; vm_name="win11-1c"}}
-    {plugin: name=serial_command_probe require="/data/wd/aibox/autosetup/src/services/pm-plugins/serial-command-probe.js" projection=SerialCommandProbe options {port=4003; probe_command="ver"}}
+    {plugin: name=tcp_probe options {port=4000}}
+    {plugin: name=qmp_probe options {port=4000; vm_name="win11-1c"}}
+    {plugin: name=serial_command_probe options {port=4003; probe_command="ver"}}
     // Сохраняем как документированный альтернативный transport, но НЕ
     // включаем: QMP acknowledged system_powerdown не гарантирует delivery
     // гостю. На этой Windows он наблюдался как hibernate или как полный
     // no-op при том же `answered`, после чего PM доходил до SIGINT.
-    // {plugin: name=qmp_graceful require="/data/wd/aibox/dev-env/tools/process-manager/src/plugins/qmp-graceful/qmp-graceful.js" projection=QmpGraceful options {port=4000}}
-    {plugin: name=serial_shutdown require="/data/wd/aibox/autosetup/src/services/pm-plugins/serial-command-graceful.js" projection=SerialCommandGraceful options {port=4003; command="shutdown.exe /s /t 0"}}
+    // {plugin: name=qmp_graceful options {port=4000}}
+    {plugin: name=serial_command_graceful options {port=4003; command="shutdown.exe /s /t 0"}}
 }
 
 {service:

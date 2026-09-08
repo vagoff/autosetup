@@ -1,0 +1,23 @@
+{defplugin:
+    name = serial_command_probe
+    require = "./serial-command-probe.js"
+    projection = SerialCommandProbe
+    options {t.record:
+        port {t.int1}
+        host {t.with_default: value = "127.0.0.1" {t.string1}}
+        timeout_sec {t.with_default: value = 2 {t.float_nz_pos}}
+        probe_command {t.string1}
+    }
+}
+
+{defplugin:
+    name = serial_command_graceful
+    require = "./serial-command-graceful.js"
+    projection = SerialCommandGraceful
+    options {t.record:
+        port {t.int1}
+        host {t.with_default: value = "127.0.0.1" {t.string1}}
+        timeout_sec {t.with_default: value = 5 {t.float_nz_pos}}
+        command {t.string1}
+    }
+}
