@@ -26,11 +26,17 @@ features/php-odata-demo/scripts/generate-odatatest-module.js  # генераци
 data/gen-config.json5   единственный конфиг: список документов, колонки, поля
                         карточки, табличные части, пути, права модуля
 data/dbinfo.json        машинный дамп метаданных 1С (аналог dobaerp/data/dbinfo.json)
-src/idiomlib/           наши копии модулей dobaerp (см. doc/merge-back.md)
 src/pages/              колонки списка и поля карточки из метаданных
 src/php/                генераторы PHP: обвязка, карточка, ajax-подсказка справочников
-scripts/                оркестратор генерации и приёмочный шлюз
+scripts/                оркестратор генерации
 ```
+
+Переиспользуемые idiomlib-модули (`dol_table_layout`, `dol_row_source_sql`,
+`dol_row_source_odata`, `dol_module`) больше не лежат здесь копией — они
+влиты в dobaerp и берутся оттуда напрямую (см. `doc/merge-back.md`). Своей
+версии этих файлов у нас больше нет: локальный `src/idiomlib/` был ровно тем
+форком, который правила проекта запрещают, и его удалили, как только апстрим
+дорос.
 
 Подключение и секреты в конфиг генератора не дублируются: они берутся из
 `data/1c-odata.json5` и состояния автосетапа.
@@ -38,9 +44,7 @@ scripts/                оркестратор генерации и приём�
 ## Проверки
 
 ```
-node features/php-odata-demo/scripts/check-dobaerp-sql-parity.js   # выход WMS не изменился
-node --test src/tests/php-odata-demo-generation.test.js                 # манифест + php -l
-node --test src/tests/dobaerp-upstream.test.js                          # апстрим не уехал
+node --test src/tests/php-odata-demo-generation.test.js   # манифест + php -l
 ```
 
 Манифест обновляется осознанно: `ODATATEST_APPROVE=1 node --test src/tests/php-odata-demo-generation.test.js`.

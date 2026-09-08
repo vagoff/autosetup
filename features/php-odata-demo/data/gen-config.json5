@@ -3,38 +3,11 @@
 // показываем и как они выглядят. В коде генератора констант нет.
 {
   // Исходное дерево dobaerp: оттуда берутся переиспользуемые idiomlib-модули
-  // и туда же наши правки должны вливаться обратно (см. doc/merge-back.md).
+  // (dol_table_layout/dol_row_source_*/dol_module -- напрямую, без локальных
+  // копий, см. doc/merge-back.md) и туда же генерируется сам модуль.
   dobaerp: {
     root: '/data/wd/aibox/dobaerp',
-    // Полная перегенерация WMS -- эталон для проверки, что расшивка
-    // idiomlib от SQL не изменила ни байта в существующем выходе.
-    generatorScript: 'src/wms/wms_app_gen.js',
     docrootSubdirectory: 'output/docroot',
-    // Файлы, которые мы держим у себя и подменяем в песочнице.
-    // Ключ -- путь внутри dobaerp. `from` -- наш файл, `upstream` -- pristine-копия
-    // оригинала (null, если файл новый и в dobaerp его пока нет).
-    // Разница важна: у заимствованных файлов сторожим дрейф апстрима,
-    // новые при мерже просто добавляются.
-    overlay: {
-      'src/idiomlib/dol_table_layout.js': {
-        from: 'src/idiomlib/dol_table_layout.js',
-        upstream: 'upstream/dol_table_layout.js.orig',
-      },
-      'src/idiomlib/dol_templates.js': {
-        from: 'src/idiomlib/dol_templates.js',
-        upstream: 'upstream/dol_templates.js.orig',
-      },
-      'src/idiomlib/dol_module.js': {
-        from: 'src/idiomlib/dol_module.js',
-        upstream: 'upstream/dol_module.js.orig',
-      },
-      'src/idiomlib/dol_row_source_sql.js': {
-        from: 'src/idiomlib/dol_row_source_sql.js',
-        upstream: null,
-      },
-    },
-    // Сравниваем не только docroot: генератор пишет ещё и в src/wms/*_auto.js.
-    comparedDirectories: ['output/docroot', 'src/wms'],
   },
 
   // Куда генерим модуль Dolibarr и как он называется.
@@ -52,10 +25,15 @@
     // Права модуля: без них restrictedArea() отказывает, а страницы модуля
     // возвращают "Доступ заборонено". WMS обходит это проверкой чужого
     // модуля ('mrp'), но демо про права так делать не должно.
+    // Формат -- как у dobaerp/src/idiomlib/dol_module.js (см. src/bpm/bpm_genmod.js):
+    // type -- 'r'/'w'/'d' (только для наглядности дескриптора), default --
+    // выдавать ли право автоматически при активации (здесь всегда 0: права
+    // раздаются вручную в админке, см. README.md), shortname -- то, что
+    // проверяет $user->hasRight('odatatest', shortname) в сгенерированном PHP.
     rights: [
-      {code: 'read', label: 'Просмотр документов 1С'},
-      {code: 'write', label: 'Изменение документов 1С'},
-      {code: 'delete', label: 'Удаление документов 1С'},
+      {shortname: 'read', label: 'Просмотр документов 1С', type: 'r', default: 0},
+      {shortname: 'write', label: 'Изменение документов 1С', type: 'w', default: 0},
+      {shortname: 'delete', label: 'Удаление документов 1С', type: 'd', default: 0},
     ],
     // Секреты намеренно ЗА пределами docroot: веб-сервер стенда отдаёт
     // dot-файлы наружу (проверено: custom/*/.env.secrets скачивается по HTTP),

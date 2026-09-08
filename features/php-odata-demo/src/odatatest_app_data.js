@@ -3,13 +3,10 @@
 // Состав миксинов страниц модуля `odatatest`.
 //
 // Всё переиспользуется из dobaerp по относительным путям (они резолвятся
-// относительно interlink/mixins_linker.js). Абсолютным путём подменяется
-// только то, что мы расшили у себя: link_mixins_dynamically специально
-// поддерживает абсолютные пути (`def.require.startsWith('/')`).
-
-const pth = require('path');
-
-const OUR_IDIOMLIB = pth.join(__dirname, 'idiomlib');
+// относительно interlink/mixins_linker.js, а не относительно этого файла).
+// dol_table_layout (с источником строк, подставляемым вместо SQL) -- это
+// уже сам dobaerp: расшивка от SQL влита туда (см. doc/merge-back.md),
+// своей копии больше нет.
 
 const _classes_for_any = [
     {require: '../idiomlibutils/app_generic', class: 'AppGeneric', single_exports: false},
@@ -32,9 +29,7 @@ const _classes_for_any = [
 
 const _classes_for_table_view = [
     ..._classes_for_any,
-    // Наша расшитая раскладка: та же самая, что у dobaerp, но умеющая брать
-    // строки не только из SQL.
-    {require: pth.join(OUR_IDIOMLIB, 'dol_table_layout'), single_exports: true},
+    {require: '../idiomlib/dol_table_layout', single_exports: true},
     {require: '../idiomlib/dol_auto_labels', single_exports: true},
     {require: '../idiomlib/dol_display_value', single_exports: true},
     {require: '../idiominterp/dol_data_driven', class: 'DOL_DataDriven', single_exports: false},

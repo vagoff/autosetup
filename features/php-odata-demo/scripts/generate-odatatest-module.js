@@ -15,11 +15,13 @@ const {link_mixins_dynamically} = require(pth.join(DOBAERP, 'interlink/mixins_li
 
 const DOL_SYSTEM_DATA = require(pth.join(DOBAERP, 'idiomlibutils/dol_system_data'));
 const {all_classes} = require('../src/odatatest_app_data');
-const {ODataTableRowSource} = require('../src/idiomlib/dol_row_source_odata');
+// Источник строк на 1С OData и раскладка модуля -- теперь оба из dobaerp:
+// расшивка от SQL влита туда, локальных копий больше нет (doc/merge-back.md).
+const {ODataTableRowSource} = require(pth.join(DOBAERP, 'idiomlib/dol_row_source_odata'));
 const {build_document_list_fields} = require('../src/pages/doc_list_fields');
 const {build_document_card_fields, build_document_table_columns} = require('../src/pages/doc_card_fields');
 const {gen_card_page} = require('../src/php/card_page');
-const {generate_module_class} = require('../src/idiomlib/dol_module');
+const {generate_module_descriptor} = require(pth.join(DOBAERP, 'idiomlib/dol_module'));
 const {gen_env_secrets_include, gen_client_include, gen_module_css, gen_module_js, gen_admin_setup_page, gen_page_access_include, gen_lookup_ajax} = require('../src/php/runtime_lib');
 const {ensure_lines} = require('/data/wd/aibox/dev-env/libs/utils/src/ensure_lines');
 const {textUpdateFile} = require(pth.join(DOBAERP, 'textlib/text_update'));
@@ -79,7 +81,7 @@ async function main() {
     }
     await generate_runtime_includes({config, connection, output_dir, output_root});
     await generate_secrets({config, connection, output_root});
-    await generate_module_descriptor({config, output_root});
+    await generate_odatatest_module_descriptor({config, output_root});
     console.log(`${output_dir}: ${config.documents.length} list pages, runtime, secrets, module descriptor`);
 }
 
@@ -202,14 +204,16 @@ async function generate_card_page({document, entity, card_fields, card_expand, t
     await afs.writeFile(pth.join(output_dir, `${document.slug}-card.php`), text);
 }
 
-async function generate_module_descriptor({config, output_root}) {
+async function generate_odatatest_module_descriptor({config, output_root}) {
     const submenu = {};
     for (const document of config.documents) {
         submenu[document.slug] = {title: document.title, url: `${document.slug}-list.php`};
     }
-    await generate_module_class(output_root, {
+    // module_dir больше не передаём: dol_module выводит каталог из
+    // module_name (нижний регистр), а не принимает его отдельно -- уже
+    // совпадает с config.module.docrootSubdirectory ('custom/odatatest').
+    await generate_module_descriptor(output_root, {
         module_name: config.module.name,
-        module_dir: config.module.docrootSubdirectory,
         numero: config.module.number,
         position: config.module.position,
         version: config.module.version,
